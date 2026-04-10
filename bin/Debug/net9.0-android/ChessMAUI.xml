@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ChessMAUI</name>
+    </assembly>
+    <members>
+        <member name="T:ChessMAUI.AppState">
+            <summary>Estado global compartilhado entre páginas (singleton).</summary>
+        </member>
+        <member name="T:ChessMAUI.Models.TournamentRecord">
+            <summary>Registro histórico de um torneio disputado.</summary>
+        </member>
+        <member name="T:ChessMAUI.Services.BotChatService">
+            <summary>Gera mensagens de chat simuladas do bot adversário.</summary>
+        </member>
+        <member name="T:ChessMAUI.Services.MatchmakingService">
+            <summary>
+            Gerencia a sala de espera (matchmaking).
+            Hoje usa bots para preencher as vagas; futuramente substituir
+            o FillBotsAsync por chamadas SignalR/WebSocket para jogadores reais.
+            </summary>
+        </member>
+        <member name="E:ChessMAUI.Services.MatchmakingService.PlayerJoined">
+            <summary>Disparado cada vez que um jogador entra na sala.</summary>
+        </member>
+        <member name="E:ChessMAUI.Services.MatchmakingService.RoomFull">
+            <summary>Disparado quando a sala está cheia e o torneio vai começar.</summary>
+        </member>
+        <member name="T:ChessMAUI.Services.ProfileService">
+            <summary>Perfil do jogador persistido via Preferences.</summary>
+        </member>
+        <member name="M:ChessMAUI.Services.ProfileService.UpdateElo(System.Boolean,System.Int32)">
+            <summary>Atualiza rating ELO após uma partida.</summary>
+        </member>
+        <member name="T:ChessMAUI.Services.RoomLobbyService">
+            <summary>
+            Gerencia múltiplas salas abertas simultaneamente (estilo PokerStars lobby).
+            Cada sala preenche bots independentemente para simular movimento real.
+            </summary>
+        </member>
+        <member name="M:ChessMAUI.Services.RoomLobbyService.JoinRoom(ChessMAUI.Models.TournamentRoom)">
+            <summary>Registra o humano em uma sala. Retorna a sala atualizada.</summary>
+        </member>
+        <member name="T:ChessMAUI.Services.SoundService">
+            <summary>
+            Gera tons WAV sintetizados em memória e os reproduz via Plugin.Maui.Audio.
+            Não exige arquivos de áudio externos.
+            </summary>
+        </member>
+        <member name="T:ChessMAUI.Services.TournamentHistoryService">
+            <summary>Persiste histórico dos últimos torneios em JSON no AppDataDirectory.</summary>
+        </member>
+        <member name="M:ChessMAUI.Services.TournamentService.CheckAlert(ChessMAUI.Models.Tournament)">
+            <summary>
+            Retorna o tipo de alerta baseado na posição atual do humano.
+            Bubble = próximo a ser eliminado antes das premiações.
+            ITM    = acabou de entrar na zona de prêmios.
+            </summary>
+        </member>
+        <member name="T:ChessMAUI.Resource">
+            <summary>
+            Android Resource Designer class.
+            Exposes the Android Resource designer assembly into the project Namespace.
+            </summary>
+        </member>
+    </members>
+</doc>

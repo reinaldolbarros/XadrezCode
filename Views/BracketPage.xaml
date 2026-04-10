@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ChessMAUI.Views.BracketPage"
+             Title="Torneio"
+             BackgroundColor="#1A1A2E"
+             Shell.NavBarIsVisible="True">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+
+        <!-- ══ Cabeçalho do torneio ══ -->
+        <Frame Grid.Row="0" BackgroundColor="#16213E" BorderColor="#0F3460"
+               CornerRadius="0" Padding="16,12" HasShadow="False">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <VerticalStackLayout Spacing="2">
+                    <Label x:Name="RoundLabel"     Text="Rodada"
+                           TextColor="White"       FontSize="18" FontAttributes="Bold"/>
+                    <Label x:Name="PlayersLabel"   Text="Jogadores restantes"
+                           TextColor="#AAAACC"     FontSize="12"/>
+                </VerticalStackLayout>
+
+                <!-- Prêmio pool -->
+                <Frame Grid.Column="1" BackgroundColor="#0F3460" CornerRadius="8"
+                       Padding="12,6" HasShadow="False" Margin="0,0,8,0">
+                    <VerticalStackLayout HorizontalOptions="Center">
+                        <Label Text="PRÊMIO TOTAL" TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
+                        <Label x:Name="PoolLabel" Text="$ 0" TextColor="#FFD700"
+                               FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Seu prêmio mínimo -->
+                <Frame Grid.Column="2" BackgroundColor="#0F3460" CornerRadius="8"
+                       Padding="12,6" HasShadow="False">
+                    <VerticalStackLayout HorizontalOptions="Center">
+                        <Label Text="SEU PRÊMIO"  TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
+                        <Label x:Name="YourPrizeLabel" Text="$ 0" TextColor="#4CAF50"
+                               FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+            </Grid>
+        </Frame>
+
+        <!-- ══ Banner de alerta (Bubble / ITM) ══ -->
+        <Frame Grid.Row="1" x:Name="AlertBanner"
+               IsVisible="False"
+               CornerRadius="0" Padding="12,8" HasShadow="False">
+            <Label x:Name="AlertLabel"
+                   Text=""
+                   FontSize="14" FontAttributes="Bold"
+                   HorizontalTextAlignment="Center"/>
+        </Frame>
+
+        <!-- ══ Tabela de premiação ══ -->
+        <ScrollView Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,0">
+            <StackLayout x:Name="PrizeRow" Orientation="Horizontal" Padding="12,8" Spacing="8"/>
+        </ScrollView>
+
+        <!-- ══ Lista de partidas da rodada ══ -->
+        <ScrollView Grid.Row="3" Margin="0,4">
+            <VerticalStackLayout x:Name="MatchContainer" Spacing="8" Padding="12,0"/>
+        </ScrollView>
+
+        <!-- ══ Botão de ação ══ -->
+        <Button Grid.Row="4"
+                x:Name="ActionBtn"
+                Text="JOGAR MINHA PARTIDA"
+                Clicked="OnActionBtnClicked"
+                BackgroundColor="#0F3460"
+                TextColor="White"
+                FontAttributes="Bold"
+                FontSize="16"
+                CornerRadius="0"
+                HeightRequest="56"/>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ChessMAUI.Views.WaitingRoomPage"
+             Title="Sala de Espera"
+             BackgroundColor="#1A1A2E"
+             Shell.BackButtonBehavior="{x:Null}">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- ══ Cabeçalho: info do torneio ══ -->
+        <Frame Grid.Row="0" BackgroundColor="#16213E" BorderColor="#0F3460"
+               CornerRadius="0" Padding="16,14" HasShadow="False">
+            <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto">
+
+                <Label x:Name="TournTitle"
+                       Text="Torneio de 8 Jogadores"
+                       TextColor="White" FontSize="18" FontAttributes="Bold"
+                       Grid.ColumnSpan="3"/>
+
+                <Label x:Name="TournSubtitle"
+                       Text="Mata-mata • Prêmio total: $ 0"
+                       TextColor="#AAAACC" FontSize="12"
+                       Grid.Row="1"/>
+
+                <Frame Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
+                       BackgroundColor="#0F3460" CornerRadius="8"
+                       Padding="12,6" HasShadow="False" Margin="8,0">
+                    <VerticalStackLayout HorizontalOptions="Center">
+                        <Label Text="BUY-IN"    TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
+                        <Label x:Name="BuyInLabel" Text="$ 0" TextColor="#FFD700"
+                               FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
+                       BackgroundColor="#0F3460" CornerRadius="8"
+                       Padding="12,6" HasShadow="False">
+                    <VerticalStackLayout HorizontalOptions="Center">
+                        <Label Text="TEMPO"     TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
+                        <Label x:Name="TimeLabel" Text="5 min" TextColor="White"
+                               FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+            </Grid>
+        </Frame>
+
+        <!-- ══ Barra de progresso ══ -->
+        <Frame Grid.Row="1" BackgroundColor="#16213E" BorderColor="Transparent"
+               CornerRadius="0" Padding="16,10" HasShadow="False">
+            <VerticalStackLayout Spacing="6">
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label x:Name="StatusLabel"
+                           Text="Aguardando jogadores..."
+                           TextColor="#AAAACC" FontSize="13" VerticalOptions="Center"/>
+                    <Label x:Name="CounterLabel"
+                           Grid.Column="1"
+                           Text="1/8"
+                           TextColor="White" FontSize="15" FontAttributes="Bold"/>
+                </Grid>
+                <ProgressBar x:Name="JoinProgress"
+                             Progress="0"
+                             ProgressColor="#4CAF50"
+                             BackgroundColor="#0F3460"
+                             HeightRequest="6"/>
+            </VerticalStackLayout>
+        </Frame>
+
+        <!-- ══ Lista de slots ══ -->
+        <ScrollView Grid.Row="2">
+            <VerticalStackLayout x:Name="SlotsContainer" Padding="12,8" Spacing="6"/>
+        </ScrollView>
+
+        <!-- ══ Rodapé: botão cancelar / countdown ══ -->
+        <Grid Grid.Row="3">
+            <Button x:Name="CancelBtn"
+                    Text="✕  Cancelar e Sair"
+                    Clicked="OnCancelClicked"
+                    BackgroundColor="#3A1A1A"
+                    TextColor="#FF5252"
+                    FontAttributes="Bold"
+                    FontSize="15"
+                    CornerRadius="0"
+                    HeightRequest="52"/>
+
+            <!-- Overlay de countdown (aparece quando sala está cheia) -->
+            <Frame x:Name="CountdownFrame"
+                   IsVisible="False"
+                   BackgroundColor="#0D2A0D"
+                   BorderColor="#4CAF50"
+                   CornerRadius="0"
+                   Padding="0"
+                   HasShadow="False">
+                <Label x:Name="CountdownLabel"
+                       Text="🎮  SALA COMPLETA!  Iniciando em 3..."
+                       TextColor="#4CAF50"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       HorizontalTextAlignment="Center"
+                       VerticalOptions="Center"
+                       HeightRequest="52"/>
+            </Frame>
+        </Grid>
+
+    </Grid>
+</ContentPage>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ChessMAUI.Views.LobbyPage"
+             Title="Xadrez Online"
+             BackgroundColor="#1A1A2E">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16,12" Spacing="0">
+
+            <!-- ══ Perfil ══ -->
+            <Frame BackgroundColor="#16213E" BorderColor="#0F3460"
+                   CornerRadius="14" Padding="16,12" Margin="0,0,0,12">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+
+                    <!-- Avatar (toque para trocar) -->
+                    <Frame Grid.Column="0" BackgroundColor="#0F3460" CornerRadius="28"
+                           WidthRequest="56" HeightRequest="56" Padding="0" HasShadow="False"
+                           Margin="0,0,12,0">
+                        <Label x:Name="AvatarLabel" Text="♟" FontSize="28"
+                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnAvatarTapped"/>
+                        </Frame.GestureRecognizers>
+                    </Frame>
+
+                    <!-- Nome + rank -->
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                        <Label x:Name="NameLabel"   Text="Jogador"
+                               TextColor="White" FontSize="18" FontAttributes="Bold"/>
+                        <Label x:Name="RankLabel"   Text="Iniciante"
+                               TextColor="#FFD700" FontSize="12"/>
+                        <Label x:Name="RatingLabel" Text="Rating: 1200"
+                               TextColor="#AAAACC" FontSize="11"/>
+                    </VerticalStackLayout>
+
+                    <!-- Saldo -->
+                    <Frame Grid.Column="2" BackgroundColor="#0F3460" CornerRadius="10"
+                           Padding="12,8" HasShadow="False">
+                        <VerticalStackLayout HorizontalOptions="Center">
+                            <Label Text="SALDO" TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
+                            <Label x:Name="BalanceLabel" Text="$ 1.000"
+                                   TextColor="#4CAF50" FontSize="18" FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                </Grid>
+            </Frame>
+
+            <!-- ══ Estatísticas ══ -->
+            <Frame BackgroundColor="#16213E" BorderColor="#0F3460"
+                   CornerRadius="14" Padding="14,10" Margin="0,0,0,16">
+                <Grid ColumnDefinitions="*,*,*">
+                    <VerticalStackLayout HorizontalOptions="Center">
+                        <Label x:Name="WinsLabel"     Text="0" TextColor="#4CAF50" FontSize="20" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                        <Label Text="Vitórias"          TextColor="#AAAACC" FontSize="11" HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
+                        <Label x:Name="LossesLabel"   Text="0" TextColor="#FF5252" FontSize="20" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                        <Label Text="Derrotas"          TextColor="#AAAACC" FontSize="11" HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center">
+                        <Label x:Name="TournWinsLabel" Text="0" TextColor="#FFD700" FontSize="20" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                        <Label Text="Torneios Vencidos" TextColor="#AAAACC" FontSize="11" HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </Frame>
+
+            <!-- ══ Botões principais ══ -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,0,0,16">
+                <Button Text="🏆  Torneios"
+                        Clicked="OnTournamentsClicked"
+                        BackgroundColor="#0F3460"
+                        TextColor="White" FontAttributes="Bold" FontSize="15"
+                        CornerRadius="12" HeightRequest="52"/>
+
+                <Button Grid.Column="1"
+                        Text="📋  Histórico"
+                        Clicked="OnHistoryClicked"
+                        BackgroundColor="#16213E"
+                        TextColor="White" FontAttributes="Bold" FontSize="15"
+                        CornerRadius="12" HeightRequest="52"/>
+            </Grid>
+
+            <Button Text="♟  Jogo Rápido vs IA"
+                    x:Name="QuickPlayBtn"
+                    Clicked="OnQuickPlayClicked"
+                    BackgroundColor="#769656"
+                    TextColor="White" FontAttributes="Bold" FontSize="15"
+                    CornerRadius="12" HeightRequest="52"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

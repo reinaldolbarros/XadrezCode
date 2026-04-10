@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ChessMAUI.ViewModels"
+             x:Class="ChessMAUI.Views.GamePage"
+             x:DataType="vm:GameViewModel"
+             Title="Xadrez"
+             BackgroundColor="#302E2B">
+
+    <ContentPage.Resources>
+        <Style x:Key="PieceLabel" TargetType="Label">
+            <Setter Property="HorizontalOptions"      Value="Center"/>
+            <Setter Property="VerticalOptions"        Value="Center"/>
+            <Setter Property="HorizontalTextAlignment" Value="Center"/>
+            <Setter Property="VerticalTextAlignment"   Value="Center"/>
+            <Setter Property="FontSize"               Value="28"/>
+            <Setter Property="InputTransparent"       Value="True"/>
+        </Style>
+
+        <Style x:Key="TimerFrame" TargetType="Frame">
+            <Setter Property="CornerRadius"  Value="10"/>
+            <Setter Property="Padding"       Value="12,8"/>
+            <Setter Property="Margin"        Value="0,4"/>
+            <Setter Property="HasShadow"     Value="False"/>
+        </Style>
+
+        <Style x:Key="ClockLabel" TargetType="Label">
+            <Setter Property="FontSize"       Value="26"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="FontFamily"     Value="OpenSansRegular"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" Padding="8,4">
+
+        <!-- ══════════════════════════════════════════════
+             Linha 0 — Relógio das PRETAS (IA) + Chat bubble
+             ══════════════════════════════════════════════ -->
+        <Frame Grid.Row="0"
+               Style="{StaticResource TimerFrame}"
+               BackgroundColor="#1E1E1E"
+               IsVisible="{Binding TimerVisible}">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <!-- Nome + indicador de pensamento -->
+                <StackLayout Orientation="Horizontal" Spacing="8" VerticalOptions="Center">
+                    <Label Text="♟ IA (Pretas)" TextColor="#CCCCCC" FontSize="13" VerticalOptions="Center"/>
+                    <ActivityIndicator IsRunning="{Binding IsAIThinking}"
+                                       IsVisible="{Binding IsAIThinking}"
+                                       Color="#AAAAAA"
+                                       WidthRequest="18" HeightRequest="18"
+                                       VerticalOptions="Center"/>
+                </StackLayout>
+
+                <!-- Tempo das Pretas -->
+                <Label Grid.Column="1"
+                       Text="{Binding BlackTimeDisplay}"
+                       Style="{StaticResource ClockLabel}"
+                       TextColor="White"
+                       VerticalOptions="Center">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding IsBlackLowTime}" Value="True">
+                            <Setter Property="TextColor" Value="#FF4444"/>
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+            </Grid>
+        </Frame>
+
+        <!-- ══════════════════════════════════════════════
+             Linha 1 — Barra de status
+             ══════════════════════════════════════════════ -->
+        <Frame Grid.Row="1"
+               BackgroundColor="#403D38"
+               BorderColor="Transparent"
+               CornerRadius="8"
+               Padding="10,6"
+               Margin="0,0,0,4">
+            <Label Text="{Binding StatusMessage}"
+                   TextColor="White"
+                   FontSize="14"
+                   FontAttributes="Bold"
+                   HorizontalTextAlignment="Center"/>
+        </Frame>
+
+        <!-- ══════════════════════════════════════════════
+             Linha 2 — Balão de chat do bot (oculto por padrão)
+             ══════════════════════════════════════════════ -->
+        <Frame Grid.Row="2"
+               x:Name="ChatBubble"
+               IsVisible="False"
+               BackgroundColor="#2A2A3A"
+               BorderColor="#555577"
+               CornerRadius="10"
+               Padding="10,6"
+               Margin="4,0">
+            <Label x:Name="ChatLabel"
+                   Text=""
+                   TextColor="#DDDDFF"
+                   FontSize="13"
+                   HorizontalTextAlignment="Center"/>
+        </Frame>
+
+        <!-- ══════════════════════════════════════════════
+             Linha 3 — Tabuleiro 8x8
+             ══════════════════════════════════════════════ -->
+        <Grid Grid.Row="3"
+              x:Name="BoardGrid"
+              HorizontalOptions="Center"
+              VerticalOptions="Center"/>
+
+        <!-- ══════════════════════════════════════════════
+             Linha 4 — Relógio das BRANCAS (jogador) — fundo
+             ══════════════════════════════════════════════ -->
+        <Frame Grid.Row="4"
+               Style="{StaticResource TimerFrame}"
+               BackgroundColor="#4A4035"
+               IsVisible="{Binding TimerVisible}">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="14">
+
+                <!-- Nome do jogador -->
+                <Label Text="♙ Você (Brancas)"
+                       TextColor="#DDDDDD"
+                       FontSize="13"
+                       VerticalOptions="Center"/>
+
+                <!-- Contador por jogada — só aparece quando ativo (≥ 2 min) -->
+                <VerticalStackLayout Grid.Column="1"
+                                     IsVisible="{Binding ShowMoveTimer}"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="Center"
+                                     Spacing="1">
+                    <Label Text="por jogada"
+                           TextColor="#AAAAAA"
+                           FontSize="9"
+                           HorizontalTextAlignment="Center"/>
+                    <Label Text="{Binding MoveTimeDisplay}"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalTextAlignment="Center">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsMoveTimeLow}" Value="True">
+                                <Setter Property="TextColor" Value="#FF4444"/>
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </VerticalStackLayout>
+
+                <!-- Tempo total da partida -->
+                <Label Grid.Column="2"
+                       Text="{Binding WhiteTimeDisplay}"
+                       Style="{StaticResource ClockLabel}"
+                       TextColor="White"
+                       VerticalOptions="Center"
+                       IsVisible="{Binding TimerVisible}">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding IsWhiteLowTime}" Value="True">
+                            <Setter Property="TextColor" Value="#FF4444"/>
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+            </Grid>
+        </Frame>
+
+        <!-- ══════════════════════════════════════════════
+             Linha 5 — Botões
+             ══════════════════════════════════════════════ -->
+        <Grid Grid.Row="5" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,6,0,2" ColumnSpacing="6">
+
+            <!-- Jogo casual: Novo Jogo -->
+            <Button x:Name="NewGameBtn"
+                    Text="Novo Jogo"
+                    Clicked="OnNewGameClicked"
+                    IsVisible="{Binding ShowNewGameButton}"
+                    BackgroundColor="#769656"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="8"
+                    Padding="16,10"/>
+
+            <!-- Modo torneio: Voltar ao Torneio (só após game over) -->
+            <Button x:Name="ReturnBtn"
+                    Text="← Torneio"
+                    Clicked="OnReturnToTournamentClicked"
+                    IsVisible="{Binding ShowReturnButton}"
+                    BackgroundColor="#0F3460"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="8"
+                    Padding="16,10"/>
+
+            <!-- Desistir (visível durante a partida) -->
+            <Button x:Name="ResignBtn"
+                    Grid.Column="1"
+                    Text="🏳"
+                    Command="{Binding ResignCommand}"
+                    IsVisible="{Binding ShowResignButton}"
+                    BackgroundColor="#8B0000"
+                    TextColor="White"
+                    CornerRadius="8"
+                    WidthRequest="48"
+                    Padding="0"
+                    ToolTipProperties.Text="Desistir"/>
+
+            <!-- Propor empate (apenas fora de torneio) -->
+            <Button x:Name="DrawBtn"
+                    Grid.Column="2"
+                    Text="½"
+                    Command="{Binding OfferDrawCommand}"
+                    IsVisible="{Binding CanOfferDraw}"
+                    BackgroundColor="#555555"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="8"
+                    WidthRequest="48"
+                    Padding="0"
+                    ToolTipProperties.Text="Propor empate"/>
+
+            <!-- Som -->
+            <Button x:Name="SoundBtn"
+                    Grid.Column="3"
+                    Text="🔊"
+                    Clicked="OnSoundToggled"
+                    BackgroundColor="#555555"
+                    TextColor="White"
+                    CornerRadius="8"
+                    WidthRequest="48"
+                    Padding="0"/>
+        </Grid>
+
+    </Grid>
+</ContentPage>
