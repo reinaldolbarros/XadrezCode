@@ -295,3 +295,4 @@ C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-maccatalyst\maccatalyst-x64\
 C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-maccatalyst\maccatalyst-x64\ChessMAUI.pdb
 C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-maccatalyst\maccatalyst-x64\ChessMAUI.genruntimeconfig.cache
 C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-maccatalyst\maccatalyst-x64\ref\ChessMAUI.dll
+C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-maccatalyst\maccatalyst-x64\ChessMAUI.sourcelink.json

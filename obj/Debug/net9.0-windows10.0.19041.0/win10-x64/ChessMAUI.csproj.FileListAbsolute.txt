@@ -514,3 +514,4 @@ C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-windows10.0.19041.0\win10-x6
 C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-windows10.0.19041.0\win10-x64\qualifiers.txt.intermediate
 C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-windows10.0.19041.0\win10-x64\MultipleQualifiersPerDimensionFound.txt
 C:\Users\reina\Documents\ChessMAUI\bin\Debug\net9.0-windows10.0.19041.0\win10-x64\Plugin.Maui.Audio.dll
+C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-windows10.0.19041.0\win10-x64\ChessMAUI.sourcelink.json

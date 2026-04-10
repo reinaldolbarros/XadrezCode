@@ -306,3 +306,4 @@ C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-ios\iossimulator-x64\refint\
 C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-ios\iossimulator-x64\ChessMAUI.pdb
 C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-ios\iossimulator-x64\ChessMAUI.genruntimeconfig.cache
 C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-ios\iossimulator-x64\ref\ChessMAUI.dll
+C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-ios\iossimulator-x64\ChessMAUI.sourcelink.json
