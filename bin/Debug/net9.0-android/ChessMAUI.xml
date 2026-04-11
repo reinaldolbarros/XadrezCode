@@ -32,6 +32,12 @@
         <member name="M:ChessMAUI.Services.ProfileService.UpdateElo(System.Boolean,System.Int32)">
             <summary>Atualiza rating ELO após uma partida.</summary>
         </member>
+        <member name="T:ChessMAUI.Services.RankingService">
+            <summary>
+            Gerencia o ranking global e semanal.
+            Bots simulados dão sensação de comunidade ativa.
+            </summary>
+        </member>
         <member name="T:ChessMAUI.Services.RoomLobbyService">
             <summary>
             Gerencia múltiplas salas abertas simultaneamente (estilo PokerStars lobby).

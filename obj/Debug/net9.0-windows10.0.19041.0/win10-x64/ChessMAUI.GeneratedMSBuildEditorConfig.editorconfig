@@ -70,6 +70,12 @@ build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.LobbyPage.
 build_metadata.AdditionalFiles.TargetPath = Views\LobbyPage.xaml
 build_metadata.AdditionalFiles.RelativePath = Views\LobbyPage.xaml
 
+[C:/Users/reina/Documents/ChessMAUI/Views/RankingPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.RankingPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\RankingPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\RankingPage.xaml
+
 [C:/Users/reina/Documents/ChessMAUI/Views/TournamentHistoryPage.xaml]
 build_metadata.AdditionalFiles.GenKind = Xaml
 build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.TournamentHistoryPage.xaml

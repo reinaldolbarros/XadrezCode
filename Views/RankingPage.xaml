@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ChessMAUI.Views.RankingPage"
+             Title="Ranking"
+             BackgroundColor="#1A1A2E">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+
+        <!-- ══ Faixas de classificação ══ -->
+        <Frame Grid.Row="0" BackgroundColor="#16213E" BorderColor="Transparent"
+               CornerRadius="0" Padding="12,10" HasShadow="False">
+            <ScrollView Orientation="Horizontal">
+                <HorizontalStackLayout Spacing="8" x:Name="TierBar"/>
+            </ScrollView>
+        </Frame>
+
+        <!-- ══ Abas Global / Semanal ══ -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*" BackgroundColor="#0F3460">
+            <Button x:Name="GlobalTab"  Text="🌍  Global"  Clicked="OnGlobalTab"
+                    BackgroundColor="#1A5276" TextColor="White" CornerRadius="0"
+                    FontAttributes="Bold" HeightRequest="42"/>
+            <Button x:Name="WeeklyTab"  Grid.Column="1" Text="📅  Semanal" Clicked="OnWeeklyTab"
+                    BackgroundColor="#0F3460" TextColor="#AAAACC" CornerRadius="0"
+                    HeightRequest="42"/>
+        </Grid>
+
+        <!-- ══ Cabeçalho da tabela ══ -->
+        <Grid Grid.Row="2" ColumnDefinitions="44,Auto,*,80,60"
+              BackgroundColor="#0A1628" Padding="10,5">
+            <Label Text="#"       TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+            <Label Grid.Column="1" Text="Faixa" TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" Margin="8,0" HorizontalTextAlignment="Center"/>
+            <Label Grid.Column="2" Text="Jogador" TextColor="#AAAACC" FontSize="11" FontAttributes="Bold"/>
+            <Label Grid.Column="3" Text="Pontos"  TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+            <Label Grid.Column="4" Text="ELO"     TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+        </Grid>
+
+        <!-- ══ Lista ══ -->
+        <ScrollView Grid.Row="3">
+            <VerticalStackLayout x:Name="RankList" Spacing="1"/>
+        </ScrollView>
+
+        <!-- ══ Sua posição (fixada no rodapé) ══ -->
+        <Frame Grid.Row="4" x:Name="MyPositionFrame"
+               BackgroundColor="#1C2A1C" BorderColor="#FFD700"
+               CornerRadius="0" Padding="10,8" HasShadow="False">
+            <Grid ColumnDefinitions="44,Auto,*,80,60">
+                <Label x:Name="MyPosLabel"   TextColor="#FFD700" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                <Label x:Name="MyTierLabel"  Grid.Column="1" FontSize="16" Margin="8,0" HorizontalTextAlignment="Center"/>
+                <StackLayout Grid.Column="2" Orientation="Horizontal" Spacing="6">
+                    <Label x:Name="MyAvatarLabel" FontSize="16" VerticalOptions="Center"/>
+                    <Label x:Name="MyNameLabel"   TextColor="#FFD700" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
+                </StackLayout>
+                <Label x:Name="MyPointsLabel" Grid.Column="3" TextColor="#4CAF50" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                <Label x:Name="MyRatingLabel" Grid.Column="4" TextColor="#AAAACC" FontSize="12" HorizontalTextAlignment="Center"/>
+            </Grid>
+        </Frame>
+
+    </Grid>
+</ContentPage>

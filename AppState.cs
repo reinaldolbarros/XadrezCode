@@ -8,11 +8,12 @@ public class AppState
 {
     public static AppState Current { get; } = new();
 
-    public ProfileService          Profile     { get; } = new();
-    public TournamentService       TournSvc    { get; } = new();
-    public MatchmakingService      Matchmaking { get; } = new();
-    public RoomLobbyService        RoomLobby   { get; } = new();
+    public ProfileService           Profile     { get; } = new();
+    public TournamentService        TournSvc    { get; } = new();
+    public MatchmakingService       Matchmaking { get; } = new();
+    public RoomLobbyService         RoomLobby   { get; } = new();
     public TournamentHistoryService History     { get; } = new();
+    public RankingService           Ranking     { get; } = new();
 
     // Torneio ativo
     public Tournament? ActiveTournament { get; set; }

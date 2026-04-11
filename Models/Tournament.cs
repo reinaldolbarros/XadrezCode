@@ -17,13 +17,22 @@ public class Tournament
     // Posição → prêmio em dinheiro virtual
     public Dictionary<int, decimal> PrizeTable { get; set; } = [];
 
+    // Heads-Up: melhor de 3
+    public bool IsHeadsUp            { get; set; }
+    public int  HumanSeriesWins      { get; set; }
+    public int  OpponentSeriesWins   { get; set; }
+    public int  HeadsUpGame          => HumanSeriesWins + OpponentSeriesWins + 1;
+    public string HeadsUpScore       => $"Jogo {HumanSeriesWins + OpponentSeriesWins + 1} de 3  ·  Placar: {HumanSeriesWins}–{OpponentSeriesWins}";
+    public bool HeadsUpSeriesDecided => HumanSeriesWins >= 2 || OpponentSeriesWins >= 2;
+
     public TournamentPlayer? HumanPlayer =>
         Players.FirstOrDefault(p => p.IsHuman);
 
+    // Para HeadsUp, pega o último match pendente (pode haver mais de um na mesma rodada)
     public TournamentMatch? CurrentHumanMatch =>
-        Matches.FirstOrDefault(m => m.Round == CurrentRound
-                                 && m.IsHumanMatch
-                                 && m.Status == MatchStatus.Pending);
+        Matches.LastOrDefault(m => m.Round == CurrentRound
+                                && m.IsHumanMatch
+                                && m.Status == MatchStatus.Pending);
 
     public List<TournamentMatch> CurrentRoundMatches =>
         Matches.Where(m => m.Round == CurrentRound).ToList();

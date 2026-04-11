@@ -13,5 +13,6 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("GamePage",              typeof(GamePage));
         Routing.RegisterRoute("TournamentLobbyPage",   typeof(TournamentLobbyPage));
         Routing.RegisterRoute("TournamentHistoryPage", typeof(TournamentHistoryPage));
+        Routing.RegisterRoute("RankingPage",           typeof(RankingPage));
     }
 }

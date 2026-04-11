@@ -5,30 +5,32 @@
              Title="Torneios"
              BackgroundColor="#1A1A2E">
 
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
 
-        <!-- ══ Filtros ══ -->
-        <Frame Grid.Row="0" BackgroundColor="#16213E" BorderColor="Transparent"
-               CornerRadius="0" Padding="12,8" HasShadow="False">
-            <ScrollView Orientation="Horizontal">
-                <HorizontalStackLayout x:Name="FilterBar" Spacing="8"/>
-            </ScrollView>
-        </Frame>
+        <!-- ══ Abas de tipo ══ -->
+        <ScrollView Grid.Row="0" Orientation="Horizontal" BackgroundColor="#16213E">
+            <HorizontalStackLayout x:Name="TypeTabBar" Spacing="4" Padding="10,8"/>
+        </ScrollView>
+
+        <!-- ══ Filtros de buy-in ══ -->
+        <ScrollView Grid.Row="1" Orientation="Horizontal" BackgroundColor="#12172A">
+            <HorizontalStackLayout x:Name="FilterBar" Spacing="6" Padding="10,6"/>
+        </ScrollView>
 
         <!-- ══ Cabeçalho da tabela ══ -->
-        <Grid Grid.Row="1"
-              ColumnDefinitions="*,80,80,80,70"
+        <Grid Grid.Row="2"
+              ColumnDefinitions="*,72,72,72,60"
               BackgroundColor="#0F3460"
-              Padding="14,6">
-            <Label Text="Mesa"       TextColor="#AAAACC" FontSize="11" FontAttributes="Bold"/>
-            <Label Grid.Column="1"   Text="Jogadores"   TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-            <Label Grid.Column="2"   Text="Buy-in"      TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-            <Label Grid.Column="3"   Text="Prêmio"      TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-            <Label Grid.Column="4"   Text="Tempo"       TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+              Padding="14,5">
+            <Label Text="Mesa"     TextColor="#AAAACC" FontSize="11" FontAttributes="Bold"/>
+            <Label Grid.Column="1" Text="Jogadores" TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+            <Label Grid.Column="2" Text="Buy-in"    TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+            <Label Grid.Column="3" Text="Prêmio"    TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+            <Label Grid.Column="4" Text="Tempo"     TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
         </Grid>
 
         <!-- ══ Lista de salas ══ -->
-        <ScrollView Grid.Row="2">
+        <ScrollView Grid.Row="3">
             <VerticalStackLayout x:Name="RoomList" Spacing="1"/>
         </ScrollView>
     </Grid>

@@ -34,8 +34,9 @@ public partial class LobbyPage : ContentPage
         var p = AppState.Current.Profile;
         AvatarLabel.Text    = p.Avatar;
         NameLabel.Text      = p.Name;
-        RankLabel.Text      = p.RankTitle;
-        RatingLabel.Text    = $"Rating: {p.Rating}";
+        TierLabel.Text      = p.TierIcon;
+        TierName.Text       = p.TierName;
+        RatingLabel.Text    = $"Rating: {p.Rating}  ·  {p.Points:N0} pts";
         BalanceLabel.Text   = $"$ {p.Balance:N0}";
         WinsLabel.Text      = p.Wins.ToString();
         LossesLabel.Text    = p.Losses.ToString();
@@ -61,6 +62,9 @@ public partial class LobbyPage : ContentPage
 
     private async void OnHistoryClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync("TournamentHistoryPage");
+
+    private async void OnRankingClicked(object? sender, EventArgs e)
+        => await Shell.Current.GoToAsync("RankingPage");
 
     private async void OnQuickPlayClicked(object? sender, EventArgs e)
     {

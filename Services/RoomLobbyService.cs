@@ -11,17 +11,7 @@ public class RoomLobbyService
     private readonly List<TournamentRoom> _rooms = [];
     private readonly Random _rng = Random.Shared;
 
-    // Configurações pré-definidas de salas que sempre existem no lobby
-    private static readonly (int Size, decimal BuyIn, int Time)[] Templates =
-    [
-        (8,  10,  1),  (8,  25,  2),  (8,  50,  3),
-        (16, 10,  2),  (16, 50,  3),  (16, 100, 5),
-        (32, 25,  3),  (32, 100, 5),  (32, 250, 10),
-        (64, 50,  5),  (64, 250, 10), (64, 500, 15),
-    ];
-
     public IReadOnlyList<TournamentRoom> Rooms => _rooms;
-
     public event Action? RoomsUpdated;
 
     public RoomLobbyService()
@@ -30,17 +20,54 @@ public class RoomLobbyService
         _ = SimulateLobbyActivityAsync();
     }
 
-    // Gera o lobby inicial com salas semi-preenchidas
     private void GenerateRooms()
     {
         _rooms.Clear();
-        foreach (var (size, buyIn, time) in Templates)
-        {
-            var room = new TournamentRoom { Size = size, BuyIn = buyIn, TimeMinutes = time };
-            // Pré-preenche entre 10% e 80% da sala para dar sensação de atividade
-            room.Joined = _rng.Next((int)(size * 0.1), (int)(size * 0.8));
-            _rooms.Add(room);
-        }
+
+        // ── Standard (mata-mata clássico) ──────────────────────────
+        Add(new TournamentRoom { Size = 8,  BuyIn = 10,  TimeMinutes = 1, Type = TournamentType.Standard });
+        Add(new TournamentRoom { Size = 8,  BuyIn = 25,  TimeMinutes = 2, Type = TournamentType.Standard });
+        Add(new TournamentRoom { Size = 16, BuyIn = 10,  TimeMinutes = 2, Type = TournamentType.Standard });
+        Add(new TournamentRoom { Size = 16, BuyIn = 50,  TimeMinutes = 3, Type = TournamentType.Standard });
+        Add(new TournamentRoom { Size = 32, BuyIn = 25,  TimeMinutes = 3, Type = TournamentType.Standard });
+        Add(new TournamentRoom { Size = 64, BuyIn = 50,  TimeMinutes = 5, Type = TournamentType.Standard });
+
+        // ── Heads-Up (1v1) ─────────────────────────────────────────
+        Add(new TournamentRoom { Size = 2, BuyIn = 10,  TimeMinutes = 2, Type = TournamentType.HeadsUp });
+        Add(new TournamentRoom { Size = 2, BuyIn = 25,  TimeMinutes = 2, Type = TournamentType.HeadsUp });
+        Add(new TournamentRoom { Size = 2, BuyIn = 50,  TimeMinutes = 3, Type = TournamentType.HeadsUp });
+        Add(new TournamentRoom { Size = 2, BuyIn = 100, TimeMinutes = 3, Type = TournamentType.HeadsUp });
+
+        // ── Bounty ─────────────────────────────────────────────────
+        Add(new TournamentRoom { Size = 8,  BuyIn = 20, TimeMinutes = 2, Type = TournamentType.Bounty, BountyPerPlayer = 5  });
+        Add(new TournamentRoom { Size = 16, BuyIn = 50, TimeMinutes = 3, Type = TournamentType.Bounty, BountyPerPlayer = 10 });
+        Add(new TournamentRoom { Size = 8,  BuyIn = 50, TimeMinutes = 3, Type = TournamentType.Bounty, BountyPerPlayer = 15 });
+
+        // ── Satélite ───────────────────────────────────────────────
+        Add(new TournamentRoom { Size = 8,  BuyIn = 5,  TimeMinutes = 2, Type = TournamentType.Satellite, SatelliteTarget = 50  });
+        Add(new TournamentRoom { Size = 8,  BuyIn = 10, TimeMinutes = 2, Type = TournamentType.Satellite, SatelliteTarget = 100 });
+        Add(new TournamentRoom { Size = 16, BuyIn = 25, TimeMinutes = 3, Type = TournamentType.Satellite, SatelliteTarget = 500 });
+
+        // ── Turbo ──────────────────────────────────────────────────
+        Add(new TournamentRoom { Size = 8,  BuyIn = 10, TimeMinutes = 2, Type = TournamentType.Turbo });
+        Add(new TournamentRoom { Size = 16, BuyIn = 25, TimeMinutes = 2, Type = TournamentType.Turbo });
+        Add(new TournamentRoom { Size = 32, BuyIn = 50, TimeMinutes = 2, Type = TournamentType.Turbo });
+
+        // ── Hyper-Turbo (1 min, 15s por jogada) ───────────────────
+        Add(new TournamentRoom { Size = 8,  BuyIn = 10, TimeMinutes = 1, Type = TournamentType.HyperTurbo });
+        Add(new TournamentRoom { Size = 8,  BuyIn = 25, TimeMinutes = 1, Type = TournamentType.HyperTurbo });
+        Add(new TournamentRoom { Size = 16, BuyIn = 50, TimeMinutes = 1, Type = TournamentType.HyperTurbo });
+
+        // ── Ranked por ELO ─────────────────────────────────────────
+        Add(new TournamentRoom { Size = 8,  BuyIn = 10, TimeMinutes = 3, Type = TournamentType.Ranked, MinRating = 0,    MaxRating = 1299 });
+        Add(new TournamentRoom { Size = 8,  BuyIn = 25, TimeMinutes = 3, Type = TournamentType.Ranked, MinRating = 1300, MaxRating = 1599 });
+        Add(new TournamentRoom { Size = 16, BuyIn = 50, TimeMinutes = 5, Type = TournamentType.Ranked, MinRating = 1600, MaxRating = 9999 });
+    }
+
+    private void Add(TournamentRoom room)
+    {
+        room.Joined = _rng.Next((int)(room.Size * 0.1), Math.Max((int)(room.Size * 0.1) + 1, (int)(room.Size * 0.8)));
+        _rooms.Add(room);
     }
 
     // Simula bots entrando e salas enchendo/esvaziando ao longo do tempo
@@ -93,6 +120,9 @@ public class RoomLobbyService
         var nova = new TournamentRoom
         {
             Size = room.Size, BuyIn = room.BuyIn, TimeMinutes = room.TimeMinutes,
+            Type = room.Type, BountyPerPlayer = room.BountyPerPlayer,
+            MinRating = room.MinRating, MaxRating = room.MaxRating,
+            SatelliteTarget = room.SatelliteTarget,
             Joined = _rng.Next(1, Math.Max(2, room.Size / 4))
         };
         if (idx >= 0) _rooms[idx] = nova;

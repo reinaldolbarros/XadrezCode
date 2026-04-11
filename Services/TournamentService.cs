@@ -38,6 +38,7 @@ public class TournamentService
         {
             Size = size, BuyIn = buyIn, PrizePool = buyIn * size,
             TotalRounds = totalRounds, CurrentRound = 1,
+            IsHeadsUp = size == 2,
             Status = TournamentStatus.Active,
             PrizeTable = BuildPrizeTable(size, buyIn * size)
         };
@@ -126,8 +127,51 @@ public class TournamentService
         var m = t.CurrentHumanMatch;
         if (m == null) return;
 
-        var human = m.HumanPlayer!;
-        Resolve(m, humanWon ? human : m.Opponent(human)!);
+        var human    = m.HumanPlayer!;
+        var opponent = m.Opponent(human)!;
+
+        // ── Heads-Up: melhor de 3 ─────────────────────────────────
+        if (t.IsHeadsUp)
+        {
+            // Marca o jogo como completo sem eliminar ainda
+            m.Winner = humanWon ? human : opponent;
+            m.Loser  = humanWon ? opponent : human;
+            m.Status = MatchStatus.Completed;
+
+            if (humanWon) t.HumanSeriesWins++;
+            else          t.OpponentSeriesWins++;
+
+            if (t.HeadsUpSeriesDecided)
+            {
+                // Série decidida — elimina o perdedor definitivamente
+                m.Loser.IsEliminated = true;
+                if (!humanWon)
+                {
+                    t.Status = TournamentStatus.HumanEliminated;
+                    SetFinalPosition(t, human);
+                }
+                else
+                {
+                    t.Status = TournamentStatus.HumanWon;
+                    human.FinalPosition   = 1;
+                    opponent.FinalPosition = 2;
+                }
+            }
+            else
+            {
+                // Série não decidida — adiciona próximo jogo
+                t.Matches.Add(new TournamentMatch
+                {
+                    Round   = t.CurrentRound,
+                    Player1 = human,
+                    Player2 = opponent
+                });
+            }
+            return;
+        }
+
+        // ── Formato padrão (eliminação direta) ───────────────────
+        Resolve(m, humanWon ? human : opponent);
 
         if (!humanWon)
         {
@@ -156,6 +200,10 @@ public class TournamentService
     // -------------------------------------------------------------------------
     public bool CheckCompletion(Tournament t)
     {
+        // HeadsUp: status já definido em RecordHumanResult
+        if (t.IsHeadsUp)
+            return t.Status is TournamentStatus.HumanWon or TournamentStatus.HumanEliminated;
+
         if (t.CurrentRound < t.TotalRounds) return false;
         if (t.CurrentRoundMatches.Any(m => m.Status == MatchStatus.Pending)) return false;
 

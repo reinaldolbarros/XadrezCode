@@ -35,8 +35,20 @@ public partial class BracketPage : ContentPage
         int ratingBefore = prof.Rating;
 
         svc.RecordHumanResult(t, humanWon);
-        if (humanWon) prof.RecordWin();
-        else          prof.RecordLoss();
+
+        // ── Heads-Up: série ainda não decidida → mostra placar e aguarda próxima partida
+        if (t.IsHeadsUp && !t.HeadsUpSeriesDecided)
+        {
+            string scoreMsg = humanWon
+                ? $"Você venceu!\nPlacar: {t.HumanSeriesWins}–{t.OpponentSeriesWins}"
+                : $"Adversário venceu!\nPlacar: {t.HumanSeriesWins}–{t.OpponentSeriesWins}";
+            await DisplayAlert("Heads-Up · Melhor de 3", scoreMsg + "\n\nPróximo jogo!", "Jogar");
+            RefreshUI();
+            return;
+        }
+
+        if (humanWon) { prof.RecordWin();  prof.AddPoints(15); }
+        else            prof.RecordLoss();
 
         // Atualiza ELO
         prof.UpdateElo(humanWon, state.TournamentOpponentRating);
@@ -54,14 +66,18 @@ public partial class BracketPage : ContentPage
                 RatingBefore = ratingBefore, RatingAfter = prof.Rating
             });
 
+            if (prize > 0) prof.AddPoints(25);
+
             string eloTxt = $"\nRating: {ratingBefore} → {prof.Rating}";
-            string msg = prize > 0
-                ? $"Você foi eliminado na {t.RoundName}.\nPrêmio: $ {prize:N0} creditado!{eloTxt}"
-                : $"Você foi eliminado na {t.RoundName}.\nMelhor sorte da próxima vez!{eloTxt}";
+            string msg = t.IsHeadsUp
+                ? $"Adversário venceu a série 2–{t.HumanSeriesWins}.\nMelhor sorte da próxima vez!{eloTxt}"
+                : prize > 0
+                    ? $"Você foi eliminado na {t.RoundName}.\nPrêmio: $ {prize:N0} creditado!{eloTxt}"
+                    : $"Você foi eliminado na {t.RoundName}.\nMelhor sorte da próxima vez!{eloTxt}";
 
             await DisplayAlert("Eliminado!", msg, "OK");
             state.ActiveTournament = null;
-            await Shell.Current.GoToAsync("../..");  // WaitingRoomPage → TournamentLobbyPage
+            await Shell.Current.GoToAsync("../..");
             return;
         }
 
@@ -76,11 +92,15 @@ public partial class BracketPage : ContentPage
         else
             HideBanner();
 
-        if (svc.CheckCompletion(t) && t.Status == TournamentStatus.HumanWon)
+        if ((t.IsHeadsUp || svc.CheckCompletion(t)) && t.Status == TournamentStatus.HumanWon)
         {
             decimal prize = svc.GetHumanPrize(t);
             prof.Credit(prize);
             prof.TournamentsWon++;
+
+            // Pontos por vencer o torneio (proporcional ao tamanho)
+            int tournPts = t.Size switch { 64 => 400, 32 => 200, 16 => 100, 8 => 50, 2 => 20, _ => 50 };
+            prof.AddPoints(tournPts);
 
             state.History.Add(new TournamentRecord
             {
@@ -105,8 +125,10 @@ public partial class BracketPage : ContentPage
         var t = AppState.Current.ActiveTournament!;
         var svc = AppState.Current.TournSvc;
 
-        RoundLabel.Text   = t.RoundName;
-        PlayersLabel.Text = $"{t.PlayersRemaining} jogadores restantes de {t.Size}";
+        RoundLabel.Text   = t.IsHeadsUp ? $"Heads-Up · {t.HeadsUpScore}" : t.RoundName;
+        PlayersLabel.Text = t.IsHeadsUp
+            ? $"Melhor de 3  ·  Jogo {t.HumanSeriesWins + t.OpponentSeriesWins + 1}"
+            : $"{t.PlayersRemaining} jogadores restantes de {t.Size}";
         PoolLabel.Text    = $"$ {t.PrizePool:N0}";
         t.PrizeTable.TryGetValue(1, out decimal top);
         YourPrizeLabel.Text = $"$ {top:N0}";

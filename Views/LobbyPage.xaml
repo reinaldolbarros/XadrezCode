@@ -28,9 +28,12 @@
                     <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
                         <Label x:Name="NameLabel"   Text="Jogador"
                                TextColor="White" FontSize="18" FontAttributes="Bold"/>
-                        <Label x:Name="RankLabel"   Text="Iniciante"
-                               TextColor="#FFD700" FontSize="12"/>
-                        <Label x:Name="RatingLabel" Text="Rating: 1200"
+                        <HorizontalStackLayout Spacing="6">
+                            <Label x:Name="TierLabel"  Text="♟" FontSize="14" VerticalOptions="Center"/>
+                            <Label x:Name="TierName"   Text="Pião"
+                                   TextColor="#FFD700" FontSize="12" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        <Label x:Name="RatingLabel" Text="Rating: 1200 · 0 pts"
                                TextColor="#AAAACC" FontSize="11"/>
                     </VerticalStackLayout>
 
@@ -67,18 +70,25 @@
             </Frame>
 
             <!-- ══ Botões principais ══ -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,0,0,16">
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8" Margin="0,0,0,10">
                 <Button Text="🏆  Torneios"
                         Clicked="OnTournamentsClicked"
                         BackgroundColor="#0F3460"
-                        TextColor="White" FontAttributes="Bold" FontSize="15"
+                        TextColor="White" FontAttributes="Bold" FontSize="14"
                         CornerRadius="12" HeightRequest="52"/>
 
                 <Button Grid.Column="1"
+                        Text="🏅  Ranking"
+                        Clicked="OnRankingClicked"
+                        BackgroundColor="#4A1060"
+                        TextColor="White" FontAttributes="Bold" FontSize="14"
+                        CornerRadius="12" HeightRequest="52"/>
+
+                <Button Grid.Column="2"
                         Text="📋  Histórico"
                         Clicked="OnHistoryClicked"
                         BackgroundColor="#16213E"
-                        TextColor="White" FontAttributes="Bold" FontSize="15"
+                        TextColor="White" FontAttributes="Bold" FontSize="14"
                         CornerRadius="12" HeightRequest="52"/>
             </Grid>
 
