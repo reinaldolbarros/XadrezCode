@@ -62,6 +62,33 @@ public class RoomLobbyService
         Add(new TournamentRoom { Size = 8,  BuyIn = 10, TimeMinutes = 3, Type = TournamentType.Ranked, MinRating = 0,    MaxRating = 1299 });
         Add(new TournamentRoom { Size = 8,  BuyIn = 25, TimeMinutes = 3, Type = TournamentType.Ranked, MinRating = 1300, MaxRating = 1599 });
         Add(new TournamentRoom { Size = 16, BuyIn = 50, TimeMinutes = 5, Type = TournamentType.Ranked, MinRating = 1600, MaxRating = 9999 });
+
+        // ── Satélites para torneios de alto valor ──────────────────
+        // Mini Satélite → Satélite GP ($50 ticket)
+        Add(new TournamentRoom { Size = 8,  BuyIn = 10,  TimeMinutes = 2, Type = TournamentType.Satellite, SatelliteTarget = 50   });
+        // Satélite Grand Prix → ticket $500
+        Add(new TournamentRoom { Size = 8,  BuyIn = 50,  TimeMinutes = 3, Type = TournamentType.Satellite, SatelliteTarget = 500  });
+        Add(new TournamentRoom { Size = 16, BuyIn = 50,  TimeMinutes = 3, Type = TournamentType.Satellite, SatelliteTarget = 500  });
+        // Satélite Master Series → ticket $1000
+        Add(new TournamentRoom { Size = 8,  BuyIn = 100, TimeMinutes = 5, Type = TournamentType.Satellite, SatelliteTarget = 1000 });
+        Add(new TournamentRoom { Size = 16, BuyIn = 100, TimeMinutes = 5, Type = TournamentType.Satellite, SatelliteTarget = 1000 });
+        // Satélite Elite Cup → ticket $2500
+        Add(new TournamentRoom { Size = 16, BuyIn = 250, TimeMinutes = 5, Type = TournamentType.Satellite, SatelliteTarget = 2500 });
+
+        // ── Grand Prix ($500 buy-in) ────────────────────────────────
+        Add(new TournamentRoom { Size = 8,  BuyIn = 500,  TimeMinutes = 5,  Type = TournamentType.Standard });
+        Add(new TournamentRoom { Size = 16, BuyIn = 500,  TimeMinutes = 5,  Type = TournamentType.Standard });
+        Add(new TournamentRoom { Size = 8,  BuyIn = 500,  TimeMinutes = 5,  Type = TournamentType.HeadsUp  });
+        Add(new TournamentRoom { Size = 16, BuyIn = 500,  TimeMinutes = 5,  Type = TournamentType.Bounty, BountyPerPlayer = 100 });
+
+        // ── Master Series ($1000 buy-in) ───────────────────────────
+        Add(new TournamentRoom { Size = 8,  BuyIn = 1000, TimeMinutes = 10, Type = TournamentType.Standard });
+        Add(new TournamentRoom { Size = 16, BuyIn = 1000, TimeMinutes = 10, Type = TournamentType.Standard });
+        Add(new TournamentRoom { Size = 8,  BuyIn = 1000, TimeMinutes = 10, Type = TournamentType.HeadsUp  });
+
+        // ── Elite Cup ($2500 buy-in) ───────────────────────────────
+        Add(new TournamentRoom { Size = 8,  BuyIn = 2500, TimeMinutes = 15, Type = TournamentType.Standard });
+        Add(new TournamentRoom { Size = 16, BuyIn = 2500, TimeMinutes = 15, Type = TournamentType.Standard });
     }
 
     private void Add(TournamentRoom room)

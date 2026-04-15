@@ -29,8 +29,18 @@ public class TournamentRoom
     public int     MaxRating        { get; init; } = 9999; // Ranked
     public decimal SatelliteTarget  { get; init; } = 0;   // Satellite (buy-in do torneio alvo)
 
-    public decimal PrizePool  => BuyIn * Size;
-    public string  TimeLabel  => TimeMinutes > 0 ? $"{TimeMinutes} min" : "1 min";
+    public decimal PrizePool    => BuyIn * Size;
+    public string  TimeLabel    => TimeMinutes > 0 ? $"{TimeMinutes} min" : "1 min";
+    public bool    IsHighStakes => BuyIn >= 500;
+
+    /// <summary>Nome descritivo para torneios de alto valor.</summary>
+    public string HighStakesName => BuyIn switch
+    {
+        >= 2500 => "Elite Cup",
+        >= 1000 => "Master Series",
+        >= 500  => "Grand Prix",
+        _       => ""
+    };
 
     public string TypeBadge => Type switch
     {

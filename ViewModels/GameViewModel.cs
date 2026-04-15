@@ -178,8 +178,8 @@ public class GameViewModel : INotifyPropertyChanged
     public event Action<string>?       PromotionRequested;
     public event Action<string>?       ChatMessageReceived;
     public event Action<bool>?         TournamentGameEnded;
-    public event Func<Task<bool>>?     ResignRequested;     // retorna true se confirmado
-    public event Func<Task<bool>>?     DrawOfferRequested;  // retorna true se aceito pela IA
+    public event Func<Task<bool>>?     ResignRequested;          // retorna true se confirmado
+    public event Func<Task<bool>>?     DrawOfferRequested;        // retorna true se aceito pela IA
 
     // ----------------------------------------------------------------
     // Construtor
@@ -286,6 +286,8 @@ public class GameViewModel : INotifyPropertyChanged
 
     private void OnClockTick(object? sender, EventArgs e)
     {
+        try
+        {
         if (_gameOver) return;
 
         // Contador por jogada — só corre na vez do jogador (brancas)
@@ -331,6 +333,11 @@ public class GameViewModel : INotifyPropertyChanged
             }
             OnPC(nameof(BlackTimeDisplay));
             OnPC(nameof(IsBlackLowTime));
+        }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CLOCK] Exceção no tick do relógio: {ex.Message}");
         }
     }
 
@@ -400,6 +407,7 @@ public class GameViewModel : INotifyPropertyChanged
                     PromotionRequested?.Invoke("white");
                     return;
                 }
+
                 ExecutePlayerMove(move);
                 return;
             }
@@ -551,6 +559,35 @@ public class GameViewModel : INotifyPropertyChanged
     }
 
     // ----------------------------------------------------------------
+    // Admin: forçar resultado imediato
+    // ----------------------------------------------------------------
+    public void ForceWin()
+    {
+        if (_gameOver) return;
+        StopClock();
+        StatusMessage = IsTournamentMode
+            ? $"[ADMIN] Vitória forçada vs {TournamentOpponent}!"
+            : "[ADMIN] Vitória forçada!";
+        if (IsTournamentMode) SetTournamentResult(true);
+        HumanWon  = true;
+        GameOver  = true;
+        _sound.PlayGameOver();
+    }
+
+    public void ForceLoss()
+    {
+        if (_gameOver) return;
+        StopClock();
+        StatusMessage = IsTournamentMode
+            ? $"[ADMIN] Derrota forçada. {TournamentOpponent} vence!"
+            : "[ADMIN] Derrota forçada!";
+        if (IsTournamentMode) SetTournamentResult(false);
+        HumanWon  = false;
+        GameOver  = true;
+        _sound.PlayGameOver();
+    }
+
+    // ----------------------------------------------------------------
     // Desistir
     // ----------------------------------------------------------------
     private async Task OnResign()
@@ -603,22 +640,34 @@ public class GameViewModel : INotifyPropertyChanged
                 break;
 
             case GameState.Stalemate:
-                // Em torneio: afogamento conta como derrota do jogador
-                StatusMessage = IsTournamentMode
-                    ? $"Afogamento! {TournamentOpponent} vence por regra!"
-                    : "Afogamento! Empate!";
-                if (IsTournamentMode) SetTournamentResult(false);
+                // CurrentTurn = quem ficou sem movimentos (o afogado)
+                bool humanStalemated = _board.CurrentTurn == PieceColor.White;
+                if (IsTournamentMode)
+                {
+                    // Torneio: afogamento = vitória de quem provocou, derrota do afogado
+                    if (humanStalemated)
+                        StatusMessage = $"Afogamento! Você ficou sem movimentos. {TournamentOpponent} vence!";
+                    else
+                        StatusMessage = "Afogamento! Você afogou o adversário. Você vence!";
+                    SetTournamentResult(!humanStalemated);
+                }
+                else
+                {
+                    StatusMessage = "Afogamento! Empate!";
+                }
                 GameOver = true;
                 StopClock();
                 break;
 
             case GameState.Draw:
                 // Em torneio: empate por 50 lances / repetição / material = derrota do jogador
-                string drawReason = _board.HalfMoveClock >= 100 ? "Regra dos 50 lances"
-                    : ChessEngine.IsInsufficientMaterial(_board) ? "Material insuficiente"
-                    : "Repetição de posição";
+                string drawReason = _board.HalfMoveClock >= 100
+                    ? "Regra dos 50 lances (sem captura/peão)"
+                    : ChessEngine.IsInsufficientMaterial(_board)
+                        ? "Material insuficiente para xeque-mate"
+                        : "Repetição de posição (3×)";
                 StatusMessage = IsTournamentMode
-                    ? $"Empate por {drawReason}. {TournamentOpponent} avança!"
+                    ? $"⚠ Derrota por empate: {drawReason}. {TournamentOpponent} avança!"
                     : $"Empate! ({drawReason})";
                 if (IsTournamentMode) SetTournamentResult(false);
                 GameOver = true;

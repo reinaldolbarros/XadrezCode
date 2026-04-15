@@ -57,7 +57,7 @@ public partial class RankingPage : ContentPage
     private void BuildTierBar()
     {
         TierBar.Children.Clear();
-        int[] thresholds = [0, 500, 1500, 3500, 7000, 15000];
+        int[] thresholds = [0, 500, 1500];
         foreach (var min in thresholds)
         {
             var (icon, name, _, _) = ProfileService.GetTier(min);
@@ -79,27 +79,37 @@ public partial class RankingPage : ContentPage
     // -----------------------------------------------------------------------
     // Atualiza lista
     // -----------------------------------------------------------------------
+    private const int ListLimit = 20;
+
     private void Refresh()
     {
         var profile = AppState.Current.Profile;
         var svc     = AppState.Current.Ranking;
         var entries = _showWeekly ? svc.GetWeekly(profile) : svc.GetGlobal(profile);
 
-        RankList.Children.Clear();
-        foreach (var e in entries)
-            RankList.Children.Add(BuildRow(e));
+        // Exibe apenas os primeiros 20; se o jogador estiver além do 20º mostra no rodapé
+        var displayed = entries.Take(ListLimit).ToList();
+        bool playerInList = displayed.Any(e => e.IsHuman);
 
-        // Rodapé com posição do jogador
+        RankList.Children.Clear();
+        foreach (var e in displayed)
+            RankList.Children.Add(BuildRow(e, _showWeekly));
+
+        // Rodapé: só exibido quando o jogador NÃO está na lista visível
         var me = entries.First(e => e.IsHuman);
-        MyPosLabel.Text    = me.PositionLabel;
-        MyTierLabel.Text   = me.TierIcon;
-        MyAvatarLabel.Text = me.Avatar;
-        MyNameLabel.Text   = me.Name;
-        MyPointsLabel.Text = _showWeekly ? $"{me.WeekPoints} pts" : $"{me.Points} pts";
-        MyRatingLabel.Text = me.Rating.ToString();
+        MyPositionFrame.IsVisible = !playerInList;
+        if (!playerInList)
+        {
+            MyPosLabel.Text    = me.PositionLabel;
+            MyTierLabel.Text   = me.TierIcon;
+            MyAvatarLabel.Text = me.Avatar;
+            MyNameLabel.Text   = me.Name;
+            MyPointsLabel.Text = _showWeekly ? $"{me.WeekPoints:N0} pts" : $"{me.Points:N0} pts";
+            MyRatingLabel.Text = me.Rating.ToString();
+        }
     }
 
-    private static Grid BuildRow(RankingEntry e)
+    private static Grid BuildRow(RankingEntry e, bool weekly)
     {
         var row = new Grid
         {
@@ -141,10 +151,11 @@ public partial class RankingPage : ContentPage
         Grid.SetColumn(nameStack, 2);
         row.Add(nameStack);
 
-        // Pontos
+        // Pontos (global ou semanal conforme aba)
+        string ptsText = weekly ? $"{e.WeekPoints:N0}" : $"{e.Points:N0}";
         var ptsLbl = new Label
         {
-            Text = $"{e.Points:N0}", TextColor = Color.FromArgb("#4CAF50"),
+            Text = ptsText, TextColor = Color.FromArgb("#4CAF50"),
             FontSize = 13, FontAttributes = FontAttributes.Bold,
             HorizontalTextAlignment = TextAlignment.Center, VerticalOptions = LayoutOptions.Center
         };

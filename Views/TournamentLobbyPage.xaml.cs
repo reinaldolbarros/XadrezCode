@@ -4,7 +4,7 @@ namespace ChessMAUI.Views;
 
 public partial class TournamentLobbyPage : ContentPage
 {
-    private static readonly decimal[]        BuyInFilters = [0, 10, 25, 50, 100, 250, 500];
+    private static readonly decimal[]        BuyInFilters = [0, 10, 25, 50, 100, 250, 500, 1000, 2500];
     private static readonly TournamentType[] TypeFilters  =
     [
         TournamentType.Standard, TournamentType.HeadsUp,   TournamentType.Bounty,
@@ -12,8 +12,9 @@ public partial class TournamentLobbyPage : ContentPage
         TournamentType.Ranked
     ];
 
-    private TournamentType? _activeType   = null; // null = todos
-    private decimal         _activeFilter = 0;    // 0 = todos
+    private TournamentType? _activeType       = null;  // null = todos
+    private decimal         _activeFilter     = 0;     // 0 = todos
+    private bool            _premiumOnly      = false; // tab Premium
 
     public TournamentLobbyPage()
     {
@@ -25,6 +26,7 @@ public partial class TournamentLobbyPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        BalanceLabel.Text = $"$ {AppState.Current.Profile.Balance:N0}";
         var svc = AppState.Current.RoomLobby;
         svc.RoomsUpdated -= OnRoomsUpdated;
         svc.RoomsUpdated += OnRoomsUpdated;
@@ -47,7 +49,8 @@ public partial class TournamentLobbyPage : ContentPage
     {
         TypeTabBar.Children.Clear();
 
-        AddTypeTab(null, "Todos");
+        AddTypeTab(null,  "Todos",       false);
+        AddTypeTab(null,  "💎 Premium",  true);  // tab exclusivo alto valor
         foreach (var t in TypeFilters)
         {
             string label = t switch
@@ -61,43 +64,59 @@ public partial class TournamentLobbyPage : ContentPage
                 TournamentType.Ranked     => "🏅 Ranked",
                 _ => t.ToString()
             };
-            AddTypeTab(t, label);
+            AddTypeTab(t, label, false);
         }
     }
 
-    private void AddTypeTab(TournamentType? type, string label)
+    private void AddTypeTab(TournamentType? type, string label, bool isPremiumTab)
     {
-        bool active = _activeType == type;
+        bool active = isPremiumTab ? _premiumOnly : (!_premiumOnly && _activeType == type);
+        Color bg    = isPremiumTab
+            ? (active ? Color.FromArgb("#FFD700") : Color.FromArgb("#3A2800"))
+            : (active ? Color.FromArgb("#FFD700") : Color.FromArgb("#1C2A4A"));
         var btn = new Button
         {
             Text            = label,
             FontSize        = 12,
             CornerRadius    = 16,
             Padding         = new Thickness(14, 6),
-            BackgroundColor = active ? Color.FromArgb("#FFD700") : Color.FromArgb("#1C2A4A"),
+            BackgroundColor = bg,
             TextColor       = active ? Colors.Black : Colors.White
         };
-        btn.Clicked += (_, _) => { _activeType = type; BuildTypeTabs(); BuildFilterBar(); RefreshList(); };
+        btn.Clicked += (_, _) =>
+        {
+            _premiumOnly = isPremiumTab;
+            _activeType  = isPremiumTab ? null : type;
+            BuildTypeTabs(); BuildFilterBar(); RefreshList();
+        };
         TypeTabBar.Children.Add(btn);
     }
 
     // -----------------------------------------------------------------------
-    // Filtros de buy-in
+    // Filtros de buy-in (adapta conforme tab ativo)
     // -----------------------------------------------------------------------
     private void BuildFilterBar()
     {
         FilterBar.Children.Clear();
-        foreach (var f in BuyInFilters)
+
+        decimal[] filters = _premiumOnly
+            ? [0, 500, 1000, 2500]
+            : BuyInFilters;
+
+        foreach (var f in filters)
         {
             string label = f == 0 ? "Todos" : $"$ {f:N0}";
+            bool active  = f == _activeFilter;
             var btn = new Button
             {
                 Text            = label,
                 FontSize        = 11,
                 CornerRadius    = 14,
                 Padding         = new Thickness(12, 4),
-                BackgroundColor = f == _activeFilter ? Color.FromArgb("#0F3460") : Color.FromArgb("#252B45"),
-                TextColor       = Colors.White
+                BackgroundColor = active
+                    ? (_premiumOnly ? Color.FromArgb("#B8860B") : Color.FromArgb("#0F3460"))
+                    : Color.FromArgb("#252B45"),
+                TextColor = Colors.White
             };
             decimal captured = f;
             btn.Clicked += (_, _) => { _activeFilter = captured; BuildFilterBar(); RefreshList(); };
@@ -110,24 +129,83 @@ public partial class TournamentLobbyPage : ContentPage
     // -----------------------------------------------------------------------
     private void RefreshList()
     {
-        var rooms = AppState.Current.RoomLobby.Rooms
-            .Where(r => _activeType == null  || r.Type  == _activeType)
-            .Where(r => _activeFilter == 0   || r.BuyIn == _activeFilter)
-            .OrderBy(r => r.Type).ThenBy(r => r.BuyIn).ThenBy(r => r.Size)
+        var all = AppState.Current.RoomLobby.Rooms.AsEnumerable();
+
+        if (_premiumOnly)
+        {
+            // Tab Premium: apenas salas de alto valor
+            all = all.Where(r => r.IsHighStakes);
+        }
+        else if (_activeType != null)
+        {
+            // Tab de tipo específico: filtra por tipo (inclui premium dessa categoria)
+            all = all.Where(r => r.Type == _activeType);
+        }
+        // else: "Todos" — mostra tudo
+
+        if (_activeFilter > 0)
+            all = all.Where(r => r.BuyIn == _activeFilter);
+
+        var rooms = all
+            .OrderBy(r => r.BuyIn).ThenBy(r => r.Type).ThenBy(r => r.Size)
             .ToList();
 
         RoomList.Children.Clear();
-        bool alt = false;
-        foreach (var room in rooms)
+
+        if (_premiumOnly)
         {
-            RoomList.Children.Add(BuildRow(room, alt));
-            alt = !alt;
+            // Agrupa por evento (Grand Prix / Master Series / Elite Cup)
+            foreach (var group in rooms.GroupBy(r => r.HighStakesName))
+            {
+                RoomList.Children.Add(BuildPremiumHeader(group.Key, group.First().BuyIn));
+                bool a = false;
+                foreach (var room in group) { RoomList.Children.Add(BuildRow(room, a)); a = !a; }
+            }
         }
+        else
+        {
+            bool alt = false;
+            foreach (var room in rooms) { RoomList.Children.Add(BuildRow(room, alt)); alt = !alt; }
+        }
+    }
+
+    private View BuildPremiumHeader(string name, decimal buyIn)
+    {
+        string subtitle = buyIn switch
+        {
+            >= 2500 => "Buy-in $ 2.500  ·  Pool até $ 40.000",
+            >= 1000 => "Buy-in $ 1.000  ·  Pool até $ 16.000",
+            _       => "Buy-in $ 500  ·  Pool até $ 8.000"
+        };
+        return new Frame
+        {
+            BackgroundColor = Color.FromArgb("#2A1D00"),
+            BorderColor     = Color.FromArgb("#FFD700"),
+            CornerRadius    = 0,
+            Padding         = new Thickness(14, 8),
+            HasShadow       = false,
+            Content         = new VerticalStackLayout
+            {
+                Children =
+                {
+                    new Label { Text = $"💎  {name}", TextColor = Color.FromArgb("#FFD700"),
+                                FontSize = 14, FontAttributes = FontAttributes.Bold },
+                    new Label { Text = subtitle, TextColor = Color.FromArgb("#CCAA55"), FontSize = 10 }
+                }
+            }
+        };
     }
 
     private Grid BuildRow(TournamentRoom room, bool alt)
     {
-        var bg  = alt ? Color.FromArgb("#16213E") : Color.FromArgb("#12192E");
+        var profile    = AppState.Current.Profile;
+        bool hasTicket = profile.HasTicket(room.BuyIn);
+
+        // Fundo especial para alto valor
+        Color bg = room.IsHighStakes
+            ? Color.FromArgb("#1C1400")
+            : (alt ? Color.FromArgb("#16213E") : Color.FromArgb("#12192E"));
+
         var row = new Grid
         {
             ColumnDefinitions = { new(GridLength.Star), new(72), new(72), new(72), new(60) },
@@ -138,30 +216,45 @@ public partial class TournamentLobbyPage : ContentPage
         // Coluna 0: badge tipo + nome + status
         var nameStack = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, Spacing = 2 };
 
-        // Badge colorido do tipo
+        // Badge colorido do tipo + alto valor
         var badgeRow = new HorizontalStackLayout { Spacing = 6 };
+        if (room.IsHighStakes)
+            badgeRow.Add(new Label { Text = "💎", FontSize = 11 });
         if (!string.IsNullOrEmpty(room.TypeBadge))
             badgeRow.Add(new Label { Text = room.TypeBadge, FontSize = 11 });
         badgeRow.Add(new Label
         {
-            Text      = room.TypeLabel,
-            TextColor = TypeColor(room.Type),
+            Text      = room.IsHighStakes ? $"{room.HighStakesName} · {room.TypeLabel}" : room.TypeLabel,
+            TextColor = room.IsHighStakes ? Color.FromArgb("#FFD700") : TypeColor(room.Type),
             FontSize  = 10, FontAttributes = FontAttributes.Bold
         });
+        if (hasTicket)
+            badgeRow.Add(new Label { Text = "🎟 Ticket", TextColor = Color.FromArgb("#4CAF50"), FontSize = 10, FontAttributes = FontAttributes.Bold });
         nameStack.Add(badgeRow);
 
         // Nome + tamanho
+        string roomTitle = room.IsHighStakes
+            ? $"{room.HighStakesName}  {SizeEmoji(room.Size)}"
+            : $"{SizeEmoji(room.Size)}  #{room.Id}";
         nameStack.Add(new Label
         {
-            Text      = $"{SizeEmoji(room.Size)}  #{room.Id}",
-            TextColor = Colors.White, FontSize = 13, FontAttributes = FontAttributes.Bold
+            Text      = roomTitle,
+            TextColor = room.IsHighStakes ? Color.FromArgb("#FFD700") : Colors.White,
+            FontSize  = 13, FontAttributes = FontAttributes.Bold
         });
 
         // Info extra por tipo
+        string satelliteTargetName = room.SatelliteTarget switch
+        {
+            >= 2500 => "Elite Cup",
+            >= 1000 => "Master Series",
+            >= 500  => "Grand Prix",
+            _       => $"$ {room.SatelliteTarget:N0}"
+        };
         string extra = room.Type switch
         {
             TournamentType.Bounty    => $"🎯 Bounty: $ {room.BountyPerPlayer:N0}/elim.",
-            TournamentType.Satellite => $"🚀 Vaga: $ {room.SatelliteTarget:N0}",
+            TournamentType.Satellite => $"🚀 Vaga: {satelliteTargetName} ($ {room.SatelliteTarget:N0})",
             TournamentType.Ranked    => $"ELO {room.MinRating}–{(room.MaxRating == 9999 ? "∞" : room.MaxRating.ToString())}",
             TournamentType.HeadsUp   => "Melhor de 3",
             _ => room.StatusLabel
@@ -187,10 +280,12 @@ public partial class TournamentLobbyPage : ContentPage
         row.Add(progStack);
 
         // Buy-in
+        string buyInText = hasTicket ? $"🎟\n$ {room.BuyIn:N0}" : $"$ {room.BuyIn:N0}";
         var buyInLbl = new Label
         {
-            Text = $"$ {room.BuyIn:N0}", TextColor = Color.FromArgb("#FFD700"),
-            FontSize = 12, FontAttributes = FontAttributes.Bold,
+            Text      = buyInText,
+            TextColor = hasTicket ? Color.FromArgb("#4CAF50") : Color.FromArgb("#FFD700"),
+            FontSize  = room.IsHighStakes ? 13 : 12, FontAttributes = FontAttributes.Bold,
             HorizontalTextAlignment = TextAlignment.Center, VerticalOptions = LayoutOptions.Center
         };
         Grid.SetColumn(buyInLbl, 2);
@@ -198,11 +293,14 @@ public partial class TournamentLobbyPage : ContentPage
 
         // Prêmio
         string prizeText = room.Type == TournamentType.Satellite
-            ? $"Vaga\n${room.SatelliteTarget:N0}"
-            : $"$ {room.PrizePool:N0}";
+            ? $"🎟 Vaga\n{satelliteTargetName}"
+            : room.IsHighStakes
+                ? $"💎 $ {room.PrizePool:N0}"
+                : $"$ {room.PrizePool:N0}";
         var prizeLbl = new Label
         {
-            Text = prizeText, TextColor = Color.FromArgb("#4CAF50"),
+            Text = prizeText,
+            TextColor = room.IsHighStakes ? Color.FromArgb("#FFD700") : Color.FromArgb("#4CAF50"),
             FontSize = 11, HorizontalTextAlignment = TextAlignment.Center,
             VerticalOptions = LayoutOptions.Center
         };
@@ -270,17 +368,35 @@ public partial class TournamentLobbyPage : ContentPage
             return;
         }
 
-        if (!profile.TryDebit(room.BuyIn))
+        // Tenta usar ticket primeiro; senão debita fichas
+        bool usedTicket = profile.UseTicket(room.BuyIn);
+        if (!usedTicket)
         {
-            await DisplayAlert("Saldo insuficiente",
-                $"Você precisa de $ {room.BuyIn:N0}.\nSaldo: $ {profile.Balance:N0}", "OK");
-            return;
+            if (!profile.TryDebit(room.BuyIn))
+            {
+                // Verifica se tem satélite para sugerir
+                bool hasSatellite = AppState.Current.RoomLobby.Rooms
+                    .Any(r => r.Type == TournamentType.Satellite && r.SatelliteTarget == room.BuyIn && r.CanJoin);
+
+                string tip = hasSatellite
+                    ? "\n\n💡 Jogue um Satélite para ganhar uma vaga gratuita!"
+                    : "";
+                await DisplayAlert("Saldo insuficiente",
+                    $"Você precisa de $ {room.BuyIn:N0}.\nSaldo: $ {profile.Balance:N0}{tip}", "OK");
+                return;
+            }
+        }
+        else
+        {
+            await DisplayAlert("🎟 Ticket Utilizado!",
+                $"Vaga gratuita no torneio de $ {room.BuyIn:N0} ativada!", "Ótimo!");
         }
 
         AppState.Current.RoomLobby.JoinRoom(room);
         AppState.Current.Matchmaking.CreateRoom(
             room.Size, room.BuyIn, room.TimeMinutes,
-            profile.Name, profile.Rating, profile.Avatar);
+            profile.Name, profile.Rating, profile.Avatar,
+            room.Type, room.SatelliteTarget);
 
         await Shell.Current.GoToAsync("WaitingRoomPage");
     }

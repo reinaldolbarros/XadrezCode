@@ -5,20 +5,36 @@
              Title="Torneios"
              BackgroundColor="#1A1A2E">
 
-    <Grid RowDefinitions="Auto,Auto,Auto,*">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
+
+        <!-- ══ Saldo ══ -->
+        <Grid Grid.Row="0" BackgroundColor="#16213E" Padding="14,8"
+              ColumnDefinitions="*,Auto">
+            <Label Text="Torneios" TextColor="White" FontSize="15"
+                   FontAttributes="Bold" VerticalOptions="Center"/>
+            <Frame Grid.Column="1" BackgroundColor="#0F3460" CornerRadius="10"
+                   Padding="12,5" HasShadow="False">
+                <HorizontalStackLayout Spacing="6">
+                    <Label Text="💰" FontSize="14" VerticalOptions="Center"/>
+                    <Label x:Name="BalanceLabel" Text="$ 0"
+                           TextColor="#4CAF50" FontSize="15" FontAttributes="Bold"
+                           VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+            </Frame>
+        </Grid>
 
         <!-- ══ Abas de tipo ══ -->
-        <ScrollView Grid.Row="0" Orientation="Horizontal" BackgroundColor="#16213E">
+        <ScrollView Grid.Row="1" Orientation="Horizontal" BackgroundColor="#16213E">
             <HorizontalStackLayout x:Name="TypeTabBar" Spacing="4" Padding="10,8"/>
         </ScrollView>
 
         <!-- ══ Filtros de buy-in ══ -->
-        <ScrollView Grid.Row="1" Orientation="Horizontal" BackgroundColor="#12172A">
+        <ScrollView Grid.Row="2" Orientation="Horizontal" BackgroundColor="#12172A">
             <HorizontalStackLayout x:Name="FilterBar" Spacing="6" Padding="10,6"/>
         </ScrollView>
 
         <!-- ══ Cabeçalho da tabela ══ -->
-        <Grid Grid.Row="2"
+        <Grid Grid.Row="3"
               ColumnDefinitions="*,72,72,72,60"
               BackgroundColor="#0F3460"
               Padding="14,5">
@@ -30,7 +46,7 @@
         </Grid>
 
         <!-- ══ Lista de salas ══ -->
-        <ScrollView Grid.Row="3">
+        <ScrollView Grid.Row="4">
             <VerticalStackLayout x:Name="RoomList" Spacing="1"/>
         </ScrollView>
     </Grid>

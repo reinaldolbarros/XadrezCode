@@ -34,11 +34,13 @@ public class MatchmakingService
     ];
 
     // ── Estado da sala ────────────────────────────────────────────────────────
-    public int              TotalSlots   { get; private set; }
-    public decimal          BuyIn        { get; private set; }
-    public int              TimeMinutes  { get; private set; }
-    public List<RoomPlayer> Players      { get; } = [];
-    public bool             IsReady      => Players.Count == TotalSlots;
+    public int              TotalSlots      { get; private set; }
+    public decimal          BuyIn           { get; private set; }
+    public int              TimeMinutes     { get; private set; }
+    public TournamentType   RoomType        { get; private set; } = TournamentType.Standard;
+    public decimal          SatelliteTarget { get; private set; } = 0;
+    public List<RoomPlayer> Players         { get; } = [];
+    public bool             IsReady         => Players.Count == TotalSlots;
 
     // ── Eventos (disparados de threads de background — despache na UI) ────────
     /// <summary>Disparado cada vez que um jogador entra na sala.</summary>
@@ -50,11 +52,14 @@ public class MatchmakingService
     // Inicializa sala e registra o jogador humano
     // ─────────────────────────────────────────────────────────────────────────
     public void CreateRoom(int size, decimal buyIn, int timeMinutes, string humanName,
-                           int humanRating = 1200, string humanAvatar = "♟")
+                           int humanRating = 1200, string humanAvatar = "♟",
+                           TournamentType type = TournamentType.Standard, decimal satelliteTarget = 0)
     {
-        TotalSlots  = size;
-        BuyIn       = buyIn;
-        TimeMinutes = timeMinutes;
+        TotalSlots      = size;
+        BuyIn           = buyIn;
+        TimeMinutes     = timeMinutes;
+        RoomType        = type;
+        SatelliteTarget = satelliteTarget;
         Players.Clear();
 
         var human = new RoomPlayer
@@ -86,13 +91,16 @@ public class MatchmakingService
             try { await Task.Delay(delay, ct); }
             catch (OperationCanceledException) { return; }
 
-            int str = Random.Shared.Next(3, 10);
+            // Força bots mais fortes em torneios de alto valor
+            int minStr = BuyIn switch { >= 2500 => 8, >= 1000 => 7, >= 500 => 6, _ => 3 };
+            int str    = Random.Shared.Next(minStr, 10);
+            int baseRating = BuyIn switch { >= 2500 => 2000, >= 1000 => 1700, >= 500 => 1500, _ => 800 };
             var bot = new RoomPlayer
             {
                 Name     = name,
                 IsHuman  = false,
                 Strength = str,
-                Rating   = 800 + str * 170 + Random.Shared.Next(-100, 100),
+                Rating   = baseRating + str * 60 + Random.Shared.Next(-80, 80),
                 Avatar   = BotAvatars[Random.Shared.Next(BotAvatars.Length)]
             };
 

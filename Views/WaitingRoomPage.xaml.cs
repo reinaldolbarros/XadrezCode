@@ -91,7 +91,8 @@ public partial class WaitingRoomPage : ContentPage
 
             // Cria o torneio com os jogadores da sala
             var state = AppState.Current;
-            var t     = state.TournSvc.CreateFromRoom(state.Matchmaking.Players, state.Matchmaking.BuyIn);
+            var t     = state.TournSvc.CreateFromRoom(state.Matchmaking.Players, state.Matchmaking.BuyIn,
+                              state.Matchmaking.RoomType, state.Matchmaking.SatelliteTarget);
             state.ActiveTournament      = t;
             state.TournamentTimeMinutes = state.Matchmaking.TimeMinutes;
 

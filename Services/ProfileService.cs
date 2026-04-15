@@ -13,6 +13,8 @@ public class ProfileService
     private const string KeyPoints    = "profile_points";
     private const string KeyWeekPts   = "profile_week_points";
     private const string KeyWeekReset = "profile_week_reset";
+    private const string KeyXp         = "profile_xp";
+    private const string KeyTickets    = "profile_tickets";
 
     public string Name
     {
@@ -87,18 +89,74 @@ public class ProfileService
     {
         Points     += pts;
         WeekPoints += pts;
-        Preferences.Default.Set(KeyWeekPts, WeekPoints + pts);
+    }
+
+    // ── XP e Níveis ─────────────────────────────────────────────────────────
+    public int Xp
+    {
+        get => Preferences.Default.Get(KeyXp, 0);
+        set => Preferences.Default.Set(KeyXp, value);
+    }
+
+    private const int XpPerLevel = 200;
+
+    public int  Level          => 1 + Xp / XpPerLevel;
+    public int  XpInLevel      => Xp % XpPerLevel;
+    public double XpProgress   => (double)(Xp % XpPerLevel) / XpPerLevel;
+
+    public void AddXp(int xp) => Xp += xp;
+
+    // ── Tickets de satélite ──────────────────────────────────────────────────
+    private Dictionary<string, int> LoadTickets()
+    {
+        var json = Preferences.Default.Get(KeyTickets, "{}");
+        try { return System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(json) ?? []; }
+        catch { return []; }
+    }
+
+    private void SaveTickets(Dictionary<string, int> t)
+        => Preferences.Default.Set(KeyTickets, System.Text.Json.JsonSerializer.Serialize(t));
+
+    public bool HasTicket(decimal buyIn)
+    {
+        var t = LoadTickets();
+        return t.TryGetValue(buyIn.ToString("0.##"), out int c) && c > 0;
+    }
+
+    public void AddTicket(decimal buyIn)
+    {
+        var t   = LoadTickets();
+        var key = buyIn.ToString("0.##");
+        t[key]  = (t.TryGetValue(key, out int c) ? c : 0) + 1;
+        SaveTickets(t);
+    }
+
+    public bool UseTicket(decimal buyIn)
+    {
+        var t   = LoadTickets();
+        var key = buyIn.ToString("0.##");
+        if (!t.TryGetValue(key, out int c) || c <= 0) return false;
+        if (c == 1) t.Remove(key); else t[key] = c - 1;
+        SaveTickets(t);
+        return true;
+    }
+
+    /// <summary>Retorna todos os tickets disponíveis: buy-in → quantidade.</summary>
+    public Dictionary<decimal, int> GetAllTickets()
+    {
+        var raw = LoadTickets();
+        var result = new Dictionary<decimal, int>();
+        foreach (var kv in raw.Where(kv => kv.Value > 0))
+            if (decimal.TryParse(kv.Key, out decimal d)) result[d] = kv.Value;
+        return result;
     }
 
     // Faixa baseada em pontos totais
     public static (string Icon, string Name, int Min, int Max) GetTier(int points) => points switch
     {
-        >= 15000 => ("♚", "Rei",       15000, int.MaxValue),
-        >= 7000  => ("♛", "Dama",       7000, 14999),
-        >= 3500  => ("♜", "Torre",      3500,  6999),
-        >= 1500  => ("♝", "Bispo",      1500,  3499),
-        >= 500   => ("♞", "Cavaleiro",   500,  1499),
-        _        => ("♟", "Pião",           0,   499),
+        >= 1500 => ("♚", "Rei",        1500, int.MaxValue),
+        >= 500  => ("♞", "Cavaleiro",   500,  1499),
+        _       => ("♟", "Pião",           0,   499),
     };
 
     public string TierIcon => GetTier(Points).Icon;

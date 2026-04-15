@@ -14,6 +14,7 @@ public class AppState
     public RoomLobbyService         RoomLobby   { get; } = new();
     public TournamentHistoryService History     { get; } = new();
     public RankingService           Ranking     { get; } = new();
+    public DailyService             Daily       { get; } = new();
 
     // Torneio ativo
     public Tournament? ActiveTournament { get; set; }
@@ -34,4 +35,7 @@ public class AppState
     public int    TournamentOpponentRating { get; set; } = 1200;
 
     public bool IsInTournamentMatch => PendingTournamentGame;
+
+    // Modo administrador para testes
+    public bool IsAdminMode { get; set; } = false;
 }

@@ -4,12 +4,14 @@ public enum TournamentStatus { Active, HumanEliminated, HumanWon }
 
 public class Tournament
 {
-    public int              Size         { get; set; }
-    public decimal          BuyIn        { get; set; }
-    public decimal          PrizePool    { get; set; }
-    public int              TotalRounds  { get; set; }
-    public int              CurrentRound { get; set; } = 1;
-    public TournamentStatus Status       { get; set; } = TournamentStatus.Active;
+    public int              Size            { get; set; }
+    public decimal          BuyIn           { get; set; }
+    public decimal          PrizePool       { get; set; }
+    public int              TotalRounds     { get; set; }
+    public int              CurrentRound    { get; set; } = 1;
+    public TournamentStatus Status          { get; set; } = TournamentStatus.Active;
+    public TournamentType   Type            { get; set; } = TournamentType.Standard;
+    public decimal          SatelliteTarget { get; set; } = 0;
 
     public List<TournamentPlayer> Players { get; set; } = [];
     public List<TournamentMatch>  Matches { get; set; } = [];

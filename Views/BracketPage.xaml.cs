@@ -47,11 +47,21 @@ public partial class BracketPage : ContentPage
             return;
         }
 
-        if (humanWon) { prof.RecordWin();  prof.AddPoints(15); }
-        else            prof.RecordLoss();
+        if (humanWon)
+        {
+            prof.RecordWin();
+            prof.AddPoints(15);
+            bool m3Done = state.Daily.RecordTournamentElimination();
+            if (m3Done) { var m3 = state.Daily.GetMissions()[2]; prof.Credit(m3.BalanceReward); prof.AddXp(m3.XpReward); }
+        }
+        else
+        {
+            prof.RecordLoss();
+        }
 
-        // Atualiza ELO
+        // Atualiza ELO e XP
         prof.UpdateElo(humanWon, state.TournamentOpponentRating);
+        prof.AddXp(humanWon ? 40 : 15);
 
         if (!humanWon)
         {
@@ -94,26 +104,47 @@ public partial class BracketPage : ContentPage
 
         if ((t.IsHeadsUp || svc.CheckCompletion(t)) && t.Status == TournamentStatus.HumanWon)
         {
-            decimal prize = svc.GetHumanPrize(t);
-            prof.Credit(prize);
             prof.TournamentsWon++;
 
-            // Pontos por vencer o torneio (proporcional ao tamanho)
+            // Pontos e XP por vencer o torneio (proporcional ao tamanho)
             int tournPts = t.Size switch { 64 => 400, 32 => 200, 16 => 100, 8 => 50, 2 => 20, _ => 50 };
             prof.AddPoints(tournPts);
+            int tournXp  = t.Size switch { 64 => 500, 32 => 250, 16 => 120, 8 => 60, 2 => 25, _ => 60 };
+            prof.AddXp(tournXp);
 
-            state.History.Add(new TournamentRecord
+            string winMsg;
+            decimal prize = 0;
+
+            if (t.Type == TournamentType.Satellite && t.SatelliteTarget > 0)
             {
-                Size = t.Size, BuyIn = t.BuyIn, Prize = prize, Position = 1,
-                RatingBefore = ratingBefore, RatingAfter = prof.Rating
-            });
-
-            await DisplayAlert("🏆 CAMPEÃO!",
-                $"Parabéns! Você venceu o torneio de {t.Size} jogadores!\n\n" +
-                $"Prêmio: $ {prize:N0} creditado!\nRating: {ratingBefore} → {prof.Rating}", "Incrível!");
+                // Satélite: prêmio é um ticket para o torneio alvo
+                prof.AddTicket(t.SatelliteTarget);
+                state.History.Add(new TournamentRecord
+                {
+                    Size = t.Size, BuyIn = t.BuyIn, Prize = 0, Position = 1,
+                    RatingBefore = ratingBefore, RatingAfter = prof.Rating
+                });
+                winMsg = $"Parabéns! Você ganhou uma VAGA no torneio de $ {t.SatelliteTarget:N0}!\n\n" +
+                         $"🎟 Ticket adicionado à sua conta.\nUse-o no torneio correspondente!\n\n" +
+                         $"Rating: {ratingBefore} → {prof.Rating}";
+                await DisplayAlert("🎟 VAGA CONQUISTADA!", winMsg, "Incrível!");
+            }
+            else
+            {
+                prize = svc.GetHumanPrize(t);
+                prof.Credit(prize);
+                state.History.Add(new TournamentRecord
+                {
+                    Size = t.Size, BuyIn = t.BuyIn, Prize = prize, Position = 1,
+                    RatingBefore = ratingBefore, RatingAfter = prof.Rating
+                });
+                winMsg = $"Parabéns! Você venceu o torneio de {t.Size} jogadores!\n\n" +
+                         $"Prêmio: $ {prize:N0} creditado!\nRating: {ratingBefore} → {prof.Rating}";
+                await DisplayAlert("🏆 CAMPEÃO!", winMsg, "Incrível!");
+            }
 
             state.ActiveTournament = null;
-            await Shell.Current.GoToAsync("//LobbyPage");  // volta ao lobby principal
+            await Shell.Current.GoToAsync("//LobbyPage");
         }
     }
 

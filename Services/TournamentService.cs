@@ -29,7 +29,9 @@ public class TournamentService
     // -------------------------------------------------------------------------
     // Criação a partir da sala de matchmaking (fluxo online)
     // -------------------------------------------------------------------------
-    public Tournament CreateFromRoom(List<RoomPlayer> roomPlayers, decimal buyIn)
+    public Tournament CreateFromRoom(List<RoomPlayer> roomPlayers, decimal buyIn,
+                                     TournamentType type = TournamentType.Standard,
+                                     decimal satelliteTarget = 0)
     {
         int size        = roomPlayers.Count;
         int totalRounds = (int)Math.Log2(size);
@@ -40,7 +42,9 @@ public class TournamentService
             TotalRounds = totalRounds, CurrentRound = 1,
             IsHeadsUp = size == 2,
             Status = TournamentStatus.Active,
-            PrizeTable = BuildPrizeTable(size, buyIn * size)
+            PrizeTable = BuildPrizeTable(size, buyIn * size),
+            Type = type,
+            SatelliteTarget = satelliteTarget
         };
 
         foreach (var rp in roomPlayers)

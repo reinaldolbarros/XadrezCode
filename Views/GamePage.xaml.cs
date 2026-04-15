@@ -21,6 +21,7 @@ public partial class GamePage : ContentPage
     ];
 
     private CancellationTokenSource? _chatCts;
+    private CancellationTokenSource? _resizeCts;
 
     public GamePage()
     {
@@ -31,15 +32,40 @@ public partial class GamePage : ContentPage
         _vm.PromotionRequested  += OnPromotionRequested;
         _vm.ChatMessageReceived += OnChatMessageReceived;
         _vm.TournamentGameEnded += OnTournamentGameEnded;
-        _vm.ResignRequested     += OnResignRequested;
-        _vm.DrawOfferRequested  += OnDrawOfferRequested;
+        _vm.ResignRequested    += OnResignRequested;
+        _vm.DrawOfferRequested += OnDrawOfferRequested;
+        _vm.PropertyChanged    += OnVmPropertyChanged;
 
         BuildBoard();
+
+        // Desabilita input do tabuleiro durante resize para evitar crash no WinUI input handler
+        SizeChanged += OnPageSizeChanged;
+    }
+
+    private void OnPageSizeChanged(object? sender, EventArgs e)
+    {
+        BoardGrid.InputTransparent = true;
+
+        _resizeCts?.Cancel();
+        _resizeCts = new CancellationTokenSource();
+        var token  = _resizeCts.Token;
+
+        Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(300, token); // aguarda resize estabilizar
+                MainThread.BeginInvokeOnMainThread(
+                    () => BoardGrid.InputTransparent = false);
+            }
+            catch (OperationCanceledException) { }
+        }, token);
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        AdminBar.IsVisible = AppState.Current.IsAdminMode;
 
         var state = AppState.Current;
 
@@ -69,14 +95,37 @@ public partial class GamePage : ContentPage
     // -----------------------------------------------------------------------
     private void OnTournamentGameEnded(bool humanWon)
     {
-        // Aguarda 2 s para o jogador ver o resultado no tabuleiro, depois navega
-        MainThread.BeginInvokeOnMainThread(async () =>
+        // Registra missão diária — navegação fica a cargo do jogador (botão Voltar)
+        AppState.Current.Daily.RecordGamePlayed();
+    }
+
+    // -----------------------------------------------------------------------
+    // Missões: registra partidas casuais
+    // -----------------------------------------------------------------------
+    private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(_vm.GameOver) || !_vm.GameOver) return;
+        if (_vm.IsTournamentMode) return; // tournament flow handled in OnTournamentGameEnded
+
+        var state = AppState.Current;
+        // Human plays white; "Brancas vencem" = human won in casual mode
+        bool humanWon = _vm.StatusMessage.Contains("Brancas vencem");
+
+        // XP por partida casual
+        state.Profile.AddXp(humanWon ? 20 : 8);
+
+        // Missões diárias (retorna true se recém completou)
+        bool m1Done = state.Daily.RecordGamePlayed();
+        bool m2Done = humanWon && state.Daily.RecordWin();
+
+        if (m1Done || m2Done)
         {
-            await Task.Delay(2000);
-            AppState.Current.MatchResultReady = true;
-            Title = "Xadrez";
-            await Shell.Current.GoToAsync("..");
-        });
+            var missions = state.Daily.GetMissions();
+            if (m1Done) { var m = missions[0]; state.Profile.Credit(m.BalanceReward); state.Profile.AddXp(m.XpReward); }
+            if (m2Done) { var m = missions[1]; state.Profile.Credit(m.BalanceReward); state.Profile.AddXp(m.XpReward); }
+            MainThread.BeginInvokeOnMainThread(async () =>
+                await DisplayAlert("✅ Missão Completa!", "Recompensa creditada!", "OK"));
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -98,6 +147,12 @@ public partial class GamePage : ContentPage
                 MainThread.BeginInvokeOnMainThread(() => ChatBubble.IsVisible = false);
         }, token);
     }
+
+    // -----------------------------------------------------------------------
+    // Admin: forçar resultado
+    // -----------------------------------------------------------------------
+    private void OnAdminWin(object? sender, EventArgs e)  => _vm.ForceWin();
+    private void OnAdminLose(object? sender, EventArgs e) => _vm.ForceLoss();
 
     // -----------------------------------------------------------------------
     // Confirmação: Desistir
@@ -137,6 +192,7 @@ public partial class GamePage : ContentPage
     // -----------------------------------------------------------------------
     private async void OnReturnToTournamentClicked(object? sender, EventArgs e)
     {
+        AppState.Current.MatchResultReady = true;
         Title = "Xadrez";
         await Shell.Current.GoToAsync("..");
     }
