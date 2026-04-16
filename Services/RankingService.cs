@@ -8,18 +8,18 @@ namespace ChessMAUI.Services;
 /// </summary>
 public class RankingService
 {
-    private static readonly (string Avatar, string Name, int Points, int Rating)[] BotSeeds =
+    private static readonly (string Avatar, string Name, int Points)[] BotSeeds =
     [
-        ("🦁","Magnus AI",    18500, 2800), ("🐉","Kasparov Bot",  15200, 2750),
-        ("👑","Fischer AI",   12800, 2700), ("⚡","Tal Bot",        10400, 2600),
-        ("🎯","Karpov AI",    9100,  2580), ("🔥","Anand Bot",      7800,  2520),
-        ("💎","Carlsen X",    6500,  2500), ("🌟","Capablanca AI",  5200,  2480),
-        ("🎭","Morphy Bot",   4100,  2400), ("🛡️","Polgar AI",      3500,  2350),
-        ("♛","Lasker Bot",   2800,  2300), ("♜","Alekhine AI",    2100,  2250),
-        ("♝","Petrosian X",  1600,  2200), ("♞","Spassky Bot",    1200,  2150),
-        ("🦊","Bronstein AI",  900,  2100), ("🐺","Smyslov Bot",    700,  2050),
-        ("🦅","Euwe AI",       500,  2000), ("🐯","Botvinnik X",    350,  1950),
-        ("🌊","Lputian Bot",   200,  1900), ("🏔","Morozevich X",   100,  1850),
+        ("🦁","Magnus AI",    18500), ("🐉","Kasparov Bot",  15200),
+        ("👑","Fischer AI",   12800), ("⚡","Tal Bot",        10400),
+        ("🎯","Karpov AI",    9100),  ("🔥","Anand Bot",      7800),
+        ("💎","Carlsen X",    6500),  ("🌟","Capablanca AI",  5200),
+        ("🎭","Morphy Bot",   4100),  ("🛡️","Polgar AI",      3500),
+        ("♛","Lasker Bot",   2800),  ("♜","Alekhine AI",    2100),
+        ("♝","Petrosian X",  1600),  ("♞","Spassky Bot",    1200),
+        ("🦊","Bronstein AI",  900),  ("🐺","Smyslov Bot",    700),
+        ("🦅","Euwe AI",       500),  ("🐯","Botvinnik X",    350),
+        ("🌊","Lputian Bot",   200),  ("🏔","Morozevich X",   100),
     ];
 
     private readonly List<RankingEntry> _bots;
@@ -39,7 +39,6 @@ public class RankingService
                 Name       = name,
                 Points     = b.Points,
                 WeekPoints = _rng.Next(0, b.Points / 10),
-                Rating     = b.Rating,
                 TierIcon   = tier.Icon,
                 TierName   = tier.Name,
                 IsHuman    = false
@@ -90,7 +89,6 @@ public class RankingService
             Name       = p.Name,
             Points     = p.Points,
             WeekPoints = p.WeekPoints,
-            Rating     = p.Rating,
             TierIcon   = tier.Icon,
             TierName   = tier.Name,
             IsHuman    = true

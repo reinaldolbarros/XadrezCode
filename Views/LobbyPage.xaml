@@ -53,20 +53,6 @@
                         </Frame>
                     </Grid>
 
-                    <!-- Barra de XP -->
-                    <VerticalStackLayout Spacing="3">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <Label x:Name="XpLevelLabel" Text="Nível 1"
-                                   TextColor="#7B68EE" FontSize="11" FontAttributes="Bold"/>
-                            <Label x:Name="XpValueLabel" Text="0 / 200 XP"
-                                   Grid.Column="1" TextColor="#AAAACC" FontSize="10"/>
-                        </Grid>
-                        <Grid HeightRequest="7">
-                            <BoxView Color="#0F3460" CornerRadius="3" HorizontalOptions="Fill"/>
-                            <BoxView x:Name="XpBar" Color="#7B68EE" CornerRadius="3"
-                                     HorizontalOptions="Start" WidthRequest="0"/>
-                        </Grid>
-                    </VerticalStackLayout>
                 </VerticalStackLayout>
             </Frame>
 

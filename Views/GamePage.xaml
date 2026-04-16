@@ -9,12 +9,12 @@
 
     <ContentPage.Resources>
         <Style x:Key="PieceLabel" TargetType="Label">
-            <Setter Property="HorizontalOptions"      Value="Center"/>
-            <Setter Property="VerticalOptions"        Value="Center"/>
+            <Setter Property="HorizontalOptions"       Value="Center"/>
+            <Setter Property="VerticalOptions"         Value="Center"/>
             <Setter Property="HorizontalTextAlignment" Value="Center"/>
             <Setter Property="VerticalTextAlignment"   Value="Center"/>
-            <Setter Property="FontSize"               Value="28"/>
-            <Setter Property="InputTransparent"       Value="True"/>
+            <Setter Property="FontSize"                Value="28"/>
+            <Setter Property="InputTransparent"        Value="True"/>
         </Style>
 
         <Style x:Key="TimerFrame" TargetType="Frame">
@@ -31,17 +31,16 @@
         </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto" Padding="8,4">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto,Auto,Auto" Padding="8,4">
 
         <!-- ══════════════════════════════════════════════
-             Linha 0 — Relógio das PRETAS (IA) + Chat bubble
+             Linha 0 — Relógio das PRETAS (IA)
              ══════════════════════════════════════════════ -->
         <Frame Grid.Row="0"
                Style="{StaticResource TimerFrame}"
                BackgroundColor="#1E1E1E"
                IsVisible="{Binding TimerVisible}">
             <Grid ColumnDefinitions="*,Auto,Auto">
-                <!-- Nome + indicador de pensamento -->
                 <StackLayout Orientation="Horizontal" Spacing="8" VerticalOptions="Center">
                     <Label Text="♟ IA (Pretas)" TextColor="#CCCCCC" FontSize="13" VerticalOptions="Center"/>
                     <ActivityIndicator IsRunning="{Binding IsAIThinking}"
@@ -50,8 +49,6 @@
                                        WidthRequest="18" HeightRequest="18"
                                        VerticalOptions="Center"/>
                 </StackLayout>
-
-                <!-- Tempo das Pretas -->
                 <Label Grid.Column="1"
                        Text="{Binding BlackTimeDisplay}"
                        Style="{StaticResource ClockLabel}"
@@ -74,7 +71,7 @@
                BorderColor="Transparent"
                CornerRadius="8"
                Padding="10,6"
-               Margin="0,0,0,4">
+               Margin="0,0,0,2">
             <Label Text="{Binding StatusMessage}"
                    TextColor="White"
                    FontSize="14"
@@ -83,9 +80,31 @@
         </Frame>
 
         <!-- ══════════════════════════════════════════════
-             Linha 2 — Balão de chat do bot (oculto por padrão)
+             Linha 2 — Peças capturadas + vantagem de material
              ══════════════════════════════════════════════ -->
-        <Frame Grid.Row="2"
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,*" Padding="6,2" BackgroundColor="#252320">
+            <!-- Esquerda: peças que a IA capturou do jogador (símbolos brancos) -->
+            <Label Text="{Binding BlackCapturesDisplay}"
+                   TextColor="#BBBBBB" FontSize="12"
+                   HorizontalTextAlignment="Start" VerticalOptions="Center"/>
+            <!-- Centro: vantagem de material (+N = jogador à frente) -->
+            <Label Grid.Column="1"
+                   Text="{Binding MaterialDisplay}"
+                   TextColor="{Binding MaterialColor}"
+                   FontSize="12" FontAttributes="Bold"
+                   HorizontalTextAlignment="Center" VerticalOptions="Center"
+                   MinimumWidthRequest="30"/>
+            <!-- Direita: peças que o jogador capturou da IA (símbolos pretos) -->
+            <Label Grid.Column="2"
+                   Text="{Binding WhiteCapturesDisplay}"
+                   TextColor="#BBBBBB" FontSize="12"
+                   HorizontalTextAlignment="End" VerticalOptions="Center"/>
+        </Grid>
+
+        <!-- ══════════════════════════════════════════════
+             Linha 3 — Balão de chat do bot (oculto por padrão)
+             ══════════════════════════════════════════════ -->
+        <Frame Grid.Row="3"
                x:Name="ChatBubble"
                IsVisible="False"
                BackgroundColor="#2A2A3A"
@@ -101,29 +120,25 @@
         </Frame>
 
         <!-- ══════════════════════════════════════════════
-             Linha 3 — Tabuleiro 8x8
+             Linha 4 — Tabuleiro 8×8
              ══════════════════════════════════════════════ -->
-        <Grid Grid.Row="3"
+        <Grid Grid.Row="4"
               x:Name="BoardGrid"
               HorizontalOptions="Center"
               VerticalOptions="Center"/>
 
         <!-- ══════════════════════════════════════════════
-             Linha 4 — Relógio das BRANCAS (jogador) — fundo
+             Linha 5 — Relógio das BRANCAS (jogador)
              ══════════════════════════════════════════════ -->
-        <Frame Grid.Row="4"
+        <Frame Grid.Row="5"
                Style="{StaticResource TimerFrame}"
                BackgroundColor="#4A4035"
                IsVisible="{Binding TimerVisible}">
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="14">
-
-                <!-- Nome do jogador -->
                 <Label Text="♙ Você (Brancas)"
                        TextColor="#DDDDDD"
                        FontSize="13"
                        VerticalOptions="Center"/>
-
-                <!-- Contador por jogada — só aparece quando ativo (≥ 2 min) -->
                 <VerticalStackLayout Grid.Column="1"
                                      IsVisible="{Binding ShowMoveTimer}"
                                      VerticalOptions="Center"
@@ -145,8 +160,6 @@
                         </Label.Triggers>
                     </Label>
                 </VerticalStackLayout>
-
-                <!-- Tempo total da partida -->
                 <Label Grid.Column="2"
                        Text="{Binding WhiteTimeDisplay}"
                        Style="{StaticResource ClockLabel}"
@@ -163,11 +176,9 @@
         </Frame>
 
         <!-- ══════════════════════════════════════════════
-             Linha 5 — Botões
+             Linha 6 — Botões
              ══════════════════════════════════════════════ -->
-        <Grid Grid.Row="5" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,6,0,2" ColumnSpacing="6">
-
-            <!-- Jogo casual: Novo Jogo -->
+        <Grid Grid.Row="6" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,4,0,2" ColumnSpacing="6">
             <Button x:Name="NewGameBtn"
                     Text="Novo Jogo"
                     Clicked="OnNewGameClicked"
@@ -177,8 +188,6 @@
                     FontAttributes="Bold"
                     CornerRadius="8"
                     Padding="16,10"/>
-
-            <!-- Modo torneio: Voltar ao Torneio (só após game over) -->
             <Button x:Name="ReturnBtn"
                     Text="← Torneio"
                     Clicked="OnReturnToTournamentClicked"
@@ -188,8 +197,6 @@
                     FontAttributes="Bold"
                     CornerRadius="8"
                     Padding="16,10"/>
-
-            <!-- Desistir (visível durante a partida) -->
             <Button x:Name="ResignBtn"
                     Grid.Column="1"
                     Text="🏳"
@@ -201,8 +208,6 @@
                     WidthRequest="48"
                     Padding="0"
                     ToolTipProperties.Text="Desistir"/>
-
-            <!-- Propor empate (apenas fora de torneio) -->
             <Button x:Name="DrawBtn"
                     Grid.Column="2"
                     Text="½"
@@ -215,8 +220,6 @@
                     WidthRequest="48"
                     Padding="0"
                     ToolTipProperties.Text="Propor empate"/>
-
-            <!-- Som -->
             <Button x:Name="SoundBtn"
                     Grid.Column="3"
                     Text="🔊"
@@ -229,16 +232,24 @@
         </Grid>
 
         <!-- ══════════════════════════════════════════════
-             Linha 6 — Barra de ADMIN (visível só em modo admin)
+             Linha 7 — Lista de lances (scroll horizontal)
              ══════════════════════════════════════════════ -->
-        <Grid x:Name="AdminBar" Grid.Row="6"
+        <ScrollView Grid.Row="7" Orientation="Horizontal" HeightRequest="24"
+                    BackgroundColor="#1E1C1A" Margin="0,2,0,0">
+            <Label Text="{Binding MoveListText}"
+                   TextColor="#AAAAAA" FontSize="11"
+                   VerticalOptions="Center" Padding="6,0"/>
+        </ScrollView>
+
+        <!-- ══════════════════════════════════════════════
+             Linha 8 — Barra de ADMIN (visível só em modo admin)
+             ══════════════════════════════════════════════ -->
+        <Grid x:Name="AdminBar" Grid.Row="8"
               ColumnDefinitions="Auto,*,*" ColumnSpacing="6"
               Margin="0,4,0,2" IsVisible="False">
-
             <Label Text="⚙ ADMIN" TextColor="#FF6600"
                    FontSize="11" FontAttributes="Bold"
                    VerticalOptions="Center" Margin="4,0"/>
-
             <Button Grid.Column="1"
                     Text="⚡ Forçar Vitória"
                     x:Name="AdminWinBtn"
@@ -249,7 +260,6 @@
                     FontSize="12"
                     CornerRadius="8"
                     Padding="0,8"/>
-
             <Button Grid.Column="2"
                     Text="💀 Forçar Derrota"
                     x:Name="AdminLoseBtn"

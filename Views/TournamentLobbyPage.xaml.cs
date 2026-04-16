@@ -12,9 +12,16 @@ public partial class TournamentLobbyPage : ContentPage
         TournamentType.Ranked
     ];
 
-    private TournamentType? _activeType       = null;  // null = todos
-    private decimal         _activeFilter     = 0;     // 0 = todos
-    private bool            _premiumOnly      = false; // tab Premium
+    private TournamentType? _activeType   = null;
+    private decimal         _activeFilter = 0;
+    private bool            _premiumOnly  = false;
+    private bool            _isCustom     = false;
+
+    // Seleções do painel personalizado
+    private TournamentType _customType   = TournamentType.Standard;
+    private int            _customSize   = 8;
+    private int            _customTime   = 5;
+    private decimal        _customBuyIn  = 25;
 
     public TournamentLobbyPage()
     {
@@ -30,7 +37,8 @@ public partial class TournamentLobbyPage : ContentPage
         var svc = AppState.Current.RoomLobby;
         svc.RoomsUpdated -= OnRoomsUpdated;
         svc.RoomsUpdated += OnRoomsUpdated;
-        RefreshList();
+        if (_isCustom) RebuildCustomSummary();
+        else RefreshList();
     }
 
     protected override void OnDisappearing()
@@ -49,16 +57,17 @@ public partial class TournamentLobbyPage : ContentPage
     {
         TypeTabBar.Children.Clear();
 
-        AddTypeTab(null,  "Todos",       false);
-        AddTypeTab(null,  "💎 Premium",  true);  // tab exclusivo alto valor
+        AddTypeTab(null,  "Todos",          false);
+        AddTypeTab(null,  "💎 Premium",    true);
+        AddTypeTab(null,  "✏ Personalizado", false, isCustomTab: true);
         foreach (var t in TypeFilters)
         {
             string label = t switch
             {
                 TournamentType.Standard   => "Standard",
-                TournamentType.HeadsUp    => "⚔ 1v1",
+                TournamentType.HeadsUp    => "⚔ Duelo",
                 TournamentType.Bounty     => "🎯 Bounty",
-                TournamentType.Satellite  => "🚀 Satélite",
+                TournamentType.Satellite  => "🎟 Bilhete Dourado",
                 TournamentType.Turbo      => "⚡ Turbo",
                 TournamentType.HyperTurbo => "🔥 Hyper",
                 TournamentType.Ranked     => "🏅 Ranked",
@@ -68,12 +77,17 @@ public partial class TournamentLobbyPage : ContentPage
         }
     }
 
-    private void AddTypeTab(TournamentType? type, string label, bool isPremiumTab)
+    private void AddTypeTab(TournamentType? type, string label, bool isPremiumTab,
+                            bool isCustomTab = false)
     {
-        bool active = isPremiumTab ? _premiumOnly : (!_premiumOnly && _activeType == type);
-        Color bg    = isPremiumTab
-            ? (active ? Color.FromArgb("#FFD700") : Color.FromArgb("#3A2800"))
-            : (active ? Color.FromArgb("#FFD700") : Color.FromArgb("#1C2A4A"));
+        bool active = isCustomTab  ? _isCustom
+                    : isPremiumTab ? (_premiumOnly && !_isCustom)
+                    : (!_premiumOnly && !_isCustom && _activeType == type);
+
+        Color bg = isCustomTab  ? (active ? Color.FromArgb("#7B68EE") : Color.FromArgb("#1E1A3A"))
+                 : isPremiumTab ? (active ? Color.FromArgb("#FFD700")  : Color.FromArgb("#3A2800"))
+                 : (active      ? Color.FromArgb("#FFD700")            : Color.FromArgb("#1C2A4A"));
+
         var btn = new Button
         {
             Text            = label,
@@ -85,9 +99,16 @@ public partial class TournamentLobbyPage : ContentPage
         };
         btn.Clicked += (_, _) =>
         {
-            _premiumOnly = isPremiumTab;
-            _activeType  = isPremiumTab ? null : type;
-            BuildTypeTabs(); BuildFilterBar(); RefreshList();
+            _isCustom    = isCustomTab;
+            _premiumOnly = !isCustomTab && isPremiumTab;
+            _activeType  = (isCustomTab || isPremiumTab) ? null : type;
+            BuildTypeTabs();
+            if (_isCustom) { FilterScrollView.IsVisible = false; TableHeader.IsVisible = false;
+                             RoomScrollView.IsVisible = false;   CustomPanel.IsVisible = true;
+                             BuildCustomPanel(); }
+            else           { FilterScrollView.IsVisible = true;  TableHeader.IsVisible = true;
+                             RoomScrollView.IsVisible = true;    CustomPanel.IsVisible = false;
+                             BuildFilterBar(); RefreshList(); }
         };
         TypeTabBar.Children.Add(btn);
     }
@@ -254,8 +275,8 @@ public partial class TournamentLobbyPage : ContentPage
         string extra = room.Type switch
         {
             TournamentType.Bounty    => $"🎯 Bounty: $ {room.BountyPerPlayer:N0}/elim.",
-            TournamentType.Satellite => $"🚀 Vaga: {satelliteTargetName} ($ {room.SatelliteTarget:N0})",
-            TournamentType.Ranked    => $"ELO {room.MinRating}–{(room.MaxRating == 9999 ? "∞" : room.MaxRating.ToString())}",
+            TournamentType.Satellite => $"🎟 Vaga: {satelliteTargetName} ($ {room.SatelliteTarget:N0})",
+            TournamentType.Ranked    => "🏅 Classificatório",
             TournamentType.HeadsUp   => "Melhor de 3",
             _ => room.StatusLabel
         };
@@ -331,6 +352,193 @@ public partial class TournamentLobbyPage : ContentPage
         return row;
     }
 
+    // -----------------------------------------------------------------------
+    // Painel personalizado
+    // -----------------------------------------------------------------------
+    private static readonly (string Label, TournamentType Type)[] CustomTypes =
+    [
+        ("Standard",    TournamentType.Standard),
+        ("⚔ Duelo",    TournamentType.HeadsUp),
+        ("🎯 Bounty",   TournamentType.Bounty),
+        ("⚡ Turbo",    TournamentType.Turbo),
+        ("🔥 Hyper",    TournamentType.HyperTurbo),
+        ("🏅 Ranked",   TournamentType.Ranked),
+    ];
+    private static readonly int[]     CustomSizes   = [2, 8, 16, 32, 64];
+    private static readonly int[]     CustomTimes   = [0, 1, 2, 3, 5, 10];
+    private static readonly decimal[] CustomBuyIns  = [10, 25, 50, 100, 250, 500];
+
+    // Label de resumo — atualizada a cada seleção
+    private Label? _customSummaryLabel;
+    private Button? _createBtn;
+
+    private void BuildCustomPanel()
+    {
+        CustomContainer.Children.Clear();
+
+        // ── Tipo ────────────────────────────────────────────────────────────
+        CustomContainer.Children.Add(BuildCustomSection("Tipo de Torneio",
+            CustomTypes.Select(ct => ct.Label).ToArray(),
+            CustomTypes.Select(ct => (object)ct.Type).ToArray(),
+            _customType,
+            v => { _customType = (TournamentType)v; RebuildCustomSummary(); }));
+
+        // ── Nº de Jogadores ─────────────────────────────────────────────────
+        // Duelo força 2 jogadores
+        var sizesAvail = _customType == TournamentType.HeadsUp ? [2] : CustomSizes;
+        if (_customType == TournamentType.HeadsUp) _customSize = 2;
+        CustomContainer.Children.Add(BuildCustomSection("Nº de Jogadores",
+            sizesAvail.Select(s => SizeEmoji(s)).ToArray(),
+            sizesAvail.Select(s => (object)s).ToArray(),
+            _customSize,
+            v => { _customSize = (int)v; RebuildCustomSummary(); }));
+
+        // ── Tempo por Partida ───────────────────────────────────────────────
+        // HyperTurbo fixa 1 min; Turbo limita a ≤ 2 min
+        int[]  timesAvail = _customType == TournamentType.HyperTurbo ? [1]
+                          : _customType == TournamentType.Turbo       ? [0, 1, 2]
+                          : CustomTimes;
+        if (_customType == TournamentType.HyperTurbo) _customTime = 1;
+        if (_customType == TournamentType.Turbo && _customTime > 2) _customTime = 2;
+        CustomContainer.Children.Add(BuildCustomSection("Tempo por Partida",
+            timesAvail.Select(t => t == 0 ? "Livre" : $"{t} min").ToArray(),
+            timesAvail.Select(t => (object)t).ToArray(),
+            _customTime,
+            v => { _customTime = (int)v; RebuildCustomSummary(); }));
+
+        // ── Buy-in ──────────────────────────────────────────────────────────
+        CustomContainer.Children.Add(BuildCustomSection("Buy-in",
+            CustomBuyIns.Select(b => $"$ {b:N0}").ToArray(),
+            CustomBuyIns.Select(b => (object)b).ToArray(),
+            _customBuyIn,
+            v => { _customBuyIn = (decimal)v; RebuildCustomSummary(); }));
+
+        // ── Resumo + botão ──────────────────────────────────────────────────
+        _customSummaryLabel = new Label
+        {
+            TextColor = Color.FromArgb("#4CAF50"),
+            FontSize  = 13,
+            HorizontalTextAlignment = TextAlignment.Center
+        };
+
+        _createBtn = new Button
+        {
+            Text            = "CRIAR TORNEIO",
+            BackgroundColor = Color.FromArgb("#7B68EE"),
+            TextColor       = Colors.White,
+            FontAttributes  = FontAttributes.Bold,
+            FontSize        = 15,
+            CornerRadius    = 12,
+            HeightRequest   = 52
+        };
+        _createBtn.Clicked += async (_, _) => await OnCreateCustomTournament();
+
+        var summaryFrame = new Frame
+        {
+            BackgroundColor = Color.FromArgb("#16213E"),
+            BorderColor     = Color.FromArgb("#7B68EE"),
+            CornerRadius    = 12,
+            Padding         = new Thickness(16, 14),
+            HasShadow       = false,
+            Content         = new VerticalStackLayout
+            {
+                Spacing  = 12,
+                Children = { _customSummaryLabel, _createBtn }
+            }
+        };
+        CustomContainer.Children.Add(summaryFrame);
+        RebuildCustomSummary();
+    }
+
+    private View BuildCustomSection(string title, string[] labels, object[] values,
+                                    object selected, Action<object> onSelect)
+    {
+        var section = new VerticalStackLayout { Spacing = 8 };
+        section.Add(new Label
+        {
+            Text = title, TextColor = Color.FromArgb("#AAAACC"),
+            FontSize = 12, FontAttributes = FontAttributes.Bold
+        });
+
+        var chips = new FlexLayout
+        {
+            Wrap            = Microsoft.Maui.Layouts.FlexWrap.Wrap,
+            JustifyContent  = Microsoft.Maui.Layouts.FlexJustify.Start,
+            Direction       = Microsoft.Maui.Layouts.FlexDirection.Row
+        };
+
+        for (int i = 0; i < labels.Length; i++)
+        {
+            var capturedVal   = values[i];
+            bool isActive     = capturedVal.Equals(selected);
+            var chip = new Button
+            {
+                Text            = labels[i],
+                FontSize        = 12,
+                CornerRadius    = 20,
+                Padding         = new Thickness(16, 8),
+                Margin          = new Thickness(0, 0, 6, 6),
+                BackgroundColor = isActive ? Color.FromArgb("#7B68EE") : Color.FromArgb("#252B45"),
+                TextColor       = isActive ? Colors.White : Color.FromArgb("#AAAACC")
+            };
+            chip.Clicked += (_, _) => { onSelect(capturedVal); BuildCustomPanel(); };
+            chips.Add(chip);
+        }
+        section.Add(chips);
+        return section;
+    }
+
+    private void RebuildCustomSummary()
+    {
+        if (_customSummaryLabel == null || _createBtn == null) return;
+
+        decimal pool  = _customBuyIn * _customSize;
+        string  time  = _customTime == 0 ? "Livre" : $"{_customTime} min";
+        string  type  = CustomTypes.FirstOrDefault(ct => ct.Type == _customType).Label;
+
+        _customSummaryLabel.Text =
+            $"{type}  ·  {_customSize} jogadores  ·  {time}\n" +
+            $"Buy-in: $ {_customBuyIn:N0}  →  Prêmio total: $ {pool:N0}";
+
+        bool canAfford = AppState.Current.Profile.Balance >= _customBuyIn ||
+                         AppState.Current.Profile.HasTicket(_customBuyIn);
+        _createBtn.BackgroundColor = canAfford
+            ? Color.FromArgb("#7B68EE")
+            : Color.FromArgb("#555555");
+    }
+
+    private async Task OnCreateCustomTournament()
+    {
+        var profile = AppState.Current.Profile;
+
+        bool usedTicket = profile.UseTicket(_customBuyIn);
+        if (!usedTicket)
+        {
+            if (!profile.TryDebit(_customBuyIn))
+            {
+                await DisplayAlert("Saldo insuficiente",
+                    $"Você precisa de $ {_customBuyIn:N0}.\nSaldo: $ {profile.Balance:N0}", "OK");
+                return;
+            }
+        }
+        else
+        {
+            await DisplayAlert("🎟 Ticket Utilizado!",
+                $"Vaga gratuita no torneio de $ {_customBuyIn:N0} ativada!", "Ótimo!");
+        }
+
+        decimal bounty = _customType == TournamentType.Bounty
+            ? Math.Round(_customBuyIn * 0.3m, 0)
+            : 0;
+
+        AppState.Current.Matchmaking.CreateRoom(
+            _customSize, _customBuyIn, _customTime,
+            profile.Name, profile.Avatar,
+            _customType, satelliteTarget: 0);
+
+        await Shell.Current.GoToAsync("WaitingRoomPage");
+    }
+
     private static Color TypeColor(TournamentType t) => t switch
     {
         TournamentType.HeadsUp    => Color.FromArgb("#FF9800"),
@@ -359,15 +567,6 @@ public partial class TournamentLobbyPage : ContentPage
     {
         var profile = AppState.Current.Profile;
 
-        // Validação Ranked
-        if (room.Type == TournamentType.Ranked &&
-            (profile.Rating < room.MinRating || profile.Rating > room.MaxRating))
-        {
-            await DisplayAlert("Faixa de Rating",
-                $"Este torneio é para jogadores com rating entre {room.MinRating} e {(room.MaxRating == 9999 ? "∞" : room.MaxRating.ToString())}.\nSeu rating: {profile.Rating}", "OK");
-            return;
-        }
-
         // Tenta usar ticket primeiro; senão debita fichas
         bool usedTicket = profile.UseTicket(room.BuyIn);
         if (!usedTicket)
@@ -379,7 +578,7 @@ public partial class TournamentLobbyPage : ContentPage
                     .Any(r => r.Type == TournamentType.Satellite && r.SatelliteTarget == room.BuyIn && r.CanJoin);
 
                 string tip = hasSatellite
-                    ? "\n\n💡 Jogue um Satélite para ganhar uma vaga gratuita!"
+                    ? "\n\n💡 Jogue um Bilhete Dourado para ganhar uma vaga gratuita!"
                     : "";
                 await DisplayAlert("Saldo insuficiente",
                     $"Você precisa de $ {room.BuyIn:N0}.\nSaldo: $ {profile.Balance:N0}{tip}", "OK");
@@ -395,7 +594,7 @@ public partial class TournamentLobbyPage : ContentPage
         AppState.Current.RoomLobby.JoinRoom(room);
         AppState.Current.Matchmaking.CreateRoom(
             room.Size, room.BuyIn, room.TimeMinutes,
-            profile.Name, profile.Rating, profile.Avatar,
+            profile.Name, profile.Avatar,
             room.Type, room.SatelliteTarget);
 
         await Shell.Current.GoToAsync("WaitingRoomPage");

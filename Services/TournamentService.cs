@@ -53,7 +53,6 @@ public class TournamentService
                 Name     = rp.Name,
                 IsHuman  = rp.IsHuman,
                 Strength = rp.Strength,
-                Rating   = rp.Rating,
                 Avatar   = rp.IsHuman ? rp.Avatar : PickBotAvatar()
             });
 
@@ -66,7 +65,7 @@ public class TournamentService
     // Criação direta (legado)
     // -------------------------------------------------------------------------
     public Tournament Create(string humanName, int size, decimal buyIn,
-                             int humanRating = 1200, string humanAvatar = "♟")
+                             string humanAvatar = "♟")
     {
         int totalRounds = (int)Math.Log2(size);
         var t = new Tournament
@@ -80,18 +79,17 @@ public class TournamentService
         t.Players.Add(new TournamentPlayer
         {
             Name = humanName, IsHuman = true, Strength = 6,
-            Rating = humanRating, Avatar = humanAvatar
+            Avatar = humanAvatar
         });
 
         var names = AiNames.OrderBy(_ => Random.Shared.Next()).Take(size - 1).ToArray();
         for (int i = 0; i < size - 1; i++)
         {
-            int str    = Random.Shared.Next(3, 10);
-            int rating = 800 + str * 170 + Random.Shared.Next(-100, 100);
+            int str = Random.Shared.Next(3, 10);
             t.Players.Add(new TournamentPlayer
             {
                 Name = names[i], Strength = str,
-                Rating = rating, Avatar = PickBotAvatar()
+                Avatar = PickBotAvatar()
             });
         }
 

@@ -21,7 +21,7 @@ public partial class GamePage : ContentPage
     ];
 
     private CancellationTokenSource? _chatCts;
-    private CancellationTokenSource? _resizeCts;
+    private double _squareSize;
 
     public GamePage()
     {
@@ -37,29 +37,6 @@ public partial class GamePage : ContentPage
         _vm.PropertyChanged    += OnVmPropertyChanged;
 
         BuildBoard();
-
-        // Desabilita input do tabuleiro durante resize para evitar crash no WinUI input handler
-        SizeChanged += OnPageSizeChanged;
-    }
-
-    private void OnPageSizeChanged(object? sender, EventArgs e)
-    {
-        BoardGrid.InputTransparent = true;
-
-        _resizeCts?.Cancel();
-        _resizeCts = new CancellationTokenSource();
-        var token  = _resizeCts.Token;
-
-        Task.Run(async () =>
-        {
-            try
-            {
-                await Task.Delay(300, token); // aguarda resize estabilizar
-                MainThread.BeginInvokeOnMainThread(
-                    () => BoardGrid.InputTransparent = false);
-            }
-            catch (OperationCanceledException) { }
-        }, token);
     }
 
     protected override void OnAppearing()
@@ -111,9 +88,6 @@ public partial class GamePage : ContentPage
         // Human plays white; "Brancas vencem" = human won in casual mode
         bool humanWon = _vm.StatusMessage.Contains("Brancas vencem");
 
-        // XP por partida casual
-        state.Profile.AddXp(humanWon ? 20 : 8);
-
         // Missões diárias (retorna true se recém completou)
         bool m1Done = state.Daily.RecordGamePlayed();
         bool m2Done = humanWon && state.Daily.RecordWin();
@@ -121,8 +95,8 @@ public partial class GamePage : ContentPage
         if (m1Done || m2Done)
         {
             var missions = state.Daily.GetMissions();
-            if (m1Done) { var m = missions[0]; state.Profile.Credit(m.BalanceReward); state.Profile.AddXp(m.XpReward); }
-            if (m2Done) { var m = missions[1]; state.Profile.Credit(m.BalanceReward); state.Profile.AddXp(m.XpReward); }
+            if (m1Done) { var m = missions[0]; state.Profile.Credit(m.BalanceReward); }
+            if (m2Done) { var m = missions[1]; state.Profile.Credit(m.BalanceReward); }
             MainThread.BeginInvokeOnMainThread(async () =>
                 await DisplayAlert("✅ Missão Completa!", "Recompensa creditada!", "OK"));
         }
@@ -174,17 +148,28 @@ public partial class GamePage : ContentPage
     }
 
     // -----------------------------------------------------------------------
-    // Botão: Novo Jogo — exibe seletor de tempo e inicia partida
+    // Botão: Novo Jogo — escolhe dificuldade e depois tempo
     // -----------------------------------------------------------------------
+    private static readonly (string Label, int Depth)[] DifficultyOptions =
+    [
+        ("Fácil",   1),
+        ("Médio",   3),
+        ("Difícil", 5),
+    ];
+
     private async void OnNewGameClicked(object? sender, EventArgs e)
     {
-        string[] labels  = TimeOptions.Select(o => o.Label).ToArray();
-        string? choice   = await DisplayActionSheet("Tempo por jogador", "Cancelar", null, labels);
+        string[] diffLabels = DifficultyOptions.Select(o => o.Label).ToArray();
+        string? diff = await DisplayActionSheet("Dificuldade da IA", "Cancelar", null, diffLabels);
+        if (diff == null || diff == "Cancelar") return;
+        int depth = DifficultyOptions.FirstOrDefault(o => o.Label == diff).Depth;
 
+        string[] timeLabels = TimeOptions.Select(o => o.Label).ToArray();
+        string? choice = await DisplayActionSheet("Tempo por jogador", "Cancelar", null, timeLabels);
         if (choice == null || choice == "Cancelar") return;
 
         int minutes = TimeOptions.FirstOrDefault(o => o.Label == choice).Minutes;
-        _vm.StartNewGame(minutes);
+        _vm.StartNewGame(minutes, depth);
     }
 
     // -----------------------------------------------------------------------
@@ -229,6 +214,8 @@ public partial class GamePage : ContentPage
 
     // -----------------------------------------------------------------------
     // Constrói o tabuleiro 8×8 programaticamente
+    // Um único TapGestureRecognizer no BoardGrid evita crash no WinUI ao maximizar
+    // (64 reconhecedores individuais sobrecarregam o handler de input do WinUI)
     // -----------------------------------------------------------------------
     private void BuildBoard()
     {
@@ -249,7 +236,7 @@ public partial class GamePage : ContentPage
 
                 var piece = new Label
                 {
-                    Style         = (Style)Resources["PieceLabel"],
+                    Style          = (Style)Resources["PieceLabel"],
                     BindingContext = sq,
                 };
                 piece.SetBinding(Label.TextProperty, nameof(SquareViewModel.PieceSymbol));
@@ -260,34 +247,42 @@ public partial class GamePage : ContentPage
                 if (r == 7) coord += (char)('a' + c);
                 var coordLbl = new Label
                 {
-                    Text             = coord,
-                    FontSize         = 9,
-                    TextColor        = sq.IsLight
-                                       ? Color.FromArgb("#B58863")
-                                       : Color.FromArgb("#F0D9B5"),
+                    Text              = coord,
+                    FontSize          = 9,
+                    TextColor         = sq.IsLight
+                                        ? Color.FromArgb("#B58863")
+                                        : Color.FromArgb("#F0D9B5"),
                     HorizontalOptions = LayoutOptions.Start,
                     VerticalOptions   = LayoutOptions.End,
                     Margin            = new Thickness(2, 0, 0, 1),
                     InputTransparent  = true
                 };
 
-                var cell = new Grid();
+                var cell = new Grid { InputTransparent = true };
                 cell.Add(bg);
                 cell.Add(piece);
                 cell.Add(coordLbl);
-
-                var tap = new TapGestureRecognizer
-                {
-                    Command          = _vm.SquareTappedCommand,
-                    CommandParameter = sq
-                };
-                cell.GestureRecognizers.Add(tap);
 
                 Grid.SetRow(cell, r);
                 Grid.SetColumn(cell, c);
                 BoardGrid.Add(cell);
             }
         }
+
+        // Único reconhecedor de toque: calcula a casa pelo ponto clicado
+        var boardTap = new TapGestureRecognizer();
+        boardTap.Tapped += OnBoardTapped;
+        BoardGrid.GestureRecognizers.Add(boardTap);
+    }
+
+    private void OnBoardTapped(object? sender, TappedEventArgs e)
+    {
+        if (_squareSize <= 0) return;
+        var pos = e.GetPosition(BoardGrid);
+        if (pos is null) return;
+        int col = Math.Clamp((int)(pos.Value.X / _squareSize), 0, 7);
+        int row = Math.Clamp((int)(pos.Value.Y / _squareSize), 0, 7);
+        _vm.SquareTappedCommand.Execute(_vm.Squares[row, col]);
     }
 
     // -----------------------------------------------------------------------
@@ -297,12 +292,13 @@ public partial class GamePage : ContentPage
     {
         base.OnSizeAllocated(width, height);
 
-        // Desconta: relógios (~56×2) + status (~36) + botões (~52) + margens
-        double used      = _vm.TimerVisible ? 240 : 130;
+        // Desconta: relógios (~56×2) + status (~36) + capturadas (~24) + botões (~52) + lances (~24) + margens
+        double used      = _vm.TimerVisible ? 290 : 180;
         double available = Math.Min(width - 16, height - used);
         if (available <= 0) return;
 
         double sq = available / 8.0;
+        _squareSize = sq;
 
         BoardGrid.WidthRequest  = available;
         BoardGrid.HeightRequest = available;

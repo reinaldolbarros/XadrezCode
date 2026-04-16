@@ -5,6 +5,5 @@ public class RoomPlayer
     public string Name     { get; init; } = "";
     public bool   IsHuman  { get; init; }
     public int    Strength { get; init; } = 5;
-    public int    Rating   { get; init; } = 1200;
     public string Avatar   { get; init; } = "🤖";
 }

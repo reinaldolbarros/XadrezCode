@@ -12,7 +12,6 @@ public partial class TournamentHistoryPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        var p       = AppState.Current.Profile;
         var records = AppState.Current.History.Records;
 
         // Stats
@@ -24,7 +23,6 @@ public partial class TournamentHistoryPage : ContentPage
         WonLabel.Text    = records.Count(r => r.Position == 1).ToString();
         ProfitLabel.Text = $"{(profit >= 0 ? "+" : "")}$ {profit:N0}";
         ProfitLabel.TextColor = profit >= 0 ? Color.FromArgb("#4CAF50") : Color.FromArgb("#FF5252");
-        RatingLabel.Text = p.Rating.ToString();
 
         // Lista
         HistoryList.Children.Clear();
@@ -64,12 +62,6 @@ public partial class TournamentHistoryPage : ContentPage
         {
             Text      = $"{r.Date:dd/MM/yyyy}  •  {r.Size} jogadores  •  Buy-in: $ {r.BuyIn:N0}",
             TextColor = Color.FromArgb("#AAAACC"), FontSize = 11
-        });
-        left.Add(new Label
-        {
-            Text      = $"Rating: {r.RatingBefore} → {r.RatingAfter}  ({(r.RatingAfter - r.RatingBefore >= 0 ? "+" : "")}{r.RatingAfter - r.RatingBefore})",
-            TextColor = r.RatingAfter >= r.RatingBefore ? Color.FromArgb("#4CAF50") : Color.FromArgb("#FF5252"),
-            FontSize  = 11
         });
         grid.Add(left);
 

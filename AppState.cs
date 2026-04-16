@@ -32,7 +32,6 @@ public class AppState
     public string TournamentOpponentName   { get; set; } = "";
     public int    TournamentAIDepth        { get; set; } = 2;
     public int    TournamentTimeMinutes    { get; set; } = 5;
-    public int    TournamentOpponentRating { get; set; } = 1200;
 
     public bool IsInTournamentMatch => PendingTournamentGame;
 

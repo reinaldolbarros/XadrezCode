@@ -105,7 +105,6 @@ public partial class RankingPage : ContentPage
             MyAvatarLabel.Text = me.Avatar;
             MyNameLabel.Text   = me.Name;
             MyPointsLabel.Text = _showWeekly ? $"{me.WeekPoints:N0} pts" : $"{me.Points:N0} pts";
-            MyRatingLabel.Text = me.Rating.ToString();
         }
     }
 
@@ -113,7 +112,7 @@ public partial class RankingPage : ContentPage
     {
         var row = new Grid
         {
-            ColumnDefinitions = { new(44), new(GridLength.Auto), new(GridLength.Star), new(80), new(60) },
+            ColumnDefinitions = { new(44), new(GridLength.Auto), new(GridLength.Star), new(80) },
             BackgroundColor   = e.IsHuman ? Color.FromArgb("#1C2A0A") : e.RowColor,
             Padding           = new Thickness(10, 7)
         };
@@ -161,15 +160,6 @@ public partial class RankingPage : ContentPage
         };
         Grid.SetColumn(ptsLbl, 3);
         row.Add(ptsLbl);
-
-        // ELO
-        var eloLbl = new Label
-        {
-            Text = e.Rating.ToString(), TextColor = Color.FromArgb("#AAAACC"),
-            FontSize = 12, HorizontalTextAlignment = TextAlignment.Center, VerticalOptions = LayoutOptions.Center
-        };
-        Grid.SetColumn(eloLbl, 4);
-        row.Add(eloLbl);
 
         return row;
     }

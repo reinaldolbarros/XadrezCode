@@ -8,7 +8,6 @@ public class DailyMission
     public int    Target         { get; set; }
     public int    Progress       { get; set; }
     public bool   Completed      => Progress >= Target;
-    public int    XpReward       { get; set; }
     public int    BalanceReward  { get; set; }
 }
 
@@ -34,16 +33,14 @@ public class DailyService
     public bool BonusClaimedToday
         => Preferences.Default.Get(KeyBonusClaimed, "") == TodayKey;
 
-    /// <summary>Reivindica o bônus diário e retorna (fichas, xp) ganhos.</summary>
-    public (int fichas, int xp) ClaimDailyBonus()
+    /// <summary>Reivindica o bônus diário e retorna fichas ganhas.</summary>
+    public int ClaimDailyBonus()
     {
         UpdateStreak();
         Preferences.Default.Set(KeyBonusClaimed, TodayKey);
 
         int streak = LoginStreak;
-        int fichas = streak switch { >= 7 => 500, >= 5 => 300, >= 3 => 200, >= 2 => 150, _ => 100 };
-        int xp     = streak switch { >= 7 => 200, >= 5 => 120, >= 3 => 80,  >= 2 => 50,  _ => 30  };
-        return (fichas, xp);
+        return streak switch { >= 7 => 500, >= 5 => 300, >= 3 => 200, >= 2 => 150, _ => 100 };
     }
 
     private void UpdateStreak()
@@ -79,11 +76,11 @@ public class DailyService
         return
         [
             new DailyMission { Id="m1", Icon="🎮", Description="Jogar 3 partidas",
-                Target=3, Progress=Preferences.Default.Get(KeyM1Progress,0), XpReward=50,  BalanceReward=100 },
+                Target=3, Progress=Preferences.Default.Get(KeyM1Progress,0), BalanceReward=100 },
             new DailyMission { Id="m2", Icon="⚔️", Description="Vencer 2 partidas",
-                Target=2, Progress=Preferences.Default.Get(KeyM2Progress,0), XpReward=80,  BalanceReward=150 },
+                Target=2, Progress=Preferences.Default.Get(KeyM2Progress,0), BalanceReward=150 },
             new DailyMission { Id="m3", Icon="🏆", Description="Eliminar adversário em torneio",
-                Target=1, Progress=Preferences.Default.Get(KeyM3Progress,0), XpReward=100, BalanceReward=200 },
+                Target=1, Progress=Preferences.Default.Get(KeyM3Progress,0), BalanceReward=200 },
         ];
     }
 

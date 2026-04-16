@@ -56,14 +56,53 @@ public partial class WaitingRoomPage : ContentPage
     }
 
     // -----------------------------------------------------------------------
-    // Evento: novo jogador entrou
+    // Evento: novo jogador entrou — anima o card e exibe nome no status
     // -----------------------------------------------------------------------
     private void OnPlayerJoined(RoomPlayer player)
     {
-        MainThread.BeginInvokeOnMainThread(() =>
+        MainThread.BeginInvokeOnMainThread(async () =>
         {
-            AddSlotCard(player);
+            // Flash do nome no status (apenas para bots, não para o próprio jogador)
+            if (!player.IsHuman)
+            {
+                StatusLabel.Text      = $"✓  {player.Name} entrou na sala!";
+                StatusLabel.TextColor = Color.FromArgb("#4CAF50");
+            }
+
+            // Constrói o card em estado invisível para animação
+            var card          = BuildPlayerCard(player);
+            card.Opacity      = 0;
+            card.TranslationY = 20;
+
+            // Remove o primeiro slot vazio e insere o card
+            var emptySlot = SlotsContainer.Children
+                .OfType<Frame>().FirstOrDefault(f => f.StyleId == "empty");
+            if (emptySlot != null)
+                SlotsContainer.Children.Remove(emptySlot);
+
+            int insertAt = player.IsHuman
+                ? 0
+                : Math.Max(0, SlotsContainer.Children.Count - CountEmptySlots());
+            SlotsContainer.Children.Insert(insertAt, card);
+
             UpdateProgress();
+
+            // Slide-in: fade + subida suave
+            await Task.WhenAll(
+                card.FadeTo(1, 280),
+                card.TranslateTo(0, 0, 280, Easing.CubicOut));
+
+            // Restaura texto do status após breve pausa
+            if (!player.IsHuman)
+            {
+                await Task.Delay(800);
+                var mm = AppState.Current.Matchmaking;
+                if (mm.Players.Count < mm.TotalSlots)
+                {
+                    StatusLabel.Text      = "Aguardando jogadores...";
+                    StatusLabel.TextColor = Color.FromArgb("#AAAACC");
+                }
+            }
         });
     }
 
@@ -133,19 +172,15 @@ public partial class WaitingRoomPage : ContentPage
     }
 
     // -----------------------------------------------------------------------
-    // Adiciona um card de jogador e remove o primeiro slot vazio
+    // Adiciona um card de jogador sem animação (usado apenas no RebuildSlots)
     // -----------------------------------------------------------------------
     private void AddSlotCard(RoomPlayer player)
     {
-        // Remove o primeiro slot vazio (tag == "empty")
         var emptySlot = SlotsContainer.Children
-            .OfType<Frame>()
-            .FirstOrDefault(f => f.StyleId == "empty");
-
+            .OfType<Frame>().FirstOrDefault(f => f.StyleId == "empty");
         if (emptySlot != null)
             SlotsContainer.Children.Remove(emptySlot);
 
-        // Insere na posição correta (humano primeiro)
         int insertAt = player.IsHuman ? 0 : Math.Max(0, SlotsContainer.Children.Count - CountEmptySlots());
         SlotsContainer.Children.Insert(insertAt, BuildPlayerCard(player));
     }
@@ -191,10 +226,10 @@ public partial class WaitingRoomPage : ContentPage
             FontAttributes = player.IsHuman ? FontAttributes.Bold : FontAttributes.None
         });
         var (tierIcon, tierName, _, _) = ProfileService.GetTier(
-            player.IsHuman ? AppState.Current.Profile.Points : player.Rating * 3);
+            player.IsHuman ? AppState.Current.Profile.Points : player.Strength * 200);
         string sub = player.IsHuman
             ? $"Você  {tierIcon} {tierName}"
-            : $"{tierIcon} {tierName}  ·  {player.Rating} ELO";
+            : $"{tierIcon} {tierName}";
         nameStack.Add(new Label
         {
             Text      = sub,
@@ -236,19 +271,19 @@ public partial class WaitingRoomPage : ContentPage
             HasShadow       = false
         };
 
-        var grid = new Grid { ColumnDefinitions = { new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto) } };
-
-        grid.Add(new Label { Text = "⏳", FontSize = 20, VerticalOptions = LayoutOptions.Center, Margin = new Thickness(0, 0, 10, 0) });
-
-        Grid.SetColumn(new Label
+        var grid = new Grid
         {
-            Text          = "Aguardando...",
-            TextColor     = Color.FromArgb("#444466"),
-            FontSize      = 14,
-            VerticalOptions = LayoutOptions.Center
-        }, 1);
+            ColumnDefinitions = { new(GridLength.Auto), new(GridLength.Star) }
+        };
 
-        // Re-add since SetColumn on detached labels doesn't work inline
+        grid.Add(new Label
+        {
+            Text            = "⏳",
+            FontSize        = 20,
+            VerticalOptions = LayoutOptions.Center,
+            Margin          = new Thickness(0, 0, 10, 0)
+        });
+
         var nameLbl = new Label
         {
             Text            = "Aguardando...",

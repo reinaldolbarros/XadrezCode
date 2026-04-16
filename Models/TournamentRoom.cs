@@ -10,7 +10,7 @@ public enum TournamentType
     Satellite,   // Prêmio = vaga em torneio maior
     Turbo,       // Tempo reduzido (≤ 2 min)
     HyperTurbo,  // Tempo ultra-reduzido (1 min, 15s/jogada)
-    Ranked,      // Faixa de ELO obrigatória
+    Ranked,      // Classificatório por pontos
 }
 
 public class TournamentRoom
@@ -25,8 +25,6 @@ public class TournamentRoom
 
     // Campos específicos por tipo
     public decimal BountyPerPlayer  { get; init; } = 0;   // Bounty
-    public int     MinRating        { get; init; } = 0;   // Ranked
-    public int     MaxRating        { get; init; } = 9999; // Ranked
     public decimal SatelliteTarget  { get; init; } = 0;   // Satellite (buy-in do torneio alvo)
 
     public decimal PrizePool    => BuyIn * Size;
@@ -44,9 +42,9 @@ public class TournamentRoom
 
     public string TypeBadge => Type switch
     {
-        TournamentType.HeadsUp    => "1v1",
+        TournamentType.HeadsUp    => "⚔",
         TournamentType.Bounty     => "🎯",
-        TournamentType.Satellite  => "🚀",
+        TournamentType.Satellite  => "🎟",
         TournamentType.Turbo      => "⚡",
         TournamentType.HyperTurbo => "🔥",
         TournamentType.Ranked     => "🏅",
@@ -55,12 +53,12 @@ public class TournamentRoom
 
     public string TypeLabel => Type switch
     {
-        TournamentType.HeadsUp    => "Heads-Up",
+        TournamentType.HeadsUp    => "Duelo",
         TournamentType.Bounty     => "Bounty",
-        TournamentType.Satellite  => "Satélite",
+        TournamentType.Satellite  => "Bilhete Dourado",
         TournamentType.Turbo      => "Turbo",
         TournamentType.HyperTurbo => "Hyper",
-        TournamentType.Ranked     => $"Ranked {MinRating}–{MaxRating}",
+        TournamentType.Ranked     => "Ranked",
         _                         => "Standard"
     };
 

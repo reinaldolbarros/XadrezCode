@@ -26,13 +26,12 @@
         </Grid>
 
         <!-- ══ Cabeçalho da tabela ══ -->
-        <Grid Grid.Row="2" ColumnDefinitions="44,Auto,*,80,60"
+        <Grid Grid.Row="2" ColumnDefinitions="44,Auto,*,80"
               BackgroundColor="#0A1628" Padding="10,5">
             <Label Text="#"       TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
             <Label Grid.Column="1" Text="Faixa" TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" Margin="8,0" HorizontalTextAlignment="Center"/>
             <Label Grid.Column="2" Text="Jogador" TextColor="#AAAACC" FontSize="11" FontAttributes="Bold"/>
             <Label Grid.Column="3" Text="Pontos"  TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-            <Label Grid.Column="4" Text="ELO"     TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
         </Grid>
 
         <!-- ══ Lista ══ -->
@@ -44,7 +43,7 @@
         <Frame Grid.Row="4" x:Name="MyPositionFrame"
                BackgroundColor="#1C2A1C" BorderColor="#FFD700"
                CornerRadius="0" Padding="10,8" HasShadow="False">
-            <Grid ColumnDefinitions="44,Auto,*,80,60">
+            <Grid ColumnDefinitions="44,Auto,*,80">
                 <Label x:Name="MyPosLabel"   TextColor="#FFD700" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                 <Label x:Name="MyTierLabel"  Grid.Column="1" FontSize="16" Margin="8,0" HorizontalTextAlignment="Center"/>
                 <StackLayout Grid.Column="2" Orientation="Horizontal" Spacing="6">
@@ -52,7 +51,6 @@
                     <Label x:Name="MyNameLabel"   TextColor="#FFD700" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
                 </StackLayout>
                 <Label x:Name="MyPointsLabel" Grid.Column="3" TextColor="#4CAF50" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-                <Label x:Name="MyRatingLabel" Grid.Column="4" TextColor="#AAAACC" FontSize="12" HorizontalTextAlignment="Center"/>
             </Grid>
         </Frame>
 

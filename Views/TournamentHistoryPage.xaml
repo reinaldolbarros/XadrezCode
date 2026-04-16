@@ -10,7 +10,7 @@
         <!-- Cabeçalho de estatísticas gerais -->
         <Frame Grid.Row="0" BackgroundColor="#16213E" BorderColor="Transparent"
                CornerRadius="0" Padding="16,12" HasShadow="False">
-            <Grid ColumnDefinitions="*,*,*,*">
+            <Grid ColumnDefinitions="*,*,*">
                 <VerticalStackLayout HorizontalOptions="Center">
                     <Label x:Name="TotalLabel"  Text="0"   TextColor="White" FontSize="22" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                     <Label Text="Jogados"        TextColor="#AAAACC" FontSize="11" HorizontalTextAlignment="Center"/>
@@ -22,10 +22,6 @@
                 <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center">
                     <Label x:Name="ProfitLabel" Text="+$ 0" TextColor="#4CAF50" FontSize="22" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                     <Label Text="Lucro"          TextColor="#AAAACC" FontSize="11" HorizontalTextAlignment="Center"/>
-                </VerticalStackLayout>
-                <VerticalStackLayout Grid.Column="3" HorizontalOptions="Center">
-                    <Label x:Name="RatingLabel"  Text="1200" TextColor="#AAAACC" FontSize="22" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-                    <Label Text="Rating"          TextColor="#AAAACC" FontSize="11" HorizontalTextAlignment="Center"/>
                 </VerticalStackLayout>
             </Grid>
         </Frame>

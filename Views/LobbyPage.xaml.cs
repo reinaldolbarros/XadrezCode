@@ -51,19 +51,12 @@ public partial class LobbyPage : ContentPage
         if (tickets.Count > 0)
         {
             string ticketStr = string.Join("  ", tickets.Select(kv => $"🎟 ${kv.Key:N0}×{kv.Value}"));
-            RatingLabel.Text = $"Rating: {p.Rating}  ·  {p.Points:N0} pts  ·  {ticketStr}";
+            RatingLabel.Text = $"{p.Points:N0} pts  ·  {ticketStr}";
         }
         else
         {
-            RatingLabel.Text = $"Rating: {p.Rating}  ·  {p.Points:N0} pts";
+            RatingLabel.Text = $"{p.Points:N0} pts";
         }
-
-        // XP bar
-        XpLevelLabel.Text = $"Nível {p.Level}";
-        XpValueLabel.Text = $"{p.XpInLevel} / 200 XP";
-        // Calculates width after layout; use a reasonable fraction of screen width
-        double barWidth = (DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density - 64) * p.XpProgress;
-        XpBar.WidthRequest = Math.Max(0, barWidth);
 
         // Bônus diário
         bool claimed = daily.BonusClaimedToday;
@@ -86,14 +79,13 @@ public partial class LobbyPage : ContentPage
     private async void OnBonusClicked(object? sender, EventArgs e)
     {
         var state = AppState.Current;
-        var (fichas, xp) = state.Daily.ClaimDailyBonus();
+        int fichas = state.Daily.ClaimDailyBonus();
         state.Profile.Credit(fichas);
-        state.Profile.AddXp(xp);
 
         int streak = state.Daily.LoginStreak;
         string next = streak switch { >= 7 => "Máximo!", >= 5 => "7 dias = 500 fichas", >= 3 => "5 dias = 300 fichas", >= 2 => "3 dias = 200 fichas", _ => "2 dias = 150 fichas" };
         await DisplayAlert("🎁 Bônus Diário!",
-            $"+{fichas} fichas  ·  +{xp} XP\n\n🔥 Sequência: {streak} dia{(streak != 1 ? "s" : "")}\n\n➡ Próximo prêmio: {next}", "Ótimo!");
+            $"+{fichas} fichas\n\n🔥 Sequência: {streak} dia{(streak != 1 ? "s" : "")}\n\n➡ Próximo prêmio: {next}", "Ótimo!");
 
         RefreshUI();
     }
@@ -128,7 +120,6 @@ public partial class LobbyPage : ContentPage
             row.Add(info);
 
             var reward = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.End, Spacing = 1 };
-            reward.Add(new Label { Text = $"+{m.XpReward} XP", TextColor = Color.FromArgb("#7B68EE"), FontSize = 10, HorizontalTextAlignment = TextAlignment.End });
             reward.Add(new Label { Text = $"+{m.BalanceReward}$", TextColor = Color.FromArgb("#4CAF50"), FontSize = 10, HorizontalTextAlignment = TextAlignment.End });
             Grid.SetColumn(reward, 2);
             row.Add(reward);

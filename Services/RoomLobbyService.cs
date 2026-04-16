@@ -58,10 +58,10 @@ public class RoomLobbyService
         Add(new TournamentRoom { Size = 8,  BuyIn = 25, TimeMinutes = 1, Type = TournamentType.HyperTurbo });
         Add(new TournamentRoom { Size = 16, BuyIn = 50, TimeMinutes = 1, Type = TournamentType.HyperTurbo });
 
-        // ── Ranked por ELO ─────────────────────────────────────────
-        Add(new TournamentRoom { Size = 8,  BuyIn = 10, TimeMinutes = 3, Type = TournamentType.Ranked, MinRating = 0,    MaxRating = 1299 });
-        Add(new TournamentRoom { Size = 8,  BuyIn = 25, TimeMinutes = 3, Type = TournamentType.Ranked, MinRating = 1300, MaxRating = 1599 });
-        Add(new TournamentRoom { Size = 16, BuyIn = 50, TimeMinutes = 5, Type = TournamentType.Ranked, MinRating = 1600, MaxRating = 9999 });
+        // ── Ranked ────────────────────────────────────────────────
+        Add(new TournamentRoom { Size = 8,  BuyIn = 10, TimeMinutes = 3, Type = TournamentType.Ranked });
+        Add(new TournamentRoom { Size = 8,  BuyIn = 25, TimeMinutes = 3, Type = TournamentType.Ranked });
+        Add(new TournamentRoom { Size = 16, BuyIn = 50, TimeMinutes = 5, Type = TournamentType.Ranked });
 
         // ── Satélites para torneios de alto valor ──────────────────
         // Mini Satélite → Satélite GP ($50 ticket)
@@ -148,7 +148,6 @@ public class RoomLobbyService
         {
             Size = room.Size, BuyIn = room.BuyIn, TimeMinutes = room.TimeMinutes,
             Type = room.Type, BountyPerPlayer = room.BountyPerPlayer,
-            MinRating = room.MinRating, MaxRating = room.MaxRating,
             SatelliteTarget = room.SatelliteTarget,
             Joined = _rng.Next(1, Math.Max(2, room.Size / 4))
         };

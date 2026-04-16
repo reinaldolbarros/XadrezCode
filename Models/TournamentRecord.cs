@@ -8,8 +8,6 @@ public class TournamentRecord
     public decimal  BuyIn         { get; set; }
     public decimal  Prize         { get; set; }
     public int      Position      { get; set; }
-    public int      RatingBefore  { get; set; }
-    public int      RatingAfter   { get; set; }
     public string   Result        => Position == 1 ? "🏆 Campeão"
                                    : Prize > 0     ? $"💰 {Position}º lugar"
                                    : $"❌ {Position}º lugar";

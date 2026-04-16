@@ -13,13 +13,12 @@
                CornerRadius="0" Padding="16,12" HasShadow="False">
             <Grid ColumnDefinitions="*,Auto,Auto">
                 <VerticalStackLayout Spacing="2">
-                    <Label x:Name="RoundLabel"     Text="Rodada"
-                           TextColor="White"       FontSize="18" FontAttributes="Bold"/>
-                    <Label x:Name="PlayersLabel"   Text="Jogadores restantes"
-                           TextColor="#AAAACC"     FontSize="12"/>
+                    <Label x:Name="RoundLabel"   Text="Rodada"
+                           TextColor="White"     FontSize="18" FontAttributes="Bold"/>
+                    <Label x:Name="PlayersLabel" Text="Jogadores restantes"
+                           TextColor="#AAAACC"   FontSize="12"/>
                 </VerticalStackLayout>
 
-                <!-- Prêmio pool -->
                 <Frame Grid.Column="1" BackgroundColor="#0F3460" CornerRadius="8"
                        Padding="12,6" HasShadow="False" Margin="0,0,8,0">
                     <VerticalStackLayout HorizontalOptions="Center">
@@ -29,7 +28,6 @@
                     </VerticalStackLayout>
                 </Frame>
 
-                <!-- Seu prêmio mínimo -->
                 <Frame Grid.Column="2" BackgroundColor="#0F3460" CornerRadius="8"
                        Padding="12,6" HasShadow="False">
                     <VerticalStackLayout HorizontalOptions="Center">
@@ -52,7 +50,7 @@
         </Frame>
 
         <!-- ══ Tabela de premiação ══ -->
-        <ScrollView Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,0">
+        <ScrollView Grid.Row="2" Orientation="Horizontal">
             <StackLayout x:Name="PrizeRow" Orientation="Horizontal" Padding="12,8" Spacing="8"/>
         </ScrollView>
 
@@ -72,5 +70,82 @@
                 FontSize="16"
                 CornerRadius="0"
                 HeightRequest="56"/>
+
+        <!-- ══ Modal: card do adversário (renderiza por cima de tudo) ══ -->
+        <Grid x:Name="OpponentModal"
+              Grid.Row="0" Grid.RowSpan="5"
+              IsVisible="False"
+              BackgroundColor="#BB000020">
+
+            <Frame BackgroundColor="#16213E" BorderColor="#FFD700"
+                   CornerRadius="16" Padding="24,20" Margin="24,0"
+                   VerticalOptions="Center" HorizontalOptions="Center"
+                   MaximumWidthRequest="380" HasShadow="False">
+                <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+
+                    <Label Text="PRÓXIMA PARTIDA"
+                           TextColor="#AAAACC" FontSize="10" FontAttributes="Bold"
+                           HorizontalTextAlignment="Center" Margin="0,0,0,4"/>
+
+                    <Label x:Name="ModalAvatar" Text="🤖" FontSize="52"
+                           HorizontalTextAlignment="Center"/>
+
+                    <Label x:Name="ModalName" Text=""
+                           TextColor="White" FontSize="20" FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"/>
+
+                    <Label x:Name="ModalVsText" Text=""
+                           TextColor="#AAAACC" FontSize="12"
+                           HorizontalTextAlignment="Center"/>
+
+                    <Label x:Name="ModalFavoriteLabel" Text=""
+                           FontSize="13" FontAttributes="Bold"
+                           HorizontalTextAlignment="Center" Margin="0,4,0,0"/>
+
+                    <!-- Barra Você vs Adversário -->
+                    <VerticalStackLayout Spacing="5" Margin="0,4,0,0">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Sua chance de vitória"
+                                   TextColor="#AAAACC" FontSize="11" VerticalOptions="Center"/>
+                            <Label x:Name="ModalChanceLabel" Grid.Column="1"
+                                   Text="" TextColor="White"
+                                   FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
+                        </Grid>
+                        <ProgressBar x:Name="ModalChanceBar"
+                                     Progress="0.5"
+                                     ProgressColor="#4CAF50"
+                                     BackgroundColor="#FF5252"
+                                     HeightRequest="10"/>
+                        <Grid ColumnDefinitions="*,*">
+                            <Label Text="Você" TextColor="#4CAF50" FontSize="10"
+                                   HorizontalTextAlignment="Start"/>
+                            <Label Grid.Column="1" x:Name="ModalOppLabel" Text=""
+                                   TextColor="#FF5252" FontSize="10"
+                                   HorizontalTextAlignment="End"/>
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    <Label Text="♙  Você joga com as Brancas"
+                           TextColor="#7B68EE" FontSize="12"
+                           HorizontalTextAlignment="Center" Margin="0,6,0,0"/>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
+                        <Button Text="Cancelar"
+                                Clicked="OnOpponentModalCancel"
+                                BackgroundColor="#2A2A3A"
+                                TextColor="#AAAACC"
+                                CornerRadius="10" HeightRequest="44"/>
+                        <Button Grid.Column="1"
+                                Text="▶  JOGAR"
+                                Clicked="OnOpponentModalPlay"
+                                BackgroundColor="#1A5276"
+                                TextColor="White" FontAttributes="Bold"
+                                CornerRadius="10" HeightRequest="44"/>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
+
     </Grid>
 </ContentPage>

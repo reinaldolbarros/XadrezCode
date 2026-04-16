@@ -29,12 +29,13 @@
         </ScrollView>
 
         <!-- ══ Filtros de buy-in ══ -->
-        <ScrollView Grid.Row="2" Orientation="Horizontal" BackgroundColor="#12172A">
+        <ScrollView Grid.Row="2" x:Name="FilterScrollView"
+                    Orientation="Horizontal" BackgroundColor="#12172A">
             <HorizontalStackLayout x:Name="FilterBar" Spacing="6" Padding="10,6"/>
         </ScrollView>
 
         <!-- ══ Cabeçalho da tabela ══ -->
-        <Grid Grid.Row="3"
+        <Grid Grid.Row="3" x:Name="TableHeader"
               ColumnDefinitions="*,72,72,72,60"
               BackgroundColor="#0F3460"
               Padding="14,5">
@@ -46,8 +47,13 @@
         </Grid>
 
         <!-- ══ Lista de salas ══ -->
-        <ScrollView Grid.Row="4">
+        <ScrollView Grid.Row="4" x:Name="RoomScrollView">
             <VerticalStackLayout x:Name="RoomList" Spacing="1"/>
+        </ScrollView>
+
+        <!-- ══ Painel personalizado (oculto por padrão) ══ -->
+        <ScrollView Grid.Row="4" x:Name="CustomPanel" IsVisible="False">
+            <VerticalStackLayout x:Name="CustomContainer" Padding="16,14" Spacing="20"/>
         </ScrollView>
     </Grid>
 </ContentPage>

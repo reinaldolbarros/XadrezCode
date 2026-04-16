@@ -20,7 +20,7 @@
             <summary>Gerencia bônus diário e missões diárias.</summary>
         </member>
         <member name="M:ChessMAUI.Services.DailyService.ClaimDailyBonus">
-            <summary>Reivindica o bônus diário e retorna (fichas, xp) ganhos.</summary>
+            <summary>Reivindica o bônus diário e retorna fichas ganhas.</summary>
         </member>
         <member name="M:ChessMAUI.Services.DailyService.RecordGamePlayed">
             <summary>Registra uma partida jogada. Chame ao fim de qualquer jogo.</summary>
@@ -49,9 +49,6 @@
         </member>
         <member name="M:ChessMAUI.Services.ProfileService.GetAllTickets">
             <summary>Retorna todos os tickets disponíveis: buy-in → quantidade.</summary>
-        </member>
-        <member name="M:ChessMAUI.Services.ProfileService.UpdateElo(System.Boolean,System.Int32)">
-            <summary>Atualiza rating ELO após uma partida.</summary>
         </member>
         <member name="T:ChessMAUI.Services.RankingService">
             <summary>

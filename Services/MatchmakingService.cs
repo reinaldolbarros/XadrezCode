@@ -52,7 +52,7 @@ public class MatchmakingService
     // Inicializa sala e registra o jogador humano
     // ─────────────────────────────────────────────────────────────────────────
     public void CreateRoom(int size, decimal buyIn, int timeMinutes, string humanName,
-                           int humanRating = 1200, string humanAvatar = "♟",
+                           string humanAvatar = "♟",
                            TournamentType type = TournamentType.Standard, decimal satelliteTarget = 0)
     {
         TotalSlots      = size;
@@ -65,7 +65,7 @@ public class MatchmakingService
         var human = new RoomPlayer
         {
             Name = humanName, IsHuman = true, Strength = 6,
-            Rating = humanRating, Avatar = humanAvatar
+            Avatar = humanAvatar
         };
         Players.Add(human);
         PlayerJoined?.Invoke(human);
@@ -94,13 +94,11 @@ public class MatchmakingService
             // Força bots mais fortes em torneios de alto valor
             int minStr = BuyIn switch { >= 2500 => 8, >= 1000 => 7, >= 500 => 6, _ => 3 };
             int str    = Random.Shared.Next(minStr, 10);
-            int baseRating = BuyIn switch { >= 2500 => 2000, >= 1000 => 1700, >= 500 => 1500, _ => 800 };
             var bot = new RoomPlayer
             {
                 Name     = name,
                 IsHuman  = false,
                 Strength = str,
-                Rating   = baseRating + str * 60 + Random.Shared.Next(-80, 80),
                 Avatar   = BotAvatars[Random.Shared.Next(BotAvatars.Length)]
             };
 

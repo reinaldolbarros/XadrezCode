@@ -9,7 +9,6 @@ public class RankingEntry
     public string TierName   { get; set; } = "Pião";
     public int    Points     { get; set; }
     public int    WeekPoints { get; set; }
-    public int    Rating     { get; set; }
     public bool   IsHuman    { get; set; }
 
     public string PositionLabel => Position switch { 1 => "🥇", 2 => "🥈", 3 => "🥉", _ => $"{Position}º" };

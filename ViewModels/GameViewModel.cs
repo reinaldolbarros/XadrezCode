@@ -105,6 +105,11 @@ public class GameViewModel : INotifyPropertyChanged
     private readonly BotChatService  _chat  = new();
     private CancellationTokenSource? _aiCts;
 
+    // --- Peças capturadas e lista de lances ---
+    private readonly List<ChessPiece> _capturedByWhite = []; // peças pretas capturadas pelo jogador
+    private readonly List<ChessPiece> _capturedByBlack = []; // peças brancas capturadas pela IA
+    private readonly List<string>     _moves            = [];
+
     // ----------------------------------------------------------------
     // Tabuleiro visual
     // ----------------------------------------------------------------
@@ -175,6 +180,15 @@ public class GameViewModel : INotifyPropertyChanged
     public bool ShowResignButton => !_gameOver;
     public bool CanOfferDraw    => !IsTournamentMode && !_gameOver && !_isAIThinking;
 
+    // Peças capturadas e vantagem de material
+    public string WhiteCapturesDisplay { get; private set; } = "";
+    public string BlackCapturesDisplay { get; private set; } = "";
+    public string MaterialDisplay      { get; private set; } = "";
+    public Color  MaterialColor        { get; private set; } = Colors.White;
+
+    // Lista de lances (notação algébrica)
+    public string MoveListText { get; private set; } = "";
+
     public event Action<string>?       PromotionRequested;
     public event Action<string>?       ChatMessageReceived;
     public event Action<bool>?         TournamentGameEnded;
@@ -209,24 +223,29 @@ public class GameViewModel : INotifyPropertyChanged
     // ----------------------------------------------------------------
     public void StartTournamentGame(string opponentName, int minutes, int aiDepth)
     {
-        _ai                = new AIService(aiDepth);
         TournamentOpponent = opponentName;
-        StartNewGame(minutes, isTournament: true);
+        StartNewGame(minutes, aiDepth, isTournament: true);
     }
 
     // ----------------------------------------------------------------
-    // Novo jogo — chamado pela GamePage após o usuário escolher o tempo
+    // Novo jogo — chamado pela GamePage após o usuário escolher tempo e dificuldade
     // ----------------------------------------------------------------
-    public void StartNewGame(int minutes, bool isTournament = false)
+    public void StartNewGame(int minutes, int aiDepth = 3, bool isTournament = false)
     {
         _aiCts?.Cancel();
         _aiCts = null;
+        _ai    = new AIService(aiDepth);
 
         _board            = new ChessBoard();
         _selectedSquare   = null;
         _lastMove         = null;
         _pendingPromotion = null;
         _validMoves.Clear();
+        _capturedByWhite.Clear();
+        _capturedByBlack.Clear();
+        _moves.Clear();
+        UpdateCapturesDisplay();
+        UpdateMoveList();
         AwaitingPromotion = false;
         IsAIThinking      = false;
         GameOver          = false;
@@ -439,7 +458,12 @@ public class GameViewModel : INotifyPropertyChanged
 
     private void ExecutePlayerMove(ChessMove move)
     {
-        bool isCapture = _board.GetPiece(move.ToRow, move.ToCol) != null || move.IsEnPassant;
+        var movingPiece   = _board.GetPiece(move.FromRow, move.FromCol)!;
+        var capturedPiece = move.IsEnPassant
+            ? new ChessPiece(PieceType.Pawn, PieceColor.Black)
+            : _board.GetPiece(move.ToRow, move.ToCol);
+        bool isCapture = capturedPiece != null;
+
         _lastMove       = move;
         ClearHighlights();
         _selectedSquare = null;
@@ -450,6 +474,11 @@ public class GameViewModel : INotifyPropertyChanged
 
         var state = ChessEngine.GetGameState(_board);
         PlaySound(isCapture, state);
+
+        if (capturedPiece != null) { _capturedByWhite.Add(capturedPiece); UpdateCapturesDisplay(); }
+        _moves.Add(GetNotation(move, movingPiece, isCapture, state));
+        UpdateMoveList();
+
         if (IsTournamentMode) _chat.SendGoodMove();
         UpdateStatus(state);
 
@@ -491,7 +520,11 @@ public class GameViewModel : INotifyPropertyChanged
             var move = await _ai.GetBestMoveAsync(_board, _aiCts.Token);
             if (move == null || _gameOver || _board.CurrentTurn != PieceColor.Black) return;
 
-            bool isCapture = _board.GetPiece(move.ToRow, move.ToCol) != null || move.IsEnPassant;
+            var aiPiece    = _board.GetPiece(move.FromRow, move.FromCol)!;
+            var aiCaptured = move.IsEnPassant
+                ? new ChessPiece(PieceType.Pawn, PieceColor.White)
+                : _board.GetPiece(move.ToRow, move.ToCol);
+            bool isCapture = aiCaptured != null;
             _lastMove = move;
 
             ChessEngine.ApplyMove(_board, move);
@@ -499,6 +532,11 @@ public class GameViewModel : INotifyPropertyChanged
 
             var state = ChessEngine.GetGameState(_board);
             PlaySound(isCapture, state);
+
+            if (aiCaptured != null) { _capturedByBlack.Add(aiCaptured); UpdateCapturesDisplay(); }
+            _moves.Add(GetNotation(move, aiPiece, isCapture, state));
+            UpdateMoveList();
+
             if (IsTournamentMode)
             {
                 if (isCapture) _chat.SendCapture();
@@ -688,6 +726,91 @@ public class GameViewModel : INotifyPropertyChanged
                     : "IA pensando...";
                 break;
         }
+    }
+
+    // ----------------------------------------------------------------
+    // Peças capturadas e vantagem de material
+    // ----------------------------------------------------------------
+    private static int PieceValue(ChessPiece p) => p.Type switch
+    {
+        PieceType.Queen  => 9,
+        PieceType.Rook   => 5,
+        PieceType.Bishop => 3,
+        PieceType.Knight => 3,
+        _                => 1   // Peão (Rei nunca é capturado)
+    };
+
+    private void UpdateCapturesDisplay()
+    {
+        static string Fmt(List<ChessPiece> list) =>
+            string.Join("", list.OrderByDescending(PieceValue).Select(p => p.Symbol));
+
+        WhiteCapturesDisplay = Fmt(_capturedByWhite);
+        BlackCapturesDisplay = Fmt(_capturedByBlack);
+
+        int adv = _capturedByWhite.Sum(PieceValue) - _capturedByBlack.Sum(PieceValue);
+        MaterialDisplay = adv > 0 ? $"+{adv}" : adv < 0 ? adv.ToString() : "";
+        MaterialColor   = adv > 0 ? Color.FromArgb("#4CAF50")
+                        : adv < 0 ? Color.FromArgb("#FF5252")
+                        : Colors.Transparent;
+
+        OnPC(nameof(WhiteCapturesDisplay));
+        OnPC(nameof(BlackCapturesDisplay));
+        OnPC(nameof(MaterialDisplay));
+        OnPC(nameof(MaterialColor));
+    }
+
+    // ----------------------------------------------------------------
+    // Lista de lances (notação algébrica com símbolos Unicode)
+    // ----------------------------------------------------------------
+    private void UpdateMoveList()
+    {
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < _moves.Count; i++)
+        {
+            if (i % 2 == 0)
+            {
+                if (i > 0) sb.Append("  ");
+                sb.Append($"{i / 2 + 1}.");
+            }
+            else
+                sb.Append(' ');
+            sb.Append(_moves[i]);
+        }
+        MoveListText = sb.ToString();
+        OnPC(nameof(MoveListText));
+    }
+
+    private static string GetNotation(ChessMove move, ChessPiece piece, bool isCapture, GameState stateAfter)
+    {
+        if (move.IsCastling)
+            return move.ToCol > move.FromCol ? "O-O" : "O-O-O";
+
+        string dest        = $"{(char)('a' + move.ToCol)}{8 - move.ToRow}";
+        string captureMark = isCapture ? "x" : "";
+
+        string notation;
+        if (piece.Type == PieceType.Pawn)
+        {
+            string fromFile = isCapture ? ((char)('a' + move.FromCol)).ToString() : "";
+            notation = $"{fromFile}{captureMark}{dest}";
+        }
+        else
+        {
+            notation = $"{piece.Symbol}{captureMark}{dest}";
+        }
+
+        if (move.PromotionPiece.HasValue)
+            notation += "=" + new ChessPiece(move.PromotionPiece.Value, piece.Color).Symbol;
+
+        notation += stateAfter switch
+        {
+            GameState.Checkmate => "#",
+            GameState.Check     => "+",
+            _                   => ""
+        };
+
+        return notation;
     }
 
     private static string FormatTime(TimeSpan t) =>
