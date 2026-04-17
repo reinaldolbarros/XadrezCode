@@ -1,4 +1,6 @@
-﻿namespace ChessMAUI;
+﻿using ChessMAUI.Views;
+
+namespace ChessMAUI;
 
 public partial class App : Application
 {
@@ -9,7 +11,11 @@ public partial class App : Application
 
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
-		var window = new Window(new AppShell())
+		Page root = AppState.Current.Auth.IsAuthenticated
+			? new AppShell()
+			: new LoginPage();
+
+		var window = new Window(root)
 		{
 			MinimumWidth  = 480,
 			MinimumHeight = 600

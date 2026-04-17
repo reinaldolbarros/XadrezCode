@@ -11,7 +11,7 @@
             <!-- ══ Perfil ══ -->
             <Frame BackgroundColor="#16213E" BorderColor="#0F3460"
                    CornerRadius="14" Padding="16,12" Margin="0,0,0,6">
-                <VerticalStackLayout Spacing="8">
+                <VerticalStackLayout Spacing="4">
                     <Grid ColumnDefinitions="Auto,*,Auto">
 
                         <!-- Avatar (toque para trocar) -->
@@ -63,6 +63,12 @@
                         </VerticalStackLayout>
                     </Grid>
 
+                    <!-- Sair da conta -->
+                    <Button x:Name="LogoutBtn" Text="Sair da conta"
+                            Clicked="OnLogoutClicked"
+                            BackgroundColor="Transparent" TextColor="#555577"
+                            FontSize="10" HeightRequest="22" Padding="0"
+                            HorizontalOptions="End"/>
                 </VerticalStackLayout>
             </Frame>
 
@@ -118,7 +124,7 @@
             </Frame>
 
             <!-- ══ Botões principais ══ -->
-            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8" Margin="0,0,0,10">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,0,0,10">
                 <Button Text="🏆  Torneios"
                         Clicked="OnTournamentsClicked"
                         BackgroundColor="#0F3460"
@@ -129,13 +135,6 @@
                         Text="🏅  Ranking"
                         Clicked="OnRankingClicked"
                         BackgroundColor="#4A1060"
-                        TextColor="White" FontAttributes="Bold" FontSize="14"
-                        CornerRadius="12" HeightRequest="52"/>
-
-                <Button Grid.Column="2"
-                        Text="📋  Histórico"
-                        Clicked="OnHistoryClicked"
-                        BackgroundColor="#16213E"
                         TextColor="White" FontAttributes="Bold" FontSize="14"
                         CornerRadius="12" HeightRequest="52"/>
             </Grid>

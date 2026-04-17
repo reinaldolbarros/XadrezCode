@@ -234,4 +234,13 @@ public partial class LobbyPage : ContentPage
         AppState.Current.PendingTournamentGame = false;
         await Shell.Current.GoToAsync("GamePage");
     }
+
+    private async void OnLogoutClicked(object? sender, EventArgs e)
+    {
+        bool confirm = await DisplayAlert("Sair", "Deseja sair da sua conta?", "Sair", "Cancelar");
+        if (!confirm) return;
+
+        AppState.Current.Auth.Logout();
+        Application.Current!.MainPage = new LoginPage();
+    }
 }

@@ -278,7 +278,10 @@ public partial class GamePage : ContentPage
     {
         base.OnSizeAllocated(width, height);
 
-        double used      = _vm.TimerVisible ? 290 : 180;
+        // Espaço fixo consumido pelas linhas ao redor do tabuleiro (timers, botões, etc.)
+        // Timers on: relógio IA (~52) + status (~38) + capturas (~26) + relógio jogador (~52) + botões (~52) + lances (~28) + padding (~16) = 264 → 280 com margem
+        // Timers off: status (~38) + capturas (~26) + botões (~52) + lances (~28) + padding (~16) = 160 → 180 com margem
+        double used      = _vm.TimerVisible ? 280 : 180;
         double available = Math.Min(width - 16, height - used);
         if (available <= 0) return;
 

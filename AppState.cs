@@ -8,6 +8,7 @@ public class AppState
 {
     public static AppState Current { get; } = new();
 
+    public AuthService              Auth        { get; } = new();
     public ProfileService           Profile     { get; } = new();
     public TournamentService        TournSvc    { get; } = new();
     public MatchmakingService       Matchmaking { get; } = new();

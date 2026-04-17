@@ -205,7 +205,7 @@
                     BackgroundColor="#8B0000"
                     TextColor="White"
                     CornerRadius="8"
-                    WidthRequest="48"
+                    WidthRequest="54"
                     Padding="0"
                     ToolTipProperties.Text="Desistir"/>
             <Button x:Name="DrawBtn"
@@ -217,7 +217,7 @@
                     TextColor="White"
                     FontAttributes="Bold"
                     CornerRadius="8"
-                    WidthRequest="48"
+                    WidthRequest="54"
                     Padding="0"
                     ToolTipProperties.Text="Propor empate"/>
             <Button x:Name="SoundBtn"
@@ -227,7 +227,7 @@
                     BackgroundColor="#555555"
                     TextColor="White"
                     CornerRadius="8"
-                    WidthRequest="48"
+                    WidthRequest="54"
                     Padding="0"/>
             <Button Grid.Column="4"
                     Text="🎨"
@@ -235,7 +235,7 @@
                     BackgroundColor="#555555"
                     TextColor="White"
                     CornerRadius="8"
-                    WidthRequest="48"
+                    WidthRequest="54"
                     Padding="0"
                     ToolTipProperties.Text="Tema do tabuleiro"/>
         </Grid>
