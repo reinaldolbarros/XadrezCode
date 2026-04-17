@@ -49,9 +49,9 @@ public partial class BracketPage : ContentPage
         if (humanWon)
         {
             prof.RecordWin();
-            prof.AddPoints(15);
+            prof.AddPoints(15, "Vitória – partida no torneio", "⚔");
             bool m3Done = state.Daily.RecordTournamentElimination();
-            if (m3Done) { var m3 = state.Daily.GetMissions()[2]; prof.Credit(m3.BalanceReward); }
+            if (m3Done) { var m3 = state.Daily.GetMissions()[2]; prof.Credit(m3.BalanceReward, "Missão – Eliminação no torneio", "✅"); }
         }
         else
         {
@@ -61,7 +61,7 @@ public partial class BracketPage : ContentPage
         if (!humanWon)
         {
             decimal prize = svc.GetHumanPrize(t);
-            if (prize > 0) prof.Credit(prize);
+            if (prize > 0) prof.Credit(prize, $"Prêmio – {t.RoundName} ({t.Size} jogadores)", "🏅");
 
             // Registra histórico
             state.History.Add(new TournamentRecord
@@ -70,7 +70,7 @@ public partial class BracketPage : ContentPage
                 Position = t.HumanPlayer?.FinalPosition ?? t.Size
             });
 
-            if (prize > 0) prof.AddPoints(25);
+            if (prize > 0) prof.AddPoints(25, $"Premiado – {t.RoundName} ({t.Size} jogadores)", "🏅");
 
             string msg = t.IsHeadsUp
                 ? $"Adversário venceu a série 2–{t.HumanSeriesWins}.\nMelhor sorte da próxima vez!"
@@ -101,7 +101,7 @@ public partial class BracketPage : ContentPage
 
             // Pontos por vencer o torneio (proporcional ao tamanho)
             int tournPts = t.Size switch { 64 => 400, 32 => 200, 16 => 100, 8 => 50, 2 => 20, _ => 50 };
-            prof.AddPoints(tournPts);
+            prof.AddPoints(tournPts, $"🏆 Campeão – Torneio {t.Size} jogadores", "🏆");
 
             string winMsg;
             decimal prize = 0;
@@ -121,7 +121,7 @@ public partial class BracketPage : ContentPage
             else
             {
                 prize = svc.GetHumanPrize(t);
-                prof.Credit(prize);
+                prof.Credit(prize, $"🏆 Campeão – Torneio {t.Size} jogadores", "🏆");
                 state.History.Add(new TournamentRecord
                 {
                     Size = t.Size, BuyIn = t.BuyIn, Prize = prize, Position = 1

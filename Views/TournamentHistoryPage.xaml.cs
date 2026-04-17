@@ -4,6 +4,9 @@ namespace ChessMAUI.Views;
 
 public partial class TournamentHistoryPage : ContentPage
 {
+    private enum TxFilter { All, Credits, Debits }
+    private TxFilter _filter = TxFilter.All;
+
     public TournamentHistoryPage()
     {
         InitializeComponent();
@@ -12,72 +15,126 @@ public partial class TournamentHistoryPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        var records = AppState.Current.History.Records;
+        Refresh();
+    }
 
-        // Stats
-        decimal totalBuyIn  = records.Sum(r => r.BuyIn);
-        decimal totalPrize  = records.Sum(r => r.Prize);
-        decimal profit      = totalPrize - totalBuyIn;
+    private void Refresh()
+    {
+        var profile = AppState.Current.Profile;
+        var all     = profile.GetTransactions();
 
-        TotalLabel.Text  = records.Count.ToString();
-        WonLabel.Text    = records.Count(r => r.Position == 1).ToString();
-        ProfitLabel.Text = $"{(profit >= 0 ? "+" : "")}$ {profit:N0}";
-        ProfitLabel.TextColor = profit >= 0 ? Color.FromArgb("#4CAF50") : Color.FromArgb("#FF5252");
+        decimal totalCredits = all.Where(t => t.Amount > 0).Sum(t => t.Amount);
+        decimal totalDebits  = all.Where(t => t.Amount < 0).Sum(t => Math.Abs(t.Amount));
 
-        // Lista
-        HistoryList.Children.Clear();
-        if (!records.Any())
+        BalanceLabel.Text  = $"$ {profile.Balance:N0}";
+        CreditsLabel.Text  = $"$ {totalCredits:N0}";
+        DebitsLabel.Text   = $"$ {totalDebits:N0}";
+
+        // Filtros
+        FilterBar.Children.Clear();
+        (string Label, TxFilter Value)[] filters =
+        [
+            ("Todos",    TxFilter.All),
+            ("Entradas", TxFilter.Credits),
+            ("Saídas",   TxFilter.Debits),
+        ];
+        foreach (var (label, value) in filters)
         {
-            HistoryList.Children.Add(new Label
+            bool active = _filter == value;
+            var btn = new Button
             {
-                Text = "Nenhum torneio disputado ainda.",
-                TextColor = Color.FromArgb("#AAAACC"),
-                FontSize = 14,
-                HorizontalTextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 40)
+                Text            = label,
+                FontSize        = 12,
+                CornerRadius    = 16,
+                Padding         = new Thickness(16, 6),
+                Margin          = new Thickness(0, 0, 6, 0),
+                BackgroundColor = active ? Color.FromArgb("#1A1400") : Color.FromArgb("#252B45"),
+                TextColor       = active ? Color.FromArgb("#FFD700") : Colors.White,
+                FontAttributes  = active ? FontAttributes.Bold : FontAttributes.None
+            };
+            var cap = value;
+            btn.Clicked += (_, _) => { _filter = cap; Refresh(); };
+            FilterBar.Children.Add(btn);
+        }
+
+        var filtered = _filter switch
+        {
+            TxFilter.Credits => all.Where(t => t.Amount > 0).ToList(),
+            TxFilter.Debits  => all.Where(t => t.Amount < 0).ToList(),
+            _                => all
+        };
+
+        TransactionList.Children.Clear();
+
+        if (filtered.Count == 0)
+        {
+            TransactionList.Children.Add(new Label
+            {
+                Text              = "Nenhuma movimentação registrada ainda.",
+                TextColor         = Color.FromArgb("#555577"),
+                FontSize          = 12,
+                HorizontalOptions = LayoutOptions.Center,
+                Margin            = new Thickness(0, 14)
             });
             return;
         }
 
-        foreach (var r in records)
-            HistoryList.Children.Add(BuildCard(r));
-    }
-
-    private static Frame BuildCard(TournamentRecord r)
-    {
-        var frame = new Frame
+        bool alt = false;
+        foreach (var group in filtered.GroupBy(t => t.Date.Date).OrderByDescending(g => g.Key))
         {
-            BackgroundColor = Color.FromArgb("#16213E"),
-            BorderColor     = Color.FromArgb("#0F3460"),
-            CornerRadius    = 10,
-            Padding         = new Thickness(14, 10),
-            HasShadow       = false
-        };
+            TransactionList.Children.Add(new Label
+            {
+                Text = group.Key == DateTime.Today       ? "Hoje"
+                     : group.Key == DateTime.Today.AddDays(-1) ? "Ontem"
+                     : group.Key.ToString("dd/MM/yyyy"),
+                TextColor       = Color.FromArgb("#444466"),
+                FontSize        = 10,
+                FontAttributes  = FontAttributes.Bold,
+                Padding         = new Thickness(16, 5, 16, 3),
+                BackgroundColor = Color.FromArgb("#0A0F1E")
+            });
 
-        var grid = new Grid { ColumnDefinitions = { new(GridLength.Star), new(GridLength.Auto) } };
+            foreach (var tx in group.OrderByDescending(t => t.Date))
+            {
+                bool isCredit = tx.Amount >= 0;
+                var row = new Grid
+                {
+                    ColumnDefinitions = { new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto) },
+                    BackgroundColor   = alt ? Color.FromArgb("#14192E") : Color.FromArgb("#0E1322"),
+                    Padding           = new Thickness(16, 9)
+                };
 
-        var left = new VerticalStackLayout { Spacing = 2 };
-        left.Add(new Label { Text = r.Result, TextColor = Colors.White, FontSize = 14, FontAttributes = FontAttributes.Bold });
-        left.Add(new Label
-        {
-            Text      = $"{r.Date:dd/MM/yyyy}  •  {r.Size} jogadores  •  Buy-in: $ {r.BuyIn:N0}",
-            TextColor = Color.FromArgb("#AAAACC"), FontSize = 11
-        });
-        grid.Add(left);
+                row.Add(new Label
+                {
+                    Text             = string.IsNullOrEmpty(tx.Icon) ? (isCredit ? "💰" : "💸") : tx.Icon,
+                    FontSize         = 18,
+                    VerticalOptions  = LayoutOptions.Center,
+                    Margin           = new Thickness(0, 0, 12, 0)
+                });
 
-        var right = new Label
-        {
-            Text              = r.PrizeText,
-            TextColor         = r.PrizeColor,
-            FontSize          = 16,
-            FontAttributes    = FontAttributes.Bold,
-            VerticalOptions   = LayoutOptions.Center,
-            HorizontalOptions = LayoutOptions.End
-        };
-        Grid.SetColumn(right, 1);
-        grid.Add(right);
+                var info = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, Spacing = 2 };
+                info.Add(new Label { Text = tx.Description, TextColor = Colors.White, FontSize = 13 });
+                info.Add(new Label { Text = tx.Date.ToString("HH:mm"), TextColor = Color.FromArgb("#444466"), FontSize = 10 });
+                Grid.SetColumn(info, 1);
+                row.Add(info);
 
-        frame.Content = grid;
-        return frame;
+                var amt = new Label
+                {
+                    Text            = isCredit
+                        ? $"+ $ {(int)tx.Amount}"
+                        : $"− $ {(int)Math.Abs(tx.Amount)}",
+                    TextColor       = isCredit ? Color.FromArgb("#4CAF50") : Color.FromArgb("#FF5252"),
+                    FontSize        = 13,
+                    FontAttributes  = FontAttributes.Bold,
+                    VerticalOptions = LayoutOptions.Center,
+                    HorizontalOptions = LayoutOptions.End
+                };
+                Grid.SetColumn(amt, 2);
+                row.Add(amt);
+
+                TransactionList.Children.Add(row);
+                alt = !alt;
+            }
+        }
     }
 }

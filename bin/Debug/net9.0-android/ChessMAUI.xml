@@ -65,6 +65,18 @@
         <member name="M:ChessMAUI.Services.RoomLobbyService.JoinRoom(ChessMAUI.Models.TournamentRoom)">
             <summary>Registra o humano em uma sala. Retorna a sala atualizada.</summary>
         </member>
+        <member name="M:ChessMAUI.Services.RoomLobbyService.CreatePlayerRoom(ChessMAUI.Models.TournamentRoom)">
+            <summary>Registra um torneio criado pelo jogador (público ou privado).</summary>
+        </member>
+        <member name="M:ChessMAUI.Services.RoomLobbyService.TryGetByCode(System.String,ChessMAUI.Models.TournamentRoom@)">
+            <summary>Tenta localizar uma sala privada pelo código de acesso.</summary>
+        </member>
+        <member name="M:ChessMAUI.Services.RoomLobbyService.ClosePlayerRoom(System.String)">
+            <summary>Marca a sala do jogador como encerrada (quando o torneio inicia).</summary>
+        </member>
+        <member name="M:ChessMAUI.Services.RoomLobbyService.GenerateAccessCode">
+            <summary>Gera um código único de 6 caracteres.</summary>
+        </member>
         <member name="T:ChessMAUI.Services.SoundService">
             <summary>
             Gera tons WAV sintetizados em memória e os reproduz via Plugin.Maui.Audio.

@@ -80,7 +80,8 @@ public partial class LobbyPage : ContentPage
     {
         var state = AppState.Current;
         int fichas = state.Daily.ClaimDailyBonus();
-        state.Profile.Credit(fichas);
+        state.Profile.Credit(fichas, "Bônus Diário", "🎁");
+        state.Profile.AddPoints(5, "Bônus de login diário", "🎁");
 
         int streak = state.Daily.LoginStreak;
         string next = streak switch { >= 7 => "Máximo!", >= 5 => "7 dias = 500 fichas", >= 3 => "5 dias = 300 fichas", >= 2 => "3 dias = 200 fichas", _ => "2 dias = 150 fichas" };
@@ -183,10 +184,12 @@ public partial class LobbyPage : ContentPage
     private int      _adminTapCount = 0;
     private DateTime _lastAdminTap  = DateTime.MinValue;
 
+    private async void OnExtractClicked(object? sender, EventArgs e)
+        => await Shell.Current.GoToAsync("TournamentHistoryPage");
+
     private async void OnAdminActivate(object? sender, TappedEventArgs e)
     {
         var now = DateTime.UtcNow;
-        // Reseta contador se passou mais de 1,5s desde o último toque
         if ((now - _lastAdminTap).TotalSeconds > 1.5)
             _adminTapCount = 0;
 

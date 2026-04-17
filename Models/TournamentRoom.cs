@@ -10,7 +10,6 @@ public enum TournamentType
     Satellite,   // Prêmio = vaga em torneio maior
     Turbo,       // Tempo reduzido (≤ 2 min)
     HyperTurbo,  // Tempo ultra-reduzido (1 min, 15s/jogada)
-    Ranked,      // Classificatório por pontos
 }
 
 public class TournamentRoom
@@ -26,6 +25,12 @@ public class TournamentRoom
     // Campos específicos por tipo
     public decimal BountyPerPlayer  { get; init; } = 0;   // Bounty
     public decimal SatelliteTarget  { get; init; } = 0;   // Satellite (buy-in do torneio alvo)
+
+    // Torneios criados por jogador
+    public bool   IsPlayerCreated { get; init; } = false;
+    public string CreatorName     { get; init; } = "";
+    public bool   IsPrivate       { get; init; } = false;
+    public string AccessCode      { get; init; } = "";
 
     public decimal PrizePool    => BuyIn * Size;
     public string  TimeLabel    => TimeMinutes > 0 ? $"{TimeMinutes} min" : "1 min";
@@ -47,7 +52,6 @@ public class TournamentRoom
         TournamentType.Satellite  => "🎟",
         TournamentType.Turbo      => "⚡",
         TournamentType.HyperTurbo => "🔥",
-        TournamentType.Ranked     => "🏅",
         _                         => ""
     };
 
@@ -55,11 +59,10 @@ public class TournamentRoom
     {
         TournamentType.HeadsUp    => "Duelo",
         TournamentType.Bounty     => "Bounty",
-        TournamentType.Satellite  => "Bilhete Dourado",
+        TournamentType.Satellite  => "Passaporte",
         TournamentType.Turbo      => "Turbo",
         TournamentType.HyperTurbo => "Hyper",
-        TournamentType.Ranked     => "Ranked",
-        _                         => "Standard"
+        _                         => "Clássico"
     };
 
     public string StatusLabel => Status switch

@@ -23,6 +23,17 @@ public partial class WaitingRoomPage : ContentPage
         _navigating = false;
         var mm = AppState.Current.Matchmaking;
 
+        // Exibe frame de código para salas privadas criadas por este jogador
+        if (mm.IsPrivate && !string.IsNullOrEmpty(mm.AccessCode))
+        {
+            PrivateCodeFrame.IsVisible = true;
+            AccessCodeLabel.Text       = mm.AccessCode;
+        }
+        else
+        {
+            PrivateCodeFrame.IsVisible = false;
+        }
+
         // Desregistra antes de registrar (seguro para re-entrada)
         mm.PlayerJoined -= OnPlayerJoined;
         mm.RoomFull     -= OnRoomFull;
@@ -145,12 +156,41 @@ public partial class WaitingRoomPage : ContentPage
     }
 
     // -----------------------------------------------------------------------
+    // Botão: copiar código de acesso
+    // -----------------------------------------------------------------------
+    private async void OnCopyCodeClicked(object? sender, EventArgs e)
+    {
+        var code = AppState.Current.Matchmaking.AccessCode;
+        await Clipboard.Default.SetTextAsync(code);
+        CopyCodeBtn.Text = "✓ Copiado";
+        await Task.Delay(1500);
+        CopyCodeBtn.Text = "Copiar";
+    }
+
+    // -----------------------------------------------------------------------
+    // Botão: iniciar agora (preenche vagas com bots imediatamente)
+    // -----------------------------------------------------------------------
+    private void OnStartNowClicked(object? sender, EventArgs e)
+    {
+        if (_navigating) return;
+        _cts?.Cancel();                          // para o fill lento
+        StartNowBtn.IsEnabled = false;
+        var mm = AppState.Current.Matchmaking;
+        // Fecha a sala no lobby para evitar novas entradas
+        AppState.Current.RoomLobby.ClosePlayerRoom(mm.AccessCode);
+        _ = mm.FillBotsImmediateAsync();         // preenche rápido e dispara RoomFull
+    }
+
+    // -----------------------------------------------------------------------
     // Botão: cancelar → devolve buy-in e volta ao lobby
     // -----------------------------------------------------------------------
     private async void OnCancelClicked(object? sender, EventArgs e)
     {
         _cts?.Cancel();
-        AppState.Current.Profile.Credit(AppState.Current.Matchmaking.BuyIn);
+        AppState.Current.Profile.Credit(AppState.Current.Matchmaking.BuyIn, "Reembolso – Cancelamento", "↩️");
+        // Fecha sala no lobby se era criada pelo jogador
+        var mm = AppState.Current.Matchmaking;
+        if (mm.IsPrivate) AppState.Current.RoomLobby.ClosePlayerRoom(mm.AccessCode);
         await Shell.Current.GoToAsync("..");
     }
 

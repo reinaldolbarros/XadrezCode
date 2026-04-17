@@ -38,19 +38,29 @@
                                    TextColor="#AAAACC" FontSize="11"/>
                         </VerticalStackLayout>
 
-                        <!-- Saldo (5 toques = ativa modo admin) -->
-                        <Frame Grid.Column="2" BackgroundColor="#0F3460" CornerRadius="10"
-                               Padding="12,8" HasShadow="False">
-                            <VerticalStackLayout HorizontalOptions="Center">
-                                <Label Text="SALDO" TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
-                                <Label x:Name="BalanceLabel" Text="$ 1.000"
-                                       TextColor="#4CAF50" FontSize="18" FontAttributes="Bold"
-                                       HorizontalTextAlignment="Center"/>
-                            </VerticalStackLayout>
-                            <Frame.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnAdminActivate"/>
-                            </Frame.GestureRecognizers>
-                        </Frame>
+                        <!-- Saldo + botão extrato -->
+                        <VerticalStackLayout Grid.Column="2" Spacing="4" HorizontalOptions="Center">
+                            <Frame BackgroundColor="#0F3460" CornerRadius="10"
+                                   Padding="12,8" HasShadow="False">
+                                <VerticalStackLayout HorizontalOptions="Center">
+                                    <Label Text="SALDO" TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
+                                    <Label x:Name="BalanceLabel" Text="$ 1.000"
+                                           TextColor="#4CAF50" FontSize="18" FontAttributes="Bold"
+                                           HorizontalTextAlignment="Center"/>
+                                </VerticalStackLayout>
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnAdminActivate"/>
+                                </Frame.GestureRecognizers>
+                            </Frame>
+                            <Button Text="📋 Extrato"
+                                    Clicked="OnExtractClicked"
+                                    BackgroundColor="#1C2A4A"
+                                    TextColor="#AAAACC"
+                                    FontSize="10"
+                                    CornerRadius="8"
+                                    Padding="0,4"
+                                    HeightRequest="26"/>
+                        </VerticalStackLayout>
                     </Grid>
 
                 </VerticalStackLayout>

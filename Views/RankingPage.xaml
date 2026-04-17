@@ -5,7 +5,7 @@
              Title="Ranking"
              BackgroundColor="#1A1A2E">
 
-    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto">
 
         <!-- ══ Faixas de classificação ══ -->
         <Frame Grid.Row="0" BackgroundColor="#16213E" BorderColor="Transparent"
@@ -17,30 +17,37 @@
 
         <!-- ══ Abas Global / Semanal ══ -->
         <Grid Grid.Row="1" ColumnDefinitions="*,*" BackgroundColor="#0F3460">
-            <Button x:Name="GlobalTab"  Text="🌍  Global"  Clicked="OnGlobalTab"
+            <Button x:Name="GlobalTab" Text="🌍  Global"  Clicked="OnGlobalTab"
                     BackgroundColor="#1A5276" TextColor="White" CornerRadius="0"
                     FontAttributes="Bold" HeightRequest="42"/>
-            <Button x:Name="WeeklyTab"  Grid.Column="1" Text="📅  Semanal" Clicked="OnWeeklyTab"
+            <Button x:Name="WeeklyTab" Grid.Column="1" Text="📅  Semanal" Clicked="OnWeeklyTab"
                     BackgroundColor="#0F3460" TextColor="#AAAACC" CornerRadius="0"
                     HeightRequest="42"/>
         </Grid>
 
         <!-- ══ Cabeçalho da tabela ══ -->
-        <Grid Grid.Row="2" ColumnDefinitions="44,Auto,*,80"
+        <Grid Grid.Row="2" x:Name="TableHeader" ColumnDefinitions="44,Auto,*,80"
               BackgroundColor="#0A1628" Padding="10,5">
             <Label Text="#"       TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-            <Label Grid.Column="1" Text="Faixa" TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" Margin="8,0" HorizontalTextAlignment="Center"/>
+            <Label x:Name="FaixaHeader" Grid.Column="1" Text="Faixa" TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" Margin="8,0" HorizontalTextAlignment="Center"/>
             <Label Grid.Column="2" Text="Jogador" TextColor="#AAAACC" FontSize="11" FontAttributes="Bold"/>
             <Label Grid.Column="3" Text="Pontos"  TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
         </Grid>
 
-        <!-- ══ Lista ══ -->
+        <!-- ══ Lista de ranking ══ -->
         <ScrollView Grid.Row="3">
             <VerticalStackLayout x:Name="RankList" Spacing="1"/>
         </ScrollView>
 
+        <!-- ══ Botão extrato de pontos ══ -->
+        <Button Grid.Row="4"
+                Text="📋  extrato de pontos"
+                Clicked="OnExtractClicked"
+                BackgroundColor="#12172A" TextColor="#555577"
+                FontSize="11" CornerRadius="0" HeightRequest="30" Padding="0"/>
+
         <!-- ══ Sua posição (fixada no rodapé) ══ -->
-        <Frame Grid.Row="4" x:Name="MyPositionFrame"
+        <Frame Grid.Row="5" x:Name="MyPositionFrame"
                BackgroundColor="#1C2A1C" BorderColor="#FFD700"
                CornerRadius="0" Padding="10,8" HasShadow="False">
             <Grid ColumnDefinitions="44,Auto,*,80">

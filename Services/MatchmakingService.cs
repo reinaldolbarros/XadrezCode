@@ -39,6 +39,8 @@ public class MatchmakingService
     public int              TimeMinutes     { get; private set; }
     public TournamentType   RoomType        { get; private set; } = TournamentType.Standard;
     public decimal          SatelliteTarget { get; private set; } = 0;
+    public bool             IsPrivate       { get; private set; } = false;
+    public string           AccessCode      { get; private set; } = "";
     public List<RoomPlayer> Players         { get; } = [];
     public bool             IsReady         => Players.Count == TotalSlots;
 
@@ -53,13 +55,17 @@ public class MatchmakingService
     // ─────────────────────────────────────────────────────────────────────────
     public void CreateRoom(int size, decimal buyIn, int timeMinutes, string humanName,
                            string humanAvatar = "♟",
-                           TournamentType type = TournamentType.Standard, decimal satelliteTarget = 0)
+                           TournamentType type = TournamentType.Standard,
+                           decimal satelliteTarget = 0,
+                           bool isPrivate = false, string accessCode = "")
     {
         TotalSlots      = size;
         BuyIn           = buyIn;
         TimeMinutes     = timeMinutes;
         RoomType        = type;
         SatelliteTarget = satelliteTarget;
+        IsPrivate       = isPrivate;
+        AccessCode      = accessCode;
         Players.Clear();
 
         var human = new RoomPlayer
@@ -108,5 +114,32 @@ public class MatchmakingService
 
         if (!ct.IsCancellationRequested && IsReady)
             RoomFull?.Invoke();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Preenche vagas restantes imediatamente (usado pelo criador de sala privada)
+    // ─────────────────────────────────────────────────────────────────────────
+    public async Task FillBotsImmediateAsync()
+    {
+        int needed   = TotalSlots - Players.Count;
+        var botNames = BotPool.OrderBy(_ => Random.Shared.Next())
+                              .Take(needed).ToArray();
+
+        foreach (var name in botNames)
+        {
+            await Task.Delay(180);
+            int str = Random.Shared.Next(3, 10);
+            var bot = new RoomPlayer
+            {
+                Name     = name,
+                IsHuman  = false,
+                Strength = str,
+                Avatar   = BotAvatars[Random.Shared.Next(BotAvatars.Length)]
+            };
+            Players.Add(bot);
+            PlayerJoined?.Invoke(bot);
+        }
+
+        if (IsReady) RoomFull?.Invoke();
     }
 }

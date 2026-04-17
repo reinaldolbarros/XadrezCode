@@ -1,3 +1,4 @@
+using ChessMAUI.Services;
 using ChessMAUI.ViewModels;
 
 namespace ChessMAUI.Views;
@@ -37,6 +38,7 @@ public partial class GamePage : ContentPage
         _vm.PropertyChanged    += OnVmPropertyChanged;
 
         BuildBoard();
+        BoardThemeService.ThemeChanged += OnThemeChanged;
     }
 
     protected override void OnAppearing()
@@ -88,6 +90,17 @@ public partial class GamePage : ContentPage
         // Human plays white; "Brancas vencem" = human won in casual mode
         bool humanWon = _vm.StatusMessage.Contains("Brancas vencem");
 
+        // Pontos e W/L por partida casual
+        if (humanWon)
+        {
+            state.Profile.RecordWin();
+            state.Profile.AddPoints(10, "Vitória – partida rápida", "♟");
+        }
+        else
+        {
+            state.Profile.RecordLoss();
+        }
+
         // Missões diárias (retorna true se recém completou)
         bool m1Done = state.Daily.RecordGamePlayed();
         bool m2Done = humanWon && state.Daily.RecordWin();
@@ -95,8 +108,8 @@ public partial class GamePage : ContentPage
         if (m1Done || m2Done)
         {
             var missions = state.Daily.GetMissions();
-            if (m1Done) { var m = missions[0]; state.Profile.Credit(m.BalanceReward); }
-            if (m2Done) { var m = missions[1]; state.Profile.Credit(m.BalanceReward); }
+            if (m1Done) { var m = missions[0]; state.Profile.Credit(m.BalanceReward, "Missão – Partida jogada", "✅"); }
+            if (m2Done) { var m = missions[1]; state.Profile.Credit(m.BalanceReward, "Missão – Vitória em partida", "✅"); }
             MainThread.BeginInvokeOnMainThread(async () =>
                 await DisplayAlert("✅ Missão Completa!", "Recompensa creditada!", "OK"));
         }
@@ -213,72 +226,45 @@ public partial class GamePage : ContentPage
     }
 
     // -----------------------------------------------------------------------
-    // Constrói o tabuleiro 8×8 programaticamente
-    // Um único TapGestureRecognizer no BoardGrid evita crash no WinUI ao maximizar
-    // (64 reconhecedores individuais sobrecarregam o handler de input do WinUI)
+    // Configura o GraphicsView do tabuleiro
     // -----------------------------------------------------------------------
+    private readonly BoardDrawable _drawable = new();
+
     private void BuildBoard()
     {
-        for (int i = 0; i < 8; i++)
-        {
-            BoardGrid.RowDefinitions.Add(new RowDefinition(GridLength.Star));
-            BoardGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
-        }
+        _drawable.Squares = _vm.Squares;
+        BoardView.Drawable = _drawable;
 
-        for (int r = 0; r < 8; r++)
-        {
-            for (int c = 0; c < 8; c++)
-            {
-                var sq = _vm.Squares[r, c];
+        _vm.BoardChanged += () =>
+            MainThread.BeginInvokeOnMainThread(() => BoardView.Invalidate());
 
-                var bg = new BoxView { BindingContext = sq };
-                bg.SetBinding(BackgroundColorProperty, nameof(SquareViewModel.BackgroundColor));
+        var tap = new TapGestureRecognizer();
+        tap.Tapped += OnBoardTapped;
+        BoardView.GestureRecognizers.Add(tap);
+    }
 
-                var piece = new Label
-                {
-                    Style          = (Style)Resources["PieceLabel"],
-                    BindingContext = sq,
-                };
-                piece.SetBinding(Label.TextProperty, nameof(SquareViewModel.PieceSymbol));
+    private void OnThemeChanged()
+    {
+        MainThread.BeginInvokeOnMainThread(() => BoardView.Invalidate());
+    }
 
-                // Coordenadas de notação (canto da casa)
-                string coord = "";
-                if (c == 0) coord += (char)('8' - r);
-                if (r == 7) coord += (char)('a' + c);
-                var coordLbl = new Label
-                {
-                    Text              = coord,
-                    FontSize          = 9,
-                    TextColor         = sq.IsLight
-                                        ? Color.FromArgb("#B58863")
-                                        : Color.FromArgb("#F0D9B5"),
-                    HorizontalOptions = LayoutOptions.Start,
-                    VerticalOptions   = LayoutOptions.End,
-                    Margin            = new Thickness(2, 0, 0, 1),
-                    InputTransparent  = true
-                };
+    private async void OnThemePaletteClicked(object? sender, EventArgs e)
+    {
+        string? choice = await DisplayActionSheet(
+            "Tema do tabuleiro", "Cancelar", null,
+            BoardThemeService.ThemeLabels);
 
-                var cell = new Grid { InputTransparent = true };
-                cell.Add(bg);
-                cell.Add(piece);
-                cell.Add(coordLbl);
+        if (choice == null || choice == "Cancelar") return;
 
-                Grid.SetRow(cell, r);
-                Grid.SetColumn(cell, c);
-                BoardGrid.Add(cell);
-            }
-        }
-
-        // Único reconhecedor de toque: calcula a casa pelo ponto clicado
-        var boardTap = new TapGestureRecognizer();
-        boardTap.Tapped += OnBoardTapped;
-        BoardGrid.GestureRecognizers.Add(boardTap);
+        int idx = Array.IndexOf(BoardThemeService.ThemeLabels, choice);
+        if (idx >= 0)
+            BoardThemeService.SetTheme((BoardThemeService.Theme)idx);
     }
 
     private void OnBoardTapped(object? sender, TappedEventArgs e)
     {
         if (_squareSize <= 0) return;
-        var pos = e.GetPosition(BoardGrid);
+        var pos = e.GetPosition(BoardView);
         if (pos is null) return;
         int col = Math.Clamp((int)(pos.Value.X / _squareSize), 0, 7);
         int row = Math.Clamp((int)(pos.Value.Y / _squareSize), 0, 7);
@@ -292,28 +278,14 @@ public partial class GamePage : ContentPage
     {
         base.OnSizeAllocated(width, height);
 
-        // Desconta: relógios (~56×2) + status (~36) + capturadas (~24) + botões (~52) + lances (~24) + margens
         double used      = _vm.TimerVisible ? 290 : 180;
         double available = Math.Min(width - 16, height - used);
         if (available <= 0) return;
 
-        double sq = available / 8.0;
-        _squareSize = sq;
+        _squareSize = available / 8.0;
 
-        BoardGrid.WidthRequest  = available;
-        BoardGrid.HeightRequest = available;
-
-        foreach (var row in BoardGrid.RowDefinitions)    row.Height = sq;
-        foreach (var col in BoardGrid.ColumnDefinitions) col.Width  = sq;
-
-        // Ajusta fonte das peças proporcionalmente
-        double fontSize = sq * 0.62;
-        foreach (var child in BoardGrid.Children)
-        {
-            if (child is not Grid cell) continue;
-            foreach (var inner in cell.Children)
-                if (inner is Label lbl && lbl.Style == (Style)Resources["PieceLabel"])
-                    lbl.FontSize = fontSize;
-        }
+        BoardView.WidthRequest  = available;
+        BoardView.HeightRequest = available;
+        BoardView.Invalidate();
     }
 }

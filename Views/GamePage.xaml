@@ -122,10 +122,10 @@
         <!-- ══════════════════════════════════════════════
              Linha 4 — Tabuleiro 8×8
              ══════════════════════════════════════════════ -->
-        <Grid Grid.Row="4"
-              x:Name="BoardGrid"
-              HorizontalOptions="Center"
-              VerticalOptions="Center"/>
+        <GraphicsView Grid.Row="4"
+                      x:Name="BoardView"
+                      HorizontalOptions="Center"
+                      VerticalOptions="Center"/>
 
         <!-- ══════════════════════════════════════════════
              Linha 5 — Relógio das BRANCAS (jogador)
@@ -178,7 +178,7 @@
         <!-- ══════════════════════════════════════════════
              Linha 6 — Botões
              ══════════════════════════════════════════════ -->
-        <Grid Grid.Row="6" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,4,0,2" ColumnSpacing="6">
+        <Grid Grid.Row="6" ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="0,4,0,2" ColumnSpacing="6">
             <Button x:Name="NewGameBtn"
                     Text="Novo Jogo"
                     Clicked="OnNewGameClicked"
@@ -229,6 +229,15 @@
                     CornerRadius="8"
                     WidthRequest="48"
                     Padding="0"/>
+            <Button Grid.Column="4"
+                    Text="🎨"
+                    Clicked="OnThemePaletteClicked"
+                    BackgroundColor="#555555"
+                    TextColor="White"
+                    CornerRadius="8"
+                    WidthRequest="48"
+                    Padding="0"
+                    ToolTipProperties.Text="Tema do tabuleiro"/>
         </Grid>
 
         <!-- ══════════════════════════════════════════════

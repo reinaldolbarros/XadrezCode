@@ -6,7 +6,7 @@ public class RankingEntry
     public string Avatar     { get; set; } = "";
     public string Name       { get; set; } = "";
     public string TierIcon   { get; set; } = "♟";
-    public string TierName   { get; set; } = "Pião";
+    public string TierName   { get; set; } = "Peão";
     public int    Points     { get; set; }
     public int    WeekPoints { get; set; }
     public bool   IsHuman    { get; set; }

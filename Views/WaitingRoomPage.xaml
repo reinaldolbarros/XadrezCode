@@ -6,7 +6,7 @@
              BackgroundColor="#1A1A2E"
              Shell.BackButtonBehavior="{x:Null}">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
 
         <!-- ══ Cabeçalho: info do torneio ══ -->
         <Frame Grid.Row="0" BackgroundColor="#16213E" BorderColor="#0F3460"
@@ -45,8 +45,34 @@
             </Grid>
         </Frame>
 
+        <!-- ══ Frame de código privado (oculto para salas públicas) ══ -->
+        <Frame Grid.Row="1" x:Name="PrivateCodeFrame"
+               IsVisible="False"
+               BackgroundColor="#1A0D2E" BorderColor="#7B68EE"
+               CornerRadius="0" Padding="16,10" HasShadow="False">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <VerticalStackLayout VerticalOptions="Center" Spacing="2">
+                    <Label Text="🔒  TORNEIO PRIVADO  —  Compartilhe o código:"
+                           TextColor="#BB99FF" FontSize="10" FontAttributes="Bold"/>
+                    <Label x:Name="AccessCodeLabel" Text=""
+                           TextColor="White" FontSize="26" FontAttributes="Bold"
+                           FontFamily="Courier New" CharacterSpacing="4"/>
+                </VerticalStackLayout>
+                <Button Grid.Column="1" x:Name="CopyCodeBtn"
+                        Text="Copiar" Clicked="OnCopyCodeClicked"
+                        BackgroundColor="#3A2A5A" TextColor="#BB99FF"
+                        FontSize="12" CornerRadius="8"
+                        HeightRequest="40" WidthRequest="70"/>
+                <Button Grid.Column="2" x:Name="StartNowBtn"
+                        Text="▶ Iniciar" Clicked="OnStartNowClicked"
+                        BackgroundColor="#2A4A2A" TextColor="#4CAF50"
+                        FontAttributes="Bold" FontSize="12" CornerRadius="8"
+                        HeightRequest="40" WidthRequest="80"/>
+            </Grid>
+        </Frame>
+
         <!-- ══ Barra de progresso ══ -->
-        <Frame Grid.Row="1" BackgroundColor="#16213E" BorderColor="Transparent"
+        <Frame Grid.Row="2" BackgroundColor="#16213E" BorderColor="Transparent"
                CornerRadius="0" Padding="16,10" HasShadow="False">
             <VerticalStackLayout Spacing="6">
                 <Grid ColumnDefinitions="*,Auto">
@@ -67,12 +93,12 @@
         </Frame>
 
         <!-- ══ Lista de slots ══ -->
-        <ScrollView Grid.Row="2">
+        <ScrollView Grid.Row="3">
             <VerticalStackLayout x:Name="SlotsContainer" Padding="12,8" Spacing="6"/>
         </ScrollView>
 
         <!-- ══ Rodapé: botão cancelar / countdown ══ -->
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="4">
             <Button x:Name="CancelBtn"
                     Text="✕  Cancelar e Sair"
                     Clicked="OnCancelClicked"

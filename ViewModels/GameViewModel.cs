@@ -11,7 +11,8 @@ namespace ChessMAUI.ViewModels;
 // ============================================================
 public class SquareViewModel : INotifyPropertyChanged
 {
-    private string _pieceSymbol = "";
+    private string _pieceSymbol  = "";
+    private bool?  _pieceIsWhite;          // null = casa vazia
     private bool   _isLight;
     private bool   _isSelected;
     private bool   _isValidMove;
@@ -26,6 +27,23 @@ public class SquareViewModel : INotifyPropertyChanged
         get => _pieceSymbol;
         set { _pieceSymbol = value; OnPC(); }
     }
+
+    // Cor da peça — null quando a casa está vazia
+    public bool? PieceIsWhite
+    {
+        get => _pieceIsWhite;
+        set { _pieceIsWhite = value; OnPC(); OnPC(nameof(PieceTextColor)); OnPC(nameof(PieceShadowColor)); }
+    }
+
+    // Peças brancas: marfim com sombra escura. Pretas: carvão com sombra clara.
+    public Color PieceTextColor => _pieceIsWhite == true
+        ? Color.FromArgb("#F5F0DC")   // marfim
+        : Color.FromArgb("#1C1C2C");  // carvão
+
+    public Color PieceShadowColor => _pieceIsWhite == true
+        ? Color.FromArgb("#AA3B2000") // sombra castanha semitransparente
+        : Color.FromArgb("#88FFFFFF"); // brilho branco semitransparente
+
     public bool IsLight
     {
         get => _isLight;
@@ -52,16 +70,29 @@ public class SquareViewModel : INotifyPropertyChanged
         set { _isInCheck = value; OnPC(); OnPC(nameof(BackgroundColor)); }
     }
 
-    public Color BackgroundColor => (IsSelected, IsInCheck, IsLastMove, IsValidMove, IsLight) switch
+    public Color BackgroundColor
     {
-        (true, _, _, _, _)     => Color.FromArgb("#F6F669"),
-        (_, true, _, _, _)     => Color.FromArgb("#FF4444"),
-        (_, _, true, _, _)     => Color.FromArgb("#CDD16E"),
-        (_, _, _, true, true)  => Color.FromArgb("#A8E0A8"),
-        (_, _, _, true, false) => Color.FromArgb("#5DA05D"),
-        (_, _, _, _, true)     => Color.FromArgb("#F0D9B5"),
-        _                      => Color.FromArgb("#B58863")
-    };
+        get
+        {
+            var (light, dark) = BoardThemeService.BoardColors;
+            return (IsSelected, IsInCheck, IsLastMove, IsValidMove, IsLight) switch
+            {
+                (true, _, _, _, _)     => Color.FromArgb("#F6F669"),
+                (_, true, _, _, _)     => Color.FromArgb("#FF4444"),
+                (_, _, true, _, true)  => light.WithLuminosity(light.GetLuminosity() * 0.75f),
+                (_, _, true, _, false) => dark.WithLuminosity(dark.GetLuminosity() * 1.6f),
+                (_, _, _, true, true)  => Color.FromArgb("#A8E0A8"),
+                (_, _, _, true, false) => Color.FromArgb("#5DA05D"),
+                (_, _, _, _, true)     => light,
+                _                      => dark,
+            };
+        }
+    }
+
+    public void RefreshTheme()
+    {
+        OnPC(nameof(BackgroundColor));
+    }
 
     public SquareViewModel(int row, int col)
     {
@@ -189,6 +220,7 @@ public class GameViewModel : INotifyPropertyChanged
     // Lista de lances (notação algébrica)
     public string MoveListText { get; private set; } = "";
 
+    public event Action?               BoardChanged;
     public event Action<string>?       PromotionRequested;
     public event Action<string>?       ChatMessageReceived;
     public event Action<bool>?         TournamentGameEnded;
@@ -454,6 +486,7 @@ public class GameViewModel : INotifyPropertyChanged
         sq.IsSelected   = true;
         foreach (var m in _validMoves)
             Squares[m.ToRow, m.ToCol].IsValidMove = true;
+        BoardChanged?.Invoke();
     }
 
     private void ExecutePlayerMove(ChessMove move)
@@ -587,13 +620,19 @@ public class GameViewModel : INotifyPropertyChanged
     {
         for (int r = 0; r < 8; r++)
             for (int c = 0; c < 8; c++)
-                Squares[r, c].PieceSymbol = _board.GetPiece(r, c)?.Symbol ?? "";
+            {
+                var piece = _board.GetPiece(r, c);
+                Squares[r, c].PieceSymbol  = piece?.Symbol ?? "";
+                Squares[r, c].PieceIsWhite = piece == null ? (bool?)null : piece.Color == PieceColor.White;
+            }
 
         if (_lastMove != null)
         {
             Squares[_lastMove.FromRow, _lastMove.FromCol].IsLastMove = true;
             Squares[_lastMove.ToRow,   _lastMove.ToCol  ].IsLastMove = true;
         }
+
+        BoardChanged?.Invoke();
     }
 
     // ----------------------------------------------------------------
