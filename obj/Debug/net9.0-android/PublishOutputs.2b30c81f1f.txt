@@ -1,0 +1,3 @@
+C:\Users\reina\Documents\ChessMAUI\bin\Debug\net9.0-android\publish\com.chess.chessmaui-Signed.apk
+C:\Users\reina\Documents\ChessMAUI\bin\Debug\net9.0-android\publish\com.chess.chessmaui.apk
+C:\Users\reina\Documents\ChessMAUI\bin\Debug\net9.0-android\publish\_Microsoft.Android.Resource.Designer.dll

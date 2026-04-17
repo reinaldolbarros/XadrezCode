@@ -72,6 +72,28 @@
                 </VerticalStackLayout>
             </Frame>
 
+            <!-- ══ Botões principais ══ -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,0,0,8">
+                <Button Text="🏆  Torneios"
+                        Clicked="OnTournamentsClicked"
+                        BackgroundColor="#0F3460"
+                        TextColor="White" FontAttributes="Bold" FontSize="14"
+                        CornerRadius="12" HeightRequest="52"/>
+                <Button Grid.Column="1"
+                        Text="🏅  Ranking"
+                        Clicked="OnRankingClicked"
+                        BackgroundColor="#4A1060"
+                        TextColor="White" FontAttributes="Bold" FontSize="14"
+                        CornerRadius="12" HeightRequest="52"/>
+            </Grid>
+
+            <Button Text="♟  Jogo Rápido vs IA"
+                    x:Name="QuickPlayBtn"
+                    Clicked="OnQuickPlayClicked"
+                    BackgroundColor="#769656"
+                    TextColor="White" FontAttributes="Bold" FontSize="15"
+                    CornerRadius="12" HeightRequest="52" Margin="0,0,0,10"/>
+
             <!-- ══ Bônus Diário ══ -->
             <Frame x:Name="BonusFrame" BackgroundColor="#16213E" BorderColor="#FFD700"
                    CornerRadius="12" Padding="14,10" Margin="0,0,0,8">
@@ -122,29 +144,6 @@
                     </VerticalStackLayout>
                 </Grid>
             </Frame>
-
-            <!-- ══ Botões principais ══ -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,0,0,10">
-                <Button Text="🏆  Torneios"
-                        Clicked="OnTournamentsClicked"
-                        BackgroundColor="#0F3460"
-                        TextColor="White" FontAttributes="Bold" FontSize="14"
-                        CornerRadius="12" HeightRequest="52"/>
-
-                <Button Grid.Column="1"
-                        Text="🏅  Ranking"
-                        Clicked="OnRankingClicked"
-                        BackgroundColor="#4A1060"
-                        TextColor="White" FontAttributes="Bold" FontSize="14"
-                        CornerRadius="12" HeightRequest="52"/>
-            </Grid>
-
-            <Button Text="♟  Jogo Rápido vs IA"
-                    x:Name="QuickPlayBtn"
-                    Clicked="OnQuickPlayClicked"
-                    BackgroundColor="#769656"
-                    TextColor="White" FontAttributes="Bold" FontSize="15"
-                    CornerRadius="12" HeightRequest="52" Margin="0,0,0,12"/>
 
             <!-- ══ Mini Ranking ══ -->
             <Frame BackgroundColor="#16213E" BorderColor="#0F3460"

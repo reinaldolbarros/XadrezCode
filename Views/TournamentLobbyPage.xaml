@@ -24,9 +24,11 @@
         </Grid>
 
         <!-- ══ Abas de tipo ══ -->
-        <ScrollView Grid.Row="1" Orientation="Horizontal" BackgroundColor="#16213E">
-            <HorizontalStackLayout x:Name="TypeTabBar" Spacing="4" Padding="10,8"/>
-        </ScrollView>
+        <FlexLayout Grid.Row="1" x:Name="TypeTabBar"
+                    Wrap="Wrap" Direction="Row"
+                    JustifyContent="Start" AlignItems="Center"
+                    BackgroundColor="#16213E"
+                    Padding="10,8"/>
 
         <!-- ══ Filtros de buy-in ══ -->
         <ScrollView Grid.Row="2" x:Name="FilterScrollView"

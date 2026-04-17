@@ -11,8 +11,8 @@
   <uses-permission android:name="android.permission.INTERNET" />
   <permission android:name="com.chess.chessmaui.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" android:protectionLevel="signature" />
   <uses-permission android:name="com.chess.chessmaui.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-  <application android:name="crc6494afc37b5c14b4fc.MainApplication" android:allowBackup="true" android:appComponentFactory="androidx.core.app.CoreComponentFactory" android:debuggable="true" android:extractNativeLibs="true" android:icon="@mipmap/appicon" android:label="Xadrez" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true">
-    <activity android:name="crc6494afc37b5c14b4fc.MainActivity" android:configChanges="density|orientation|smallestScreenSize|screenLayout|screenSize|uiMode" android:exported="true" android:launchMode="singleTop" android:theme="@style/Maui.SplashTheme">
+  <application android:name="crc6494afc37b5c14b4fc.MainApplication" android:allowBackup="true" android:appComponentFactory="androidx.core.app.CoreComponentFactory" android:debuggable="true" android:enableOnBackInvokedCallback="true" android:extractNativeLibs="true" android:icon="@mipmap/appicon" android:label="Xadrez" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true">
+    <activity android:name="crc6494afc37b5c14b4fc.MainActivity" android:configChanges="density|orientation|smallestScreenSize|screenLayout|screenSize|uiMode" android:exported="true" android:launchMode="singleTop" android:screenOrientation="portrait" android:theme="@style/Maui.SplashTheme">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />

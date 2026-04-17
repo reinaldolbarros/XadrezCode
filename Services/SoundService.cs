@@ -24,11 +24,12 @@ public class SoundService
         if (!Enabled) return;
         try
         {
-            var wav    = GenerateWav(hz, sec);
-            using var  ms     = new MemoryStream(wav);
-            var        player = AudioManager.Current.CreatePlayer(ms);
+            var wav = GenerateWav(hz, sec);
+            using var ms     = new MemoryStream(wav);
+            using var player = AudioManager.Current.CreatePlayer(ms);
             player.Play();
             await Task.Delay((int)(sec * 1000) + 80);
+            player.Stop();
         }
         catch { /* áudio não disponível — falha silenciosa */ }
     }

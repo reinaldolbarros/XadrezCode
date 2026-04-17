@@ -101,9 +101,10 @@ public partial class TournamentLobbyPage : ContentPage
         var btn = new Button
         {
             Text            = label,
-            FontSize        = 12,
-            CornerRadius    = 16,
-            Padding         = new Thickness(14, 6),
+            FontSize        = 11,
+            CornerRadius    = 14,
+            Padding         = new Thickness(10, 5),
+            Margin          = new Thickness(0, 0, 4, 4),
             BackgroundColor = bg,
             TextColor       = active ? Colors.Black : Colors.White
         };
