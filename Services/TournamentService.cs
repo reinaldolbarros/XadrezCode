@@ -31,7 +31,8 @@ public class TournamentService
     // -------------------------------------------------------------------------
     public Tournament CreateFromRoom(List<RoomPlayer> roomPlayers, decimal buyIn,
                                      TournamentType type = TournamentType.Standard,
-                                     decimal satelliteTarget = 0)
+                                     decimal satelliteTarget = 0,
+                                     decimal bountyPerPlayer = 0)
     {
         int size        = roomPlayers.Count;
         int totalRounds = (int)Math.Log2(size);
@@ -44,7 +45,8 @@ public class TournamentService
             Status = TournamentStatus.Active,
             PrizeTable = BuildPrizeTable(size, buyIn * size),
             Type = type,
-            SatelliteTarget = satelliteTarget
+            SatelliteTarget = satelliteTarget,
+            BountyPerPlayer = bountyPerPlayer
         };
 
         foreach (var rp in roomPlayers)
@@ -264,17 +266,33 @@ public class TournamentService
     }
 
     // -------------------------------------------------------------------------
-    // Tabela de prêmios
+    // Rake (10% retido pela casa)
     // -------------------------------------------------------------------------
-    private static Dictionary<int, decimal> BuildPrizeTable(int size, decimal pool) =>
-        size switch
+    internal const decimal RakePct = 0.10m;
+
+    /// <summary>Calcula o rake de um torneio (10% do pool bruto).</summary>
+    public static decimal GetRakeAmount(int size, decimal buyIn)
+        => Math.Round(buyIn * size * RakePct, 2);
+
+    // -------------------------------------------------------------------------
+    // Tabela de prêmios — distribui 90% do pool bruto
+    // -------------------------------------------------------------------------
+    private static Dictionary<int, decimal> BuildPrizeTable(int size, decimal pool)
+    {
+        decimal net = Math.Round(pool * (1m - RakePct), 2);
+        return size switch
         {
-            8  => Dist(pool, (1,.70m),(2,.30m)),
-            16 => Dist(pool, (1,.60m),(2,.30m),(3,.10m)),
-            32 => Dist(pool, (1,.50m),(2,.25m),(3,.12m),(4,.08m),(5,.05m)),
-            64 => Dist(pool, (1,.40m),(2,.22m),(3,.14m),(4,.10m),(5,.035m),(6,.035m),(7,.035m),(8,.035m)),
-            _  => Dist(pool, (1,1m))
+            2   => Dist(net, (1,1m)),
+            8   => Dist(net, (1,.70m),(2,.30m)),
+            16  => Dist(net, (1,.60m),(2,.30m),(3,.10m)),
+            32  => Dist(net, (1,.50m),(2,.25m),(3,.12m),(4,.08m),(5,.05m)),
+            64  => Dist(net, (1,.40m),(2,.22m),(3,.14m),(4,.10m),(5,.035m),(6,.035m),(7,.035m),(8,.035m)),
+            128 => Dist(net, (1,.30m),(2,.18m),(3,.12m),(4,.08m),(5,.06m),(6,.04m),
+                             (7,.03m),(8,.03m),(9,.025m),(10,.025m),(11,.02m),(12,.02m),
+                             (13,.02m),(14,.02m),(15,.015m),(16,.015m)),
+            _   => Dist(net, (1,1m))
         };
+    }
 
     private static Dictionary<int, decimal> Dist(decimal pool, params (int pos, decimal pct)[] entries)
         => entries.ToDictionary(e => e.pos, e => Math.Round(pool * e.pct, 2));

@@ -40,7 +40,7 @@ public class DailyService
         Preferences.Default.Set(KeyBonusClaimed, TodayKey);
 
         int streak = LoginStreak;
-        return streak switch { >= 7 => 500, >= 5 => 300, >= 3 => 200, >= 2 => 150, _ => 100 };
+        return streak switch { >= 7 => 150, >= 5 => 100, >= 3 => 75, >= 2 => 50, _ => 30 };
     }
 
     private void UpdateStreak()
@@ -76,11 +76,11 @@ public class DailyService
         return
         [
             new DailyMission { Id="m1", Icon="🎮", Description="Jogar 3 partidas",
-                Target=3, Progress=Preferences.Default.Get(KeyM1Progress,0), BalanceReward=100 },
+                Target=3, Progress=Preferences.Default.Get(KeyM1Progress,0), BalanceReward=30 },
             new DailyMission { Id="m2", Icon="⚔️", Description="Vencer 2 partidas",
-                Target=2, Progress=Preferences.Default.Get(KeyM2Progress,0), BalanceReward=150 },
-            new DailyMission { Id="m3", Icon="🏆", Description="Eliminar adversário em torneio",
-                Target=1, Progress=Preferences.Default.Get(KeyM3Progress,0), BalanceReward=200 },
+                Target=2, Progress=Preferences.Default.Get(KeyM2Progress,0), BalanceReward=50 },
+            new DailyMission { Id="m3", Icon="🏆", Description="Chegar ao Top 3 em torneio",
+                Target=1, Progress=Preferences.Default.Get(KeyM3Progress,0), BalanceReward=50 },
         ];
     }
 

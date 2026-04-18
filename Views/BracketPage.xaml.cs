@@ -50,8 +50,10 @@ public partial class BracketPage : ContentPage
         {
             prof.RecordWin();
             prof.AddPoints(15, "Vitória – partida no torneio", "⚔");
-            bool m3Done = state.Daily.RecordTournamentElimination();
-            if (m3Done) { var m3 = state.Daily.GetMissions()[2]; prof.Credit(m3.BalanceReward, "Missão – Eliminação no torneio", "✅"); }
+
+            // Bounty: credita recompensa por eliminação
+            if (t.Type == TournamentType.Bounty && t.BountyPerPlayer > 0)
+                prof.Credit(t.BountyPerPlayer, $"🎯 Bounty – eliminação em torneio", "🎯");
         }
         else
         {
@@ -60,14 +62,22 @@ public partial class BracketPage : ContentPage
 
         if (!humanWon)
         {
-            decimal prize = svc.GetHumanPrize(t);
+            decimal prize    = svc.GetHumanPrize(t);
+            int     position = t.HumanPlayer?.FinalPosition ?? t.Size;
             if (prize > 0) prof.Credit(prize, $"Prêmio – {t.RoundName} ({t.Size} jogadores)", "🏅");
+
+            // Missão m3: chegar ao Top 3
+            if (position <= 3)
+            {
+                bool m3Done = state.Daily.RecordTournamentElimination();
+                if (m3Done) { var m3 = state.Daily.GetMissions()[2]; prof.Credit(m3.BalanceReward, "Missão – Top 3 em torneio", "✅"); }
+            }
 
             // Registra histórico
             state.History.Add(new TournamentRecord
             {
                 Size = t.Size, BuyIn = t.BuyIn, Prize = prize,
-                Position = t.HumanPlayer?.FinalPosition ?? t.Size
+                Position = position
             });
 
             if (prize > 0) prof.AddPoints(25, $"Premiado – {t.RoundName} ({t.Size} jogadores)", "🏅");
@@ -100,8 +110,12 @@ public partial class BracketPage : ContentPage
             prof.TournamentsWon++;
 
             // Pontos por vencer o torneio (proporcional ao tamanho)
-            int tournPts = t.Size switch { 64 => 400, 32 => 200, 16 => 100, 8 => 50, 2 => 20, _ => 50 };
+            int tournPts = t.Size switch { 128 => 800, 64 => 400, 32 => 200, 16 => 100, 8 => 50, 2 => 20, _ => 50 };
             prof.AddPoints(tournPts, $"🏆 Campeão – Torneio {t.Size} jogadores", "🏆");
+
+            // Missão m3: Top 3 (campeão conta)
+            bool m3WinDone = state.Daily.RecordTournamentElimination();
+            if (m3WinDone) { var m3w = state.Daily.GetMissions()[2]; prof.Credit(m3w.BalanceReward, "Missão – Top 3 em torneio", "✅"); }
 
             string winMsg;
             decimal prize = 0;
@@ -148,7 +162,7 @@ public partial class BracketPage : ContentPage
         PlayersLabel.Text = t.IsHeadsUp
             ? $"Melhor de 3  ·  Jogo {t.HumanSeriesWins + t.OpponentSeriesWins + 1}"
             : $"{t.PlayersRemaining} jogadores restantes de {t.Size}";
-        PoolLabel.Text    = $"$ {t.PrizePool:N0}";
+        PoolLabel.Text    = $"$ {Math.Round(t.PrizePool * (1m - TournamentService.RakePct), 0):N0}";
         t.PrizeTable.TryGetValue(1, out decimal top);
         YourPrizeLabel.Text = $"$ {top:N0}";
 

@@ -16,6 +16,7 @@ public class AppState
     public TournamentHistoryService History     { get; } = new();
     public RankingService           Ranking     { get; } = new();
     public DailyService             Daily       { get; } = new();
+    public AdminService             Admin       { get; } = new();
 
     // Torneio ativo
     public Tournament? ActiveTournament { get; set; }

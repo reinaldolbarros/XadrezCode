@@ -39,6 +39,7 @@ public class MatchmakingService
     public int              TimeMinutes     { get; private set; }
     public TournamentType   RoomType        { get; private set; } = TournamentType.Standard;
     public decimal          SatelliteTarget { get; private set; } = 0;
+    public decimal          BountyPerPlayer { get; private set; } = 0;
     public bool             IsPrivate       { get; private set; } = false;
     public string           AccessCode      { get; private set; } = "";
     public List<RoomPlayer> Players         { get; } = [];
@@ -57,6 +58,7 @@ public class MatchmakingService
                            string humanAvatar = "♟",
                            TournamentType type = TournamentType.Standard,
                            decimal satelliteTarget = 0,
+                           decimal bountyPerPlayer = 0,
                            bool isPrivate = false, string accessCode = "")
     {
         TotalSlots      = size;
@@ -64,6 +66,7 @@ public class MatchmakingService
         TimeMinutes     = timeMinutes;
         RoomType        = type;
         SatelliteTarget = satelliteTarget;
+        BountyPerPlayer = bountyPerPlayer;
         IsPrivate       = isPrivate;
         AccessCode      = accessCode;
         Players.Clear();

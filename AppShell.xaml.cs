@@ -17,5 +17,6 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("ExtractPage",           typeof(ExtractPage));
         Routing.RegisterRoute("PointsExtractPage",    typeof(PointsExtractPage));
         Routing.RegisterRoute("LoginPage",            typeof(LoginPage));
+        Routing.RegisterRoute("AdminPage",            typeof(AdminPage));
     }
 }

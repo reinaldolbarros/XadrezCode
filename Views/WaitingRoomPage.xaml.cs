@@ -42,7 +42,7 @@ public partial class WaitingRoomPage : ContentPage
 
         // Cabeçalho
         TournTitle.Text    = $"Torneio de {mm.TotalSlots} Jogadores";
-        TournSubtitle.Text = $"Mata-mata  •  Prêmio total: $ {mm.BuyIn * mm.TotalSlots:N0}";
+        TournSubtitle.Text = $"Mata-mata  •  Prêmio total: $ {mm.BuyIn * mm.TotalSlots * (1m - TournamentService.RakePct):N0}";
         BuyInLabel.Text    = $"$ {mm.BuyIn:N0}";
         TimeLabel.Text     = mm.TimeMinutes > 0 ? $"{mm.TimeMinutes} min" : "Livre";
 
@@ -141,10 +141,17 @@ public partial class WaitingRoomPage : ContentPage
 
             // Cria o torneio com os jogadores da sala
             var state = AppState.Current;
-            var t     = state.TournSvc.CreateFromRoom(state.Matchmaking.Players, state.Matchmaking.BuyIn,
-                              state.Matchmaking.RoomType, state.Matchmaking.SatelliteTarget);
+            var mm    = state.Matchmaking;
+            var t     = state.TournSvc.CreateFromRoom(mm.Players, mm.BuyIn,
+                              mm.RoomType, mm.SatelliteTarget, mm.BountyPerPlayer);
             state.ActiveTournament      = t;
-            state.TournamentTimeMinutes = state.Matchmaking.TimeMinutes;
+            state.TournamentTimeMinutes = mm.TimeMinutes;
+
+            // Registra rake administrativo (10% do pool bruto)
+            decimal rake = TournamentService.GetRakeAmount(mm.TotalSlots, mm.BuyIn);
+            state.Admin.RecordRake(rake,
+                $"{mm.TotalSlots} jogadores · $ {mm.BuyIn:N0} buy-in",
+                mm.RoomType.ToString(), mm.TotalSlots, mm.BuyIn);
 
             // Zera estado de partida anterior para não processar resultado fantasma
             state.MatchResultReady      = false;

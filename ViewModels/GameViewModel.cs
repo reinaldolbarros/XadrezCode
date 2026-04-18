@@ -75,16 +75,14 @@ public class SquareViewModel : INotifyPropertyChanged
         get
         {
             var (light, dark) = BoardThemeService.BoardColors;
-            return (IsSelected, IsInCheck, IsLastMove, IsValidMove, IsLight) switch
+            return (IsSelected, IsInCheck, IsValidMove, IsLight) switch
             {
-                (true, _, _, _, _)     => Color.FromArgb("#F6F669"),
-                (_, true, _, _, _)     => Color.FromArgb("#FF4444"),
-                (_, _, true, _, true)  => light.WithLuminosity(light.GetLuminosity() * 0.75f),
-                (_, _, true, _, false) => dark.WithLuminosity(dark.GetLuminosity() * 1.6f),
-                (_, _, _, true, true)  => Color.FromArgb("#A8E0A8"),
-                (_, _, _, true, false) => Color.FromArgb("#5DA05D"),
-                (_, _, _, _, true)     => light,
-                _                      => dark,
+                (true, _, _, _)    => Color.FromArgb("#F6F669"),
+                (_, true, _, _)    => Color.FromArgb("#FF4444"),
+                (_, _, true, true) => Color.FromArgb("#A8E0A8"),
+                (_, _, true, false)=> Color.FromArgb("#5DA05D"),
+                (_, _, _, true)    => light,
+                _                  => dark,
             };
         }
     }
@@ -624,6 +622,7 @@ public class GameViewModel : INotifyPropertyChanged
                 var piece = _board.GetPiece(r, c);
                 Squares[r, c].PieceSymbol  = piece?.Symbol ?? "";
                 Squares[r, c].PieceIsWhite = piece == null ? (bool?)null : piece.Color == PieceColor.White;
+                Squares[r, c].IsLastMove   = false;   // limpa antes de remarcar
             }
 
         if (_lastMove != null)

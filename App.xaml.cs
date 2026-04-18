@@ -11,7 +11,8 @@ public partial class App : Application
 
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
-		Page root = AppState.Current.Auth.IsAuthenticated
+		var auth  = AppState.Current.Auth;
+		Page root = (auth.IsAuthenticated && !auth.IsAnonymous)
 			? new AppShell()
 			: new LoginPage();
 

@@ -5,6 +5,15 @@
              Title="Xadrez Online"
              BackgroundColor="#1A1A2E">
 
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Alterar Senha"
+                     Clicked="OnChangePasswordClicked"
+                     Order="Secondary"/>
+        <ToolbarItem Text="Sair da conta"
+                     Clicked="OnLogoutClicked"
+                     Order="Secondary"/>
+    </ContentPage.ToolbarItems>
+
     <ScrollView>
         <VerticalStackLayout Padding="16,12" Spacing="0">
 
@@ -63,12 +72,21 @@
                         </VerticalStackLayout>
                     </Grid>
 
-                    <!-- Sair da conta -->
-                    <Button x:Name="LogoutBtn" Text="Sair da conta"
-                            Clicked="OnLogoutClicked"
-                            BackgroundColor="Transparent" TextColor="#555577"
-                            FontSize="10" HeightRequest="22" Padding="0"
-                            HorizontalOptions="End"/>
+                    <!-- Sair da conta + Admin -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Button x:Name="LogoutBtn" Text="Sair da conta"
+                                Clicked="OnLogoutClicked"
+                                BackgroundColor="Transparent" TextColor="#555577"
+                                FontSize="10" HeightRequest="22" Padding="0"
+                                HorizontalOptions="Start"/>
+                        <Button x:Name="AdminBtn" Text="⚙ Admin"
+                                Grid.Column="1"
+                                Clicked="OnAdminPageClicked"
+                                IsVisible="False"
+                                BackgroundColor="#1A2030" TextColor="#7B68EE"
+                                FontSize="10" HeightRequest="22" Padding="8,0"
+                                CornerRadius="6"/>
+                    </Grid>
                 </VerticalStackLayout>
             </Frame>
 

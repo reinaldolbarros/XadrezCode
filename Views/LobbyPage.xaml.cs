@@ -66,6 +66,9 @@ public partial class LobbyPage : ContentPage
         BonusTitle.Text           = claimed ? "🎁  Bônus Diário  ✓ Resgatado" : "🎁  Bônus Diário";
         BonusTitle.TextColor      = claimed ? Color.FromArgb("#666688") : Color.FromArgb("#FFD700");
 
+        // Botão admin (visível apenas em modo admin)
+        AdminBtn.IsVisible = AppState.Current.IsAdminMode;
+
         // Missões
         BuildMissions(daily);
 
@@ -84,7 +87,7 @@ public partial class LobbyPage : ContentPage
         state.Profile.AddPoints(5, "Bônus de login diário", "🎁");
 
         int streak = state.Daily.LoginStreak;
-        string next = streak switch { >= 7 => "Máximo!", >= 5 => "7 dias = 500 fichas", >= 3 => "5 dias = 300 fichas", >= 2 => "3 dias = 200 fichas", _ => "2 dias = 150 fichas" };
+        string next = streak switch { >= 7 => "Máximo!", >= 5 => "7 dias = 150 fichas", >= 3 => "5 dias = 100 fichas", >= 2 => "3 dias = 75 fichas", _ => "2 dias = 50 fichas" };
         await DisplayAlert("🎁 Bônus Diário!",
             $"+{fichas} fichas\n\n🔥 Sequência: {streak} dia{(streak != 1 ? "s" : "")}\n\n➡ Próximo prêmio: {next}", "Ótimo!");
 
@@ -200,11 +203,16 @@ public partial class LobbyPage : ContentPage
         _adminTapCount = 0;
 
         AppState.Current.IsAdminMode = !AppState.Current.IsAdminMode;
+        AdminBtn.IsVisible = AppState.Current.IsAdminMode;
+
         string msg = AppState.Current.IsAdminMode
-            ? "⚙ MODO ADMIN ATIVADO\nBotões de teste disponíveis no jogo."
+            ? "⚙ MODO ADMIN ATIVADO\nBotão admin disponível. Toque em '⚙ Admin' para ver o extrato financeiro."
             : "Modo admin desativado.";
         await DisplayAlert("Admin", msg, "OK");
     }
+
+    private async void OnAdminPageClicked(object? sender, EventArgs e)
+        => await Shell.Current.GoToAsync("AdminPage");
 
     // -----------------------------------------------------------------------
     // Avatar: toque para escolher
@@ -235,12 +243,55 @@ public partial class LobbyPage : ContentPage
         await Shell.Current.GoToAsync("GamePage");
     }
 
+    private async void OnChangePasswordClicked(object? sender, EventArgs e)
+    {
+        var auth = AppState.Current.Auth;
+
+        if (auth.IsAnonymous)
+        {
+            await DisplayAlert("Aviso", "Visitantes não possuem senha. Crie uma conta para usar esta funcionalidade.", "OK");
+            return;
+        }
+
+        string? currentPass = await DisplayPromptAsync(
+            "Alterar Senha", "Senha atual:", maxLength: 64, keyboard: Keyboard.Default);
+        if (currentPass == null) return;
+
+        if (!auth.TryLogin(auth.Email, currentPass) && !auth.TryLogin(auth.Username, currentPass))
+        {
+            await DisplayAlert("Erro", "Senha atual incorreta.", "OK");
+            return;
+        }
+
+        string? newPass = await DisplayPromptAsync(
+            "Alterar Senha", "Nova senha (mín. 6 caracteres):", maxLength: 64, keyboard: Keyboard.Default);
+        if (newPass == null) return;
+        if (newPass.Length < 6)
+        {
+            await DisplayAlert("Erro", "A nova senha deve ter pelo menos 6 caracteres.", "OK");
+            return;
+        }
+
+        string? confirmPass = await DisplayPromptAsync(
+            "Alterar Senha", "Confirmar nova senha:", maxLength: 64, keyboard: Keyboard.Default);
+        if (confirmPass == null) return;
+        if (newPass != confirmPass)
+        {
+            await DisplayAlert("Erro", "As senhas não conferem.", "OK");
+            return;
+        }
+
+        auth.ResetPassword(auth.Email, newPass);
+        await DisplayAlert("✓ Concluído", "Sua senha foi alterada com sucesso.", "OK");
+    }
+
     private async void OnLogoutClicked(object? sender, EventArgs e)
     {
         bool confirm = await DisplayAlert("Sair", "Deseja sair da sua conta?", "Sair", "Cancelar");
         if (!confirm) return;
 
         AppState.Current.Auth.Logout();
-        Application.Current!.MainPage = new LoginPage();
+        var window = Application.Current?.Windows.FirstOrDefault();
+        if (window != null) window.Page = new LoginPage();
     }
 }

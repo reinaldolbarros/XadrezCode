@@ -12,6 +12,7 @@ public class Tournament
     public TournamentStatus Status          { get; set; } = TournamentStatus.Active;
     public TournamentType   Type            { get; set; } = TournamentType.Standard;
     public decimal          SatelliteTarget { get; set; } = 0;
+    public decimal          BountyPerPlayer { get; set; } = 0;
 
     public List<TournamentPlayer> Players { get; set; } = [];
     public List<TournamentMatch>  Matches { get; set; } = [];

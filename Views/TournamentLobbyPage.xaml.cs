@@ -371,9 +371,9 @@ public partial class TournamentLobbyPage : ContentPage
     // -----------------------------------------------------------------------
     // Painel personalizado
     // -----------------------------------------------------------------------
-    private static readonly int[]     CustomSizes   = [2, 8, 16, 32, 64];
+    private static readonly int[]     CustomSizes   = [2, 8, 16, 32, 64, 128];
     private static readonly int[]     CustomTimes   = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
-    private static readonly decimal[] CustomBuyIns  = [10, 25, 50, 100, 250, 500];
+    private static readonly decimal[] CustomBuyIns  = [10, 25, 50, 100, 250, 500, 750, 1000];
 
     // Label de resumo — atualizada a cada seleção
     private Label? _customSummaryLabel;
@@ -661,12 +661,13 @@ public partial class TournamentLobbyPage : ContentPage
 
     private static string SizeEmoji(int size) => size switch
     {
-        2  => "⚔ 2",
-        8  => "⚡ 8",
-        16 => "🔥 16",
-        32 => "💎 32",
-        64 => "👑 64",
-        _  => size.ToString()
+        2   => "⚔ 2",
+        8   => "⚡ 8",
+        16  => "🔥 16",
+        32  => "💎 32",
+        64  => "👑 64",
+        128 => "🏆 128",
+        _   => size.ToString()
     };
 
     // -----------------------------------------------------------------------
@@ -720,7 +721,7 @@ public partial class TournamentLobbyPage : ContentPage
         AppState.Current.Matchmaking.CreateRoom(
             room.Size, room.BuyIn, room.TimeMinutes,
             profile.Name, profile.Avatar,
-            room.Type, room.SatelliteTarget);
+            room.Type, room.SatelliteTarget, room.BountyPerPlayer);
 
         await Shell.Current.GoToAsync("WaitingRoomPage");
     }
