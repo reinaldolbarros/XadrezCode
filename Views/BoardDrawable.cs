@@ -11,12 +11,12 @@ public class BoardDrawable : IDrawable
     private static readonly Color BlackPiece    = Color.FromArgb("#1A1209");
     private static readonly Color GlowColor     = Colors.White;
     private static readonly Color ShadowColor   = Colors.Black;
-    // Verde claro semitransparente para última jogada
     private static readonly Color LastMoveColor = Color.FromArgb("#8090EE90");
 
-    // O rei (♚) renderiza visualmente menor — compensação de tamanho
-    private const string KingSymbol = "♚";
-    private const float  KingScale  = 1.20f;
+    private const string KingSymbol      = "♚";
+    private const float  KingScale       = 1.20f;
+    private const string WhitePawnSymbol = "♙";
+    private const string BlackPawnSymbol = "♟";
 
     public void Draw(ICanvas canvas, RectF bounds)
     {
@@ -64,16 +64,16 @@ public class BoardDrawable : IDrawable
             // ── Peça ──────────────────────────────────────────────────
             if (string.IsNullOrEmpty(sq.PieceSymbol)) continue;
 
-            bool  isWhite      = sq.PieceIsWhite == true;
-            bool  isKing       = sq.PieceSymbol == KingSymbol;
+            bool  isWhite       = sq.PieceIsWhite == true;
+            bool  isKing        = sq.PieceSymbol == KingSymbol;
             float pieceFontSize = isKing ? fontSize * KingScale : fontSize;
 
             canvas.FontSize = pieceFontSize;
 
             if (isWhite)
             {
-                // Sombra escura ao redor de toda a peça (2 passes, offsets diferentes)
-                canvas.FontColor = ShadowColor.WithAlpha(0.28f);
+                // Sombra ao redor (reduzida)
+                canvas.FontColor = ShadowColor.WithAlpha(0.16f);
                 for (int dx = -1; dx <= 1; dx++)
                 for (int dy = -1; dy <= 1; dy++)
                 {
@@ -82,7 +82,7 @@ public class BoardDrawable : IDrawable
                         x + dx * off * 1.4f, y + dy * off * 1.4f, cw, ch,
                         HorizontalAlignment.Center, VerticalAlignment.Center);
                 }
-                canvas.FontColor = ShadowColor.WithAlpha(0.14f);
+                canvas.FontColor = ShadowColor.WithAlpha(0.07f);
                 for (int dx = -1; dx <= 1; dx++)
                 for (int dy = -1; dy <= 1; dy++)
                 {
@@ -99,8 +99,8 @@ public class BoardDrawable : IDrawable
             }
             else
             {
-                // Glow branco ao redor (8 direções) + peça preta na frente
-                canvas.FontColor = GlowColor;
+                // Glow ao redor (reduzido)
+                canvas.FontColor = GlowColor.WithAlpha(0.60f);
                 for (int dx = -1; dx <= 1; dx++)
                 for (int dy = -1; dy <= 1; dy++)
                 {
@@ -114,6 +114,37 @@ public class BoardDrawable : IDrawable
                 canvas.DrawString(sq.PieceSymbol,
                     x, y, cw, ch,
                     HorizontalAlignment.Center, VerticalAlignment.Center);
+            }
+
+            // ── Detalhe interno nos peões: curva no corpo + linha na base ─
+            bool isPawn = sq.PieceSymbol == WhitePawnSymbol || sq.PieceSymbol == BlackPawnSymbol;
+            if (isPawn)
+            {
+                float cx  = x + cw * 0.5f;
+                float sw  = MathF.Max(0.6f, cw * 0.020f);
+                var   ink = isWhite ? ShadowColor.WithAlpha(0.26f) : GlowColor.WithAlpha(0.24f);
+
+                canvas.StrokeSize  = sw;
+                canvas.StrokeColor = ink;
+
+                // Curva suave no corpo (bezier cúbico vertical com leve inflexão)
+                float bodyTop = y + ch * 0.43f;
+                float bodyBot = y + ch * 0.68f;
+                float bodyMid = y + ch * 0.555f;
+                float bulge   = cw * 0.055f;   // quanto a curva desvia para o lado
+
+                var path = new PathF();
+                path.MoveTo(cx, bodyTop);
+                path.CurveTo(
+                    cx - bulge, bodyTop + (bodyMid - bodyTop) * 0.4f,
+                    cx + bulge, bodyTop + (bodyMid - bodyTop) * 1.6f,
+                    cx, bodyBot);
+                canvas.DrawPath(path);
+
+                // Linha horizontal na base
+                float baseY  = y + ch * 0.78f;
+                float halfW  = cw * 0.18f;
+                canvas.DrawLine(cx - halfW, baseY, cx + halfW, baseY);
             }
         }
     }

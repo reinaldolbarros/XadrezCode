@@ -307,3 +307,6 @@ C:\Users\reina\Documents\ChessMAUI\obj\Release\net9.0-ios\iossimulator-x64\refin
 C:\Users\reina\Documents\ChessMAUI\obj\Release\net9.0-ios\iossimulator-x64\ChessMAUI.pdb
 C:\Users\reina\Documents\ChessMAUI\obj\Release\net9.0-ios\iossimulator-x64\ChessMAUI.genruntimeconfig.cache
 C:\Users\reina\Documents\ChessMAUI\obj\Release\net9.0-ios\iossimulator-x64\ref\ChessMAUI.dll
+C:\Users\reina\Documents\ChessMAUI\obj\Release\net9.0-ios\iossimulator-x64\resizetizer\sp\splash_7CD524D7B07C86856193BAF134BBDED56F4ECBB6A8986ADAF965447B1944D54F.png
+C:\Users\reina\Documents\ChessMAUI\obj\Release\net9.0-ios\iossimulator-x64\resizetizer\sp\splash_7CD524D7B07C86856193BAF134BBDED56F4ECBB6A8986ADAF965447B1944D54F@2x.png
+C:\Users\reina\Documents\ChessMAUI\obj\Release\net9.0-ios\iossimulator-x64\resizetizer\sp\splash_7CD524D7B07C86856193BAF134BBDED56F4ECBB6A8986ADAF965447B1944D54F@3x.png

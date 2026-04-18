@@ -2,176 +2,208 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ChessMAUI.Views.LobbyPage"
-             Title="Xadrez Online"
-             BackgroundColor="#1A1A2E">
+             Title="Xadrez"
+             BackgroundColor="#0A1020">
 
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Alterar Senha"
-                     Clicked="OnChangePasswordClicked"
-                     Order="Secondary"/>
-        <ToolbarItem Text="Sair da conta"
-                     Clicked="OnLogoutClicked"
-                     Order="Secondary"/>
+        <ToolbarItem Text="Alterar Senha" Clicked="OnChangePasswordClicked" Order="Secondary"/>
+        <ToolbarItem Text="Sair da conta"  Clicked="OnLogoutClicked"         Order="Secondary"/>
     </ContentPage.ToolbarItems>
 
     <ScrollView>
-        <VerticalStackLayout Padding="16,12" Spacing="0">
+        <VerticalStackLayout Padding="28,24,28,40" Spacing="0">
 
             <!-- ══ Perfil ══ -->
-            <Frame BackgroundColor="#16213E" BorderColor="#0F3460"
-                   CornerRadius="14" Padding="16,12" Margin="0,0,0,6">
-                <VerticalStackLayout Spacing="4">
-                    <Grid ColumnDefinitions="Auto,*,Auto">
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,6">
 
-                        <!-- Avatar (toque para trocar) -->
-                        <Frame Grid.Column="0" BackgroundColor="#0F3460" CornerRadius="28"
-                               WidthRequest="56" HeightRequest="56" Padding="0" HasShadow="False"
-                               Margin="0,0,12,0">
-                            <Label x:Name="AvatarLabel" Text="♟" FontSize="28"
-                                   HorizontalOptions="Center" VerticalOptions="Center"/>
-                            <Frame.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnAvatarTapped"/>
-                            </Frame.GestureRecognizers>
-                        </Frame>
+                <!-- Avatar -->
+                <Border BackgroundColor="#111D32" Stroke="#1C2D4A" StrokeThickness="1"
+                        StrokeShape="RoundRectangle 30"
+                        WidthRequest="58" HeightRequest="58"
+                        VerticalOptions="Center" Margin="0,0,14,0">
+                    <Label x:Name="AvatarLabel" Text="♟" FontSize="28"
+                           HorizontalOptions="Center" VerticalOptions="Center"/>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAvatarTapped"/>
+                    </Border.GestureRecognizers>
+                </Border>
 
-                        <!-- Nome + rank -->
-                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                            <Label x:Name="NameLabel"   Text="Jogador"
-                                   TextColor="White" FontSize="18" FontAttributes="Bold"/>
-                            <HorizontalStackLayout Spacing="6">
-                                <Label x:Name="TierLabel"  Text="♟" FontSize="14" VerticalOptions="Center"/>
-                                <Label x:Name="TierName"   Text="Pião"
-                                       TextColor="#FFD700" FontSize="12" VerticalOptions="Center"/>
-                            </HorizontalStackLayout>
-                            <Label x:Name="RatingLabel" Text="Rating: 1200 · 0 pts"
-                                   TextColor="#AAAACC" FontSize="11"/>
-                        </VerticalStackLayout>
-
-                        <!-- Saldo + botão extrato -->
-                        <VerticalStackLayout Grid.Column="2" Spacing="4" HorizontalOptions="Center">
-                            <Frame BackgroundColor="#0F3460" CornerRadius="10"
-                                   Padding="12,8" HasShadow="False">
-                                <VerticalStackLayout HorizontalOptions="Center">
-                                    <Label Text="SALDO" TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
-                                    <Label x:Name="BalanceLabel" Text="$ 1.000"
-                                           TextColor="#4CAF50" FontSize="18" FontAttributes="Bold"
-                                           HorizontalTextAlignment="Center"/>
-                                </VerticalStackLayout>
-                                <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnAdminActivate"/>
-                                </Frame.GestureRecognizers>
-                            </Frame>
-                            <Button Text="📋 Extrato"
-                                    Clicked="OnExtractClicked"
-                                    BackgroundColor="#1C2A4A"
-                                    TextColor="#AAAACC"
-                                    FontSize="10"
-                                    CornerRadius="8"
-                                    Padding="0,4"
-                                    HeightRequest="26"/>
-                        </VerticalStackLayout>
-                    </Grid>
-
-                    <!-- Sair da conta + Admin -->
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Button x:Name="LogoutBtn" Text="Sair da conta"
-                                Clicked="OnLogoutClicked"
-                                BackgroundColor="Transparent" TextColor="#555577"
-                                FontSize="10" HeightRequest="22" Padding="0"
-                                HorizontalOptions="Start"/>
-                        <Button x:Name="AdminBtn" Text="⚙ Admin"
-                                Grid.Column="1"
-                                Clicked="OnAdminPageClicked"
-                                IsVisible="False"
-                                BackgroundColor="#1A2030" TextColor="#7B68EE"
-                                FontSize="10" HeightRequest="22" Padding="8,0"
-                                CornerRadius="6"/>
-                    </Grid>
+                <!-- Nome + tier + rating -->
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="3">
+                    <Label x:Name="NameLabel" Text="Jogador"
+                           TextColor="White" FontSize="17" FontAttributes="Bold"/>
+                    <HorizontalStackLayout Spacing="5">
+                        <Label x:Name="TierLabel" Text="♟" FontSize="12" VerticalOptions="Center"/>
+                        <Label x:Name="TierName"  Text="Pião"
+                               TextColor="#3A6AB0" FontSize="12" VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+                    <Label x:Name="RatingLabel" Text="0 pts"
+                           TextColor="#607890" FontSize="11"/>
                 </VerticalStackLayout>
-            </Frame>
 
-            <!-- ══ Botões principais ══ -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,0,0,8">
-                <Button Text="🏆  Torneios"
-                        Clicked="OnTournamentsClicked"
-                        BackgroundColor="#0F3460"
-                        TextColor="White" FontAttributes="Bold" FontSize="14"
-                        CornerRadius="12" HeightRequest="52"/>
-                <Button Grid.Column="1"
-                        Text="🏅  Ranking"
-                        Clicked="OnRankingClicked"
-                        BackgroundColor="#4A1060"
-                        TextColor="White" FontAttributes="Bold" FontSize="14"
-                        CornerRadius="12" HeightRequest="52"/>
+                <!-- Saldo -->
+                <VerticalStackLayout Grid.Column="2" VerticalOptions="Center"
+                                     HorizontalOptions="End" Spacing="4">
+                    <Border BackgroundColor="#111D32" Stroke="#1C2D4A" StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10" Padding="10,6">
+                        <VerticalStackLayout HorizontalOptions="Center">
+                            <Label Text="SALDO" TextColor="#607890" FontSize="9"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label x:Name="BalanceLabel" Text="$ 0"
+                                   TextColor="#4CAF50" FontSize="16" FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnAdminActivate"/>
+                        </Border.GestureRecognizers>
+                    </Border>
+                    <Label Text="extrato →" TextColor="#4A6888" FontSize="10"
+                           HorizontalTextAlignment="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnExtractClicked"/>
+                        </Label.GestureRecognizers>
+                    </Label>
+                </VerticalStackLayout>
             </Grid>
 
-            <Button Text="♟  Jogo Rápido vs IA"
-                    x:Name="QuickPlayBtn"
+            <!-- Sair · Alterar Senha · Admin -->
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,28">
+                <Label Text="Sair da conta" TextColor="#5A7898" FontSize="12"
+                       VerticalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnLogoutClicked"/>
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Grid.Column="1" Text="Alterar senha" TextColor="#5A7898" FontSize="12"
+                       HorizontalTextAlignment="Center" VerticalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnChangePasswordClicked"/>
+                    </Label.GestureRecognizers>
+                </Label>
+                <Button x:Name="AdminBtn" Text="⚙ Admin"
+                        Grid.Column="2"
+                        Clicked="OnAdminPageClicked"
+                        IsVisible="False"
+                        BackgroundColor="Transparent" TextColor="#4A6080"
+                        FontSize="11" HeightRequest="20" Padding="0"
+                        CornerRadius="0"/>
+            </Grid>
+
+            <!-- ══ Ação principal ══ -->
+            <Button x:Name="QuickPlayBtn"
+                    Text="♟  Jogo Rápido vs IA"
                     Clicked="OnQuickPlayClicked"
-                    BackgroundColor="#769656"
-                    TextColor="White" FontAttributes="Bold" FontSize="15"
-                    CornerRadius="12" HeightRequest="52" Margin="0,0,0,10"/>
+                    BackgroundColor="#769656" TextColor="White"
+                    FontAttributes="Bold" FontSize="16"
+                    CornerRadius="14" HeightRequest="58"
+                    Margin="0,0,0,10"/>
+
+            <!-- ══ Torneios + Ranking ══ -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,0,0,28">
+
+                <Border BackgroundColor="#1A3A65" Stroke="#2A5090" StrokeThickness="1"
+                        StrokeShape="RoundRectangle 12" HeightRequest="68" Padding="14,0">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Label Text="♛" FontSize="20" TextColor="#5A8AD0"
+                               VerticalOptions="Center"/>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Margin="10,0,0,0" Spacing="1">
+                            <Label Text="Torneios" TextColor="White" FontSize="14" FontAttributes="Bold"/>
+                            <Label Text="Compita online" TextColor="#607890" FontSize="10"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" TextColor="#607890"
+                               FontSize="20" VerticalOptions="Center"/>
+                    </Grid>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTournamentsClicked"/>
+                    </Border.GestureRecognizers>
+                </Border>
+
+                <Border Grid.Column="1" BackgroundColor="#22164A" Stroke="#3A2878"
+                        StrokeThickness="1" StrokeShape="RoundRectangle 12"
+                        HeightRequest="68" Padding="14,0">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Label Text="♜" FontSize="20" TextColor="#8B78EE"
+                               VerticalOptions="Center"/>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Margin="10,0,0,0" Spacing="1">
+                            <Label Text="Ranking" TextColor="White" FontSize="14" FontAttributes="Bold"/>
+                            <Label Text="Classificação" TextColor="#607890" FontSize="10"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" TextColor="#607890"
+                               FontSize="20" VerticalOptions="Center"/>
+                    </Grid>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnRankingClicked"/>
+                    </Border.GestureRecognizers>
+                </Border>
+            </Grid>
 
             <!-- ══ Bônus Diário ══ -->
-            <Frame x:Name="BonusFrame" BackgroundColor="#16213E" BorderColor="#FFD700"
-                   CornerRadius="12" Padding="14,10" Margin="0,0,0,8">
+            <Border x:Name="BonusFrame"
+                    BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12" Padding="16,12" Margin="0,0,0,10">
                 <Grid ColumnDefinitions="*,Auto">
-                    <VerticalStackLayout VerticalOptions="Center" Spacing="1">
-                        <Label x:Name="BonusTitle" Text="🎁  Bônus Diário"
+                    <VerticalStackLayout VerticalOptions="Center" Spacing="2">
+                        <Label x:Name="BonusTitle" Text="Bônus Diário"
                                TextColor="#FFD700" FontSize="14" FontAttributes="Bold"/>
                         <Label x:Name="BonusStreakLabel" Text="Sequência: 1 dia"
-                               TextColor="#AAAACC" FontSize="11"/>
+                               TextColor="#607890" FontSize="11"/>
                     </VerticalStackLayout>
-                    <Button x:Name="BonusBtn" Text="RESGATAR"
+                    <Button x:Name="BonusBtn" Text="Resgatar"
                             Grid.Column="1"
                             Clicked="OnBonusClicked"
-                            BackgroundColor="#FFD700" TextColor="#1A1A2E"
-                            FontAttributes="Bold" FontSize="12"
-                            CornerRadius="8" HeightRequest="36" WidthRequest="90"/>
+                            BackgroundColor="#FFD700" TextColor="#0A1020"
+                            FontAttributes="Bold" FontSize="11"
+                            CornerRadius="8" HeightRequest="34" WidthRequest="88"/>
                 </Grid>
-                <Frame.GestureRecognizers>
-                    <TapGestureRecognizer/>
-                </Frame.GestureRecognizers>
-            </Frame>
+            </Border>
 
             <!-- ══ Missões Diárias ══ -->
-            <Frame BackgroundColor="#16213E" BorderColor="#0F3460"
-                   CornerRadius="12" Padding="14,10" Margin="0,0,0,12">
+            <Border BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12" Padding="16,14" Margin="0,0,0,10">
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="📋  Missões de Hoje" TextColor="White"
+                    <Label Text="Missões de Hoje" TextColor="White"
                            FontSize="13" FontAttributes="Bold" Margin="0,0,0,4"/>
                     <VerticalStackLayout x:Name="MissionContainer" Spacing="6"/>
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
 
             <!-- ══ Estatísticas ══ -->
-            <Frame BackgroundColor="#16213E" BorderColor="#0F3460"
-                   CornerRadius="14" Padding="14,10" Margin="0,0,0,10">
+            <Border BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12" Padding="16,14" Margin="0,0,0,10">
                 <Grid ColumnDefinitions="*,*,*">
                     <VerticalStackLayout HorizontalOptions="Center">
-                        <Label x:Name="WinsLabel"     Text="0" TextColor="#4CAF50" FontSize="20" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-                        <Label Text="Vitórias"          TextColor="#AAAACC" FontSize="11" HorizontalTextAlignment="Center"/>
+                        <Label x:Name="WinsLabel" Text="0"
+                               TextColor="#4CAF50" FontSize="22" FontAttributes="Bold"
+                               HorizontalTextAlignment="Center"/>
+                        <Label Text="Vitórias" TextColor="#607890" FontSize="11"
+                               HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
                     <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
-                        <Label x:Name="LossesLabel"   Text="0" TextColor="#FF5252" FontSize="20" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-                        <Label Text="Derrotas"          TextColor="#AAAACC" FontSize="11" HorizontalTextAlignment="Center"/>
+                        <Label x:Name="LossesLabel" Text="0"
+                               TextColor="#FF5252" FontSize="22" FontAttributes="Bold"
+                               HorizontalTextAlignment="Center"/>
+                        <Label Text="Derrotas" TextColor="#607890" FontSize="11"
+                               HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
                     <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center">
-                        <Label x:Name="TournWinsLabel" Text="0" TextColor="#FFD700" FontSize="20" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-                        <Label Text="Torneios Vencidos" TextColor="#AAAACC" FontSize="11" HorizontalTextAlignment="Center"/>
+                        <Label x:Name="TournWinsLabel" Text="0"
+                               TextColor="#FFD700" FontSize="22" FontAttributes="Bold"
+                               HorizontalTextAlignment="Center"/>
+                        <Label Text="Torneios" TextColor="#607890" FontSize="11"
+                               HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
                 </Grid>
-            </Frame>
+            </Border>
 
             <!-- ══ Mini Ranking ══ -->
-            <Frame BackgroundColor="#16213E" BorderColor="#0F3460"
-                   CornerRadius="14" Padding="14,12" Margin="0,0,0,8">
+            <Border BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12" Padding="16,14">
                 <VerticalStackLayout Spacing="6">
                     <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
-                        <Label Text="🏅  Top Jogadores" TextColor="White"
+                        <Label Text="Top Jogadores" TextColor="White"
                                FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
-                        <Label Text="ver todos →" Grid.Column="1"
-                               TextColor="#7B68EE" FontSize="11" VerticalOptions="Center">
+                        <Label Grid.Column="1" Text="ver todos →"
+                               TextColor="#3A6AB0" FontSize="11" VerticalOptions="Center">
                             <Label.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnRankingClicked"/>
                             </Label.GestureRecognizers>
@@ -179,7 +211,7 @@
                     </Grid>
                     <VerticalStackLayout x:Name="MiniRankContainer" Spacing="4"/>
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
 
         </VerticalStackLayout>
     </ScrollView>

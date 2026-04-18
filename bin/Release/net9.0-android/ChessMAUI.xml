@@ -93,6 +93,9 @@
             ITM    = acabou de entrar na zona de prêmios.
             </summary>
         </member>
+        <member name="M:ChessMAUI.Services.TournamentService.GetRakeAmount(System.Int32,System.Decimal)">
+            <summary>Calcula o rake de um torneio (10% do pool bruto).</summary>
+        </member>
         <member name="T:ChessMAUI.Resource">
             <summary>
             Android Resource Designer class.

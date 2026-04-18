@@ -7,22 +7,26 @@ public partial class GamePage : ContentPage
 {
     private readonly GameViewModel _vm;
 
-    // Opções de tempo (minutos); 0 = sem limite
+    private CancellationTokenSource? _chatCts;
+    private double _squareSize;
+
+    private static readonly (string Label, int Depth)[] DifficultyOptions =
+    [
+        ("Fácil",   1),
+        ("Médio",   3),
+        ("Difícil", 5),
+    ];
+
     private static readonly (string Label, int Minutes)[] TimeOptions =
     [
         ("Sem limite",  0),
         ("1 minuto",    1),
-        ("2 minutos",   2),
         ("3 minutos",   3),
-        ("4 minutos",   4),
         ("5 minutos",   5),
         ("10 minutos", 10),
         ("15 minutos", 15),
         ("30 minutos", 30),
     ];
-
-    private CancellationTokenSource? _chatCts;
-    private double _squareSize;
 
     public GamePage()
     {
@@ -58,6 +62,11 @@ public partial class GamePage : ContentPage
                 state.TournamentTimeMinutes,
                 state.TournamentAIDepth);
         }
+        else if (!_vm.IsTournamentMode && _vm.GameOver)
+        {
+            // Abre os menus de configuração automaticamente
+            OnSetupNewGameClicked();
+        }
     }
 
     protected override void OnDisappearing()
@@ -74,8 +83,15 @@ public partial class GamePage : ContentPage
     // -----------------------------------------------------------------------
     private void OnTournamentGameEnded(bool humanWon)
     {
-        // Registra missão diária — navegação fica a cargo do jogador (botão Voltar)
         AppState.Current.Daily.RecordGamePlayed();
+
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            ResultTitle.Text      = humanWon ? "Vitória!" : "Derrota";
+            ResultTitle.TextColor = humanWon ? Color.FromArgb("#4CAF50") : Color.FromArgb("#FF5252");
+            ResultDetail.Text     = _vm.StatusMessage;
+            ResultPanel.IsVisible = true;
+        });
     }
 
     // -----------------------------------------------------------------------
@@ -84,35 +100,46 @@ public partial class GamePage : ContentPage
     private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(_vm.GameOver) || !_vm.GameOver) return;
-        if (_vm.IsTournamentMode) return; // tournament flow handled in OnTournamentGameEnded
+        if (_vm.IsTournamentMode) return;
 
-        var state = AppState.Current;
-        // Human plays white; "Brancas vencem" = human won in casual mode
         bool humanWon = _vm.StatusMessage.Contains("Brancas vencem");
 
-        // Pontos e W/L por partida casual
-        if (humanWon)
+        MainThread.BeginInvokeOnMainThread(async () =>
         {
-            state.Profile.RecordWin();
-            state.Profile.AddPoints(10, "Vitória – partida rápida", "♟");
-        }
-        else
-        {
-            state.Profile.RecordLoss();
-        }
+            var state = AppState.Current;
 
-        // Missões diárias (retorna true se recém completou)
-        bool m1Done = state.Daily.RecordGamePlayed();
-        bool m2Done = humanWon && state.Daily.RecordWin();
+            // Pontos e W/L
+            if (humanWon)
+            {
+                state.Profile.RecordWin();
+                state.Profile.AddPoints(10, "Vitória – partida rápida", "♟");
+            }
+            else
+            {
+                state.Profile.RecordLoss();
+            }
 
-        if (m1Done || m2Done)
-        {
-            var missions = state.Daily.GetMissions();
-            if (m1Done) { var m = missions[0]; state.Profile.Credit(m.BalanceReward, "Missão – Partida jogada", "✅"); }
-            if (m2Done) { var m = missions[1]; state.Profile.Credit(m.BalanceReward, "Missão – Vitória em partida", "✅"); }
-            MainThread.BeginInvokeOnMainThread(async () =>
-                await DisplayAlert("✅ Missão Completa!", "Recompensa creditada!", "OK"));
-        }
+            // Missões diárias
+            bool m1Done = state.Daily.RecordGamePlayed();
+            bool m2Done = humanWon && state.Daily.RecordWin();
+
+            if (m1Done || m2Done)
+            {
+                var missions = state.Daily.GetMissions();
+                if (m1Done) { var m = missions[0]; state.Profile.Credit(m.BalanceReward, "Missão – Partida jogada", "♟"); }
+                if (m2Done) { var m = missions[1]; state.Profile.Credit(m.BalanceReward, "Missão – Vitória em partida", "♟"); }
+                await DisplayAlert("Missão Completa", "Recompensa creditada!", "OK");
+            }
+
+            // Painel de resultado
+            bool isDraw = _vm.StatusMessage.Contains("Empate") || _vm.StatusMessage.Contains("Afogamento");
+            ResultTitle.Text      = humanWon ? "Vitória!" : isDraw ? "Empate" : "Derrota";
+            ResultTitle.TextColor = humanWon
+                ? Color.FromArgb("#4CAF50")
+                : isDraw ? Color.FromArgb("#FFD700") : Color.FromArgb("#FF5252");
+            ResultDetail.Text     = _vm.StatusMessage;
+            ResultPanel.IsVisible = true;
+        });
     }
 
     // -----------------------------------------------------------------------
@@ -161,27 +188,38 @@ public partial class GamePage : ContentPage
     }
 
     // -----------------------------------------------------------------------
-    // Botão: Novo Jogo — escolhe dificuldade e depois tempo
+    // Botão: NOVO JOGO dentro do SetupPanel — abre os menus e inicia o jogo
     // -----------------------------------------------------------------------
-    private static readonly (string Label, int Depth)[] DifficultyOptions =
-    [
-        ("Fácil",   1),
-        ("Médio",   3),
-        ("Difícil", 5),
-    ];
-
-    private async void OnNewGameClicked(object? sender, EventArgs e)
+    private async void OnResultBackTapped(object? sender, TappedEventArgs e)
     {
+        ResultPanel.IsVisible = false;
+        await Shell.Current.GoToAsync("..");
+    }
+
+    private async void OnSetupNewGameClicked(object? sender = null, EventArgs? e = null)
+    {
+        ResultPanel.IsVisible = false;
+        bool fromSetupPanel = SetupPanel.IsVisible;
+
         string[] diffLabels = DifficultyOptions.Select(o => o.Label).ToArray();
         string? diff = await DisplayActionSheet("Dificuldade da IA", "Cancelar", null, diffLabels);
-        if (diff == null || diff == "Cancelar") return;
-        int depth = DifficultyOptions.FirstOrDefault(o => o.Label == diff).Depth;
+        if (diff == null || diff == "Cancelar")
+        {
+            if (fromSetupPanel) await Shell.Current.GoToAsync("..");
+            return;
+        }
+        int depth = DifficultyOptions.First(o => o.Label == diff).Depth;
 
         string[] timeLabels = TimeOptions.Select(o => o.Label).ToArray();
-        string? choice = await DisplayActionSheet("Tempo por jogador", "Cancelar", null, timeLabels);
-        if (choice == null || choice == "Cancelar") return;
+        string? timeChoice = await DisplayActionSheet("Tempo por jogador", "Cancelar", null, timeLabels);
+        if (timeChoice == null || timeChoice == "Cancelar")
+        {
+            if (fromSetupPanel) await Shell.Current.GoToAsync("..");
+            return;
+        }
+        int minutes = TimeOptions.First(o => o.Label == timeChoice).Minutes;
 
-        int minutes = TimeOptions.FirstOrDefault(o => o.Label == choice).Minutes;
+        SetupPanel.IsVisible = false;
         _vm.StartNewGame(minutes, depth);
     }
 

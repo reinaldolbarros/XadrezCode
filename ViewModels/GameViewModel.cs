@@ -129,10 +129,11 @@ public class GameViewModel : INotifyPropertyChanged
     private bool              _moveTimerActive; // false quando jogo é de 1 min
 
     // --- Serviços ---
-    private AIService                _ai    = new();
-    private readonly SoundService    _sound = new();
-    private readonly BotChatService  _chat  = new();
+    private AIService                _ai           = new();
+    private readonly SoundService    _sound        = new();
+    private readonly BotChatService  _chat         = new();
     private CancellationTokenSource? _aiCts;
+    private int                      _aiThinkMaxMs = 4000; // limite de tempo para a IA pensar
 
     // --- Peças capturadas e lista de lances ---
     private readonly List<ChessPiece> _capturedByWhite = []; // peças pretas capturadas pelo jogador
@@ -265,6 +266,14 @@ public class GameViewModel : INotifyPropertyChanged
         _aiCts?.Cancel();
         _aiCts = null;
         _ai    = new AIService(aiDepth);
+
+        // Limite de tempo de raciocínio por profundidade
+        _aiThinkMaxMs = aiDepth switch
+        {
+            1 => 800,
+            3 => 2500,
+            _ => 4000,  // depth 5
+        };
 
         _board            = new ChessBoard();
         _selectedSquare   = null;
@@ -543,7 +552,16 @@ public class GameViewModel : INotifyPropertyChanged
     private async Task RunAIAsync()
     {
         _aiCts?.Cancel();
-        _aiCts       = new CancellationTokenSource();
+
+        // Se há relógio, a IA não deve usar mais que 30% do tempo restante (mín 500 ms, máx _aiThinkMaxMs)
+        int thinkMs = _aiThinkMaxMs;
+        if (_timerEnabled && _blackTime.TotalMilliseconds > 0)
+        {
+            int budget = (int)(_blackTime.TotalMilliseconds * 0.30);
+            thinkMs = Math.Clamp(budget, 500, _aiThinkMaxMs);
+        }
+
+        _aiCts       = new CancellationTokenSource(thinkMs);
         IsAIThinking = true;
 
         try

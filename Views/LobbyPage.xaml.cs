@@ -50,7 +50,7 @@ public partial class LobbyPage : ContentPage
         var tickets = p.GetAllTickets();
         if (tickets.Count > 0)
         {
-            string ticketStr = string.Join("  ", tickets.Select(kv => $"🎟 ${kv.Key:N0}×{kv.Value}"));
+            string ticketStr = string.Join("  ", tickets.Select(kv => $"${kv.Key:N0}×{kv.Value}"));
             RatingLabel.Text = $"{p.Points:N0} pts  ·  {ticketStr}";
         }
         else
@@ -61,9 +61,9 @@ public partial class LobbyPage : ContentPage
         // Bônus diário
         bool claimed = daily.BonusClaimedToday;
         BonusBtn.IsVisible        = !claimed;
-        BonusStreakLabel.Text     = $"Sequência: {daily.LoginStreak} dia{(daily.LoginStreak != 1 ? "s" : "")}  🔥";
-        BonusFrame.BorderColor    = claimed ? Color.FromArgb("#333355") : Color.FromArgb("#FFD700");
-        BonusTitle.Text           = claimed ? "🎁  Bônus Diário  ✓ Resgatado" : "🎁  Bônus Diário";
+        BonusStreakLabel.Text     = $"Sequência: {daily.LoginStreak} dia{(daily.LoginStreak != 1 ? "s" : "")}";
+        BonusFrame.Stroke         = new SolidColorBrush(claimed ? Color.FromArgb("#1A2840") : Color.FromArgb("#FFD700"));
+        BonusTitle.Text           = claimed ? "Bônus Diário  ·  Resgatado" : "Bônus Diário";
         BonusTitle.TextColor      = claimed ? Color.FromArgb("#666688") : Color.FromArgb("#FFD700");
 
         // Botão admin (visível apenas em modo admin)
@@ -83,13 +83,13 @@ public partial class LobbyPage : ContentPage
     {
         var state = AppState.Current;
         int fichas = state.Daily.ClaimDailyBonus();
-        state.Profile.Credit(fichas, "Bônus Diário", "🎁");
-        state.Profile.AddPoints(5, "Bônus de login diário", "🎁");
+        state.Profile.Credit(fichas, "Bônus Diário", "♟");
+        state.Profile.AddPoints(5, "Bônus de login diário", "♟");
 
         int streak = state.Daily.LoginStreak;
         string next = streak switch { >= 7 => "Máximo!", >= 5 => "7 dias = 150 fichas", >= 3 => "5 dias = 100 fichas", >= 2 => "3 dias = 75 fichas", _ => "2 dias = 50 fichas" };
-        await DisplayAlert("🎁 Bônus Diário!",
-            $"+{fichas} fichas\n\n🔥 Sequência: {streak} dia{(streak != 1 ? "s" : "")}\n\n➡ Próximo prêmio: {next}", "Ótimo!");
+        await DisplayAlert("Bônus Diário",
+            $"+{fichas} fichas\n\nSequência: {streak} dia{(streak != 1 ? "s" : "")}\nPróximo prêmio: {next}", "OK");
 
         RefreshUI();
     }
@@ -104,35 +104,30 @@ public partial class LobbyPage : ContentPage
         for (int i = 0; i < missions.Count; i++)
         {
             var m = missions[i];
-            var row = new Grid { ColumnDefinitions = { new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto) }, Margin = new Thickness(0,2) };
-
-            var icon = new Label { Text = m.Icon, FontSize = 18, VerticalOptions = LayoutOptions.Center, Margin = new Thickness(0,0,8,0) };
-            row.Add(icon);
+            var row = new Grid { ColumnDefinitions = { new(GridLength.Star), new(GridLength.Auto) }, Margin = new Thickness(0,2) };
 
             var info = new VerticalStackLayout { Spacing = 2, VerticalOptions = LayoutOptions.Center };
             info.Add(new Label { Text = m.Description, TextColor = m.Completed ? Color.FromArgb("#4CAF50") : Colors.White, FontSize = 12 });
-            // Progress bar
-            var barTrack = new Grid { HeightRequest = 5 };
-            barTrack.Add(new BoxView { Color = Color.FromArgb("#0F3460"), CornerRadius = 2, HorizontalOptions = LayoutOptions.Fill });
+            var barTrack = new Grid { HeightRequest = 4 };
+            barTrack.Add(new BoxView { Color = Color.FromArgb("#1A2840"), CornerRadius = 2, HorizontalOptions = LayoutOptions.Fill });
             double pct = m.Target > 0 ? Math.Min(1.0, (double)m.Progress / m.Target) : 0;
-            double missionBarWidth = (DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density - 130) * pct;
-            barTrack.Add(new BoxView { Color = m.Completed ? Color.FromArgb("#4CAF50") : Color.FromArgb("#7B68EE"),
+            double missionBarWidth = (DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density - 100) * pct;
+            barTrack.Add(new BoxView { Color = m.Completed ? Color.FromArgb("#4CAF50") : Color.FromArgb("#3A6AB0"),
                 CornerRadius = 2, HorizontalOptions = LayoutOptions.Start, WidthRequest = Math.Max(0, missionBarWidth) });
             info.Add(barTrack);
-            info.Add(new Label { Text = $"{m.Progress}/{m.Target}", TextColor = Color.FromArgb("#AAAACC"), FontSize = 10 });
-            Grid.SetColumn(info, 1);
+            info.Add(new Label { Text = $"{m.Progress}/{m.Target}", TextColor = Color.FromArgb("#607890"), FontSize = 10 });
             row.Add(info);
 
             var reward = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.End, Spacing = 1 };
-            reward.Add(new Label { Text = $"+{m.BalanceReward}$", TextColor = Color.FromArgb("#4CAF50"), FontSize = 10, HorizontalTextAlignment = TextAlignment.End });
-            Grid.SetColumn(reward, 2);
+            reward.Add(new Label { Text = $"+{m.BalanceReward}", TextColor = Color.FromArgb("#4CAF50"), FontSize = 10, HorizontalTextAlignment = TextAlignment.End });
+            Grid.SetColumn(reward, 1);
             row.Add(reward);
 
             MissionContainer.Children.Add(row);
 
             // Separator (except last)
             if (i < missions.Count - 1)
-                MissionContainer.Children.Add(new BoxView { Color = Color.FromArgb("#0F3460"), HeightRequest = 1, Margin = new Thickness(0,2) });
+                MissionContainer.Children.Add(new BoxView { Color = Color.FromArgb("#1A2840"), HeightRequest = 1, Margin = new Thickness(0,2) });
         }
     }
 
@@ -150,7 +145,7 @@ public partial class LobbyPage : ContentPage
             var row = new Grid { ColumnDefinitions = { new(32), new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto) }, Margin = new Thickness(0,1) };
 
             row.Add(new Label { Text = e.PositionLabel, FontSize = e.Position <= 3 ? 15 : 12,
-                TextColor = e.Position <= 3 ? Colors.White : Color.FromArgb("#AAAACC"),
+                TextColor = e.Position <= 3 ? Colors.White : Color.FromArgb("#7090B0"),
                 HorizontalTextAlignment = TextAlignment.Center, VerticalOptions = LayoutOptions.Center });
 
             var tierLbl = new Label { Text = e.TierIcon, FontSize = 14, Margin = new Thickness(4,0),
@@ -161,7 +156,7 @@ public partial class LobbyPage : ContentPage
             var nameStack = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center };
             nameStack.Add(new Label { Text = e.Name, TextColor = e.NameColor, FontSize = 12,
                 FontAttributes = e.IsHuman ? FontAttributes.Bold : FontAttributes.None });
-            nameStack.Add(new Label { Text = e.TierName, TextColor = Color.FromArgb("#888899"), FontSize = 9 });
+            nameStack.Add(new Label { Text = e.TierName, TextColor = Color.FromArgb("#6080A0"), FontSize = 9 });
             Grid.SetColumn(nameStack, 2);
             row.Add(nameStack);
 
