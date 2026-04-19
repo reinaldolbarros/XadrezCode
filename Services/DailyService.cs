@@ -33,14 +33,15 @@ public class DailyService
     public bool BonusClaimedToday
         => Preferences.Default.Get(KeyBonusClaimed, "") == TodayKey;
 
-    /// <summary>Reivindica o bônus diário e retorna fichas ganhas.</summary>
-    public int ClaimDailyBonus()
+    /// <summary>Reivindica o bônus diário e retorna fichas ganhas (já com multiplicador de assinatura).</summary>
+    public int ClaimDailyBonus(float multiplier = 1.0f, int flatBonus = 0)
     {
         UpdateStreak();
         Preferences.Default.Set(KeyBonusClaimed, TodayKey);
 
         int streak = LoginStreak;
-        return streak switch { >= 7 => 150, >= 5 => 100, >= 3 => 75, >= 2 => 50, _ => 30 };
+        int baseAmount = streak switch { >= 7 => 150, >= 5 => 100, >= 3 => 75, >= 2 => 50, _ => 30 };
+        return (int)(baseAmount * multiplier) + flatBonus;
     }
 
     private void UpdateStreak()
@@ -75,12 +76,12 @@ public class DailyService
 
         return
         [
-            new DailyMission { Id="m1", Icon="🎮", Description="Jogar 3 partidas",
-                Target=3, Progress=Preferences.Default.Get(KeyM1Progress,0), BalanceReward=30 },
-            new DailyMission { Id="m2", Icon="⚔️", Description="Vencer 2 partidas",
-                Target=2, Progress=Preferences.Default.Get(KeyM2Progress,0), BalanceReward=50 },
-            new DailyMission { Id="m3", Icon="🏆", Description="Chegar ao Top 3 em torneio",
-                Target=1, Progress=Preferences.Default.Get(KeyM3Progress,0), BalanceReward=50 },
+            new DailyMission { Id="m1", Description="Jogar 3 partidas (casual ou Liga)",
+                Target=3, Progress=Preferences.Default.Get(KeyM1Progress,0), BalanceReward=50 },
+            new DailyMission { Id="m2", Description="Participar de 1 torneio da Liga",
+                Target=1, Progress=Preferences.Default.Get(KeyM2Progress,0), BalanceReward=80 },
+            new DailyMission { Id="m3", Description="Manter sequência de login (7 dias)",
+                Target=7, Progress=Math.Min(7, Preferences.Default.Get(KeyStreak,0)), BalanceReward=100 },
         ];
     }
 

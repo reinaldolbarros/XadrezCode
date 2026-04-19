@@ -190,7 +190,13 @@ public class GameViewModel : INotifyPropertyChanged
     public string TournamentOpponent  { get; private set; } = "";
     public bool   ShowNewGameButton   => !IsTournamentMode;
     public bool   ShowReturnButton    => IsTournamentMode && _gameOver;
-    public bool?  HumanWon            { get; private set; } // resultado final em modo torneio
+    public bool?  HumanWon            { get; private set; }
+
+    // Modo amigo (pass-and-play)
+    public bool   IsFriendMode       { get; private set; }
+    public string WhitePlayerName    { get; private set; } = "Você";
+    public string BlackPlayerName    { get; private set; } = "IA";
+    public event Action<string>? RequestHandoff;
 
     // Som
     public bool SoundEnabled
@@ -207,8 +213,8 @@ public class GameViewModel : INotifyPropertyChanged
     public ICommand ResignCommand       { get; }
     public ICommand OfferDrawCommand    { get; }
 
-    public bool ShowResignButton => !_gameOver;
-    public bool CanOfferDraw    => !IsTournamentMode && !_gameOver && !_isAIThinking;
+    public bool ShowResignButton => !_gameOver && !IsFriendMode;
+    public bool CanOfferDraw    => !IsTournamentMode && !IsFriendMode && !_gameOver && !_isAIThinking;
 
     // Peças capturadas e vantagem de material
     public string WhiteCapturesDisplay { get; private set; } = "";
@@ -258,10 +264,17 @@ public class GameViewModel : INotifyPropertyChanged
         StartNewGame(minutes, aiDepth, isTournament: true);
     }
 
+    public void StartFriendGame(string white, string black, int minutes)
+    {
+        WhitePlayerName = white;
+        BlackPlayerName = black;
+        StartNewGame(minutes, aiDepth: 1, isTournament: false, friendMode: true);
+    }
+
     // ----------------------------------------------------------------
     // Novo jogo — chamado pela GamePage após o usuário escolher tempo e dificuldade
     // ----------------------------------------------------------------
-    public void StartNewGame(int minutes, int aiDepth = 3, bool isTournament = false)
+    public void StartNewGame(int minutes, int aiDepth = 3, bool isTournament = false, bool friendMode = false)
     {
         _aiCts?.Cancel();
         _aiCts = null;
@@ -290,6 +303,8 @@ public class GameViewModel : INotifyPropertyChanged
         GameOver          = false;
         HumanWon          = null;
         IsTournamentMode  = isTournament;
+        IsFriendMode      = friendMode;
+        if (!friendMode) { WhitePlayerName = "Você"; BlackPlayerName = "IA"; }
         OnPC(nameof(IsTournamentMode));
         OnPC(nameof(TournamentOpponent));
         OnPC(nameof(ShowNewGameButton));
@@ -322,8 +337,8 @@ public class GameViewModel : INotifyPropertyChanged
             StopClock();
 
         StatusMessage = _timerEnabled
-            ? $"Brancas jogam — {minutes} min por lado"
-            : "Vez das Brancas";
+            ? (IsFriendMode ? $"{WhitePlayerName} começa — {minutes} min" : $"Brancas jogam — {minutes} min por lado")
+            : (IsFriendMode ? $"Vez de {WhitePlayerName}" : "Vez das Brancas");
 
         if (IsTournamentMode) _chat.SendStart();
     }
@@ -349,7 +364,7 @@ public class GameViewModel : INotifyPropertyChanged
         if (_gameOver) return;
 
         // Contador por jogada — só corre na vez do jogador (brancas)
-        if (_moveTimerActive && _board.CurrentTurn == PieceColor.White)
+        if (_moveTimerActive && (IsFriendMode || _board.CurrentTurn == PieceColor.White))
         {
             _moveTime -= TimeSpan.FromSeconds(1);
             OnPC(nameof(MoveTimeDisplay));
@@ -373,7 +388,7 @@ public class GameViewModel : INotifyPropertyChanged
             {
                 _whiteTime = TimeSpan.Zero;
                 NotifyTimerProperties();
-                EndByTimeout("Tempo esgotado! Pretas (IA) vencem!");
+                EndByTimeout(IsFriendMode ? $"Tempo esgotado! {BlackPlayerName} vence!" : IsTournamentMode ? $"Tempo esgotado! {TournamentOpponent} vence!" : "Tempo esgotado! Pretas (IA) vencem!");
                 return;
             }
             OnPC(nameof(WhiteTimeDisplay));
@@ -386,7 +401,7 @@ public class GameViewModel : INotifyPropertyChanged
             {
                 _blackTime = TimeSpan.Zero;
                 NotifyTimerProperties();
-                EndByTimeout("Tempo esgotado! Brancas vencem!");
+                EndByTimeout(IsFriendMode ? $"Tempo esgotado! {WhitePlayerName} vence!" : "Tempo esgotado! Brancas vencem!");
                 return;
             }
             OnPC(nameof(BlackTimeDisplay));
@@ -402,8 +417,11 @@ public class GameViewModel : INotifyPropertyChanged
     private void EndByMoveTimeout()
     {
         StopClock();
-        StatusMessage = "Tempo por jogada esgotado! Pretas (IA) vencem!";
-        if (IsTournamentMode) SetTournamentResult(false);
+        var winner = _board.CurrentTurn == PieceColor.White
+            ? (IsFriendMode ? BlackPlayerName : IsTournamentMode ? TournamentOpponent : "Pretas (IA)")
+            : (IsFriendMode ? WhitePlayerName : "Brancas");
+        StatusMessage = $"Tempo por jogada esgotado! {winner} vence!";
+        if (IsTournamentMode) SetTournamentResult(_board.CurrentTurn != PieceColor.White);
         GameOver = true;
         _sound.PlayGameOver();
     }
@@ -447,9 +465,10 @@ public class GameViewModel : INotifyPropertyChanged
     private void OnSquareTapped(SquareViewModel tapped)
     {
         if (_gameOver || _awaitingPromotion || _isAIThinking) return;
-        if (_board.CurrentTurn != PieceColor.White) return;
+        if (!IsFriendMode && _board.CurrentTurn != PieceColor.White) return;
 
-        var piece = _board.GetPiece(tapped.Row, tapped.Col);
+        var humanColor = _board.CurrentTurn;  // em modo amigo, pode ser qualquer cor
+        var piece      = _board.GetPiece(tapped.Row, tapped.Col);
 
         if (_selectedSquare != null)
         {
@@ -462,7 +481,7 @@ public class GameViewModel : INotifyPropertyChanged
                     _pendingPromotion = move;
                     AwaitingPromotion = true;
                     ClearHighlights();
-                    PromotionRequested?.Invoke("white");
+                    PromotionRequested?.Invoke(humanColor == PieceColor.White ? "white" : "black");
                     return;
                 }
 
@@ -470,7 +489,7 @@ public class GameViewModel : INotifyPropertyChanged
                 return;
             }
 
-            if (piece?.Color == PieceColor.White)
+            if (piece?.Color == humanColor)
             {
                 SelectSquare(tapped);
                 return;
@@ -481,7 +500,7 @@ public class GameViewModel : INotifyPropertyChanged
             return;
         }
 
-        if (piece?.Color == PieceColor.White)
+        if (piece?.Color == humanColor)
             SelectSquare(tapped);
     }
 
@@ -499,8 +518,9 @@ public class GameViewModel : INotifyPropertyChanged
     private void ExecutePlayerMove(ChessMove move)
     {
         var movingPiece   = _board.GetPiece(move.FromRow, move.FromCol)!;
+        var movingColor   = movingPiece.Color;
         var capturedPiece = move.IsEnPassant
-            ? new ChessPiece(PieceType.Pawn, PieceColor.Black)
+            ? new ChessPiece(PieceType.Pawn, movingColor == PieceColor.White ? PieceColor.Black : PieceColor.White)
             : _board.GetPiece(move.ToRow, move.ToCol);
         bool isCapture = capturedPiece != null;
 
@@ -515,7 +535,12 @@ public class GameViewModel : INotifyPropertyChanged
         var state = ChessEngine.GetGameState(_board);
         PlaySound(isCapture, state);
 
-        if (capturedPiece != null) { _capturedByWhite.Add(capturedPiece); UpdateCapturesDisplay(); }
+        if (capturedPiece != null)
+        {
+            if (movingColor == PieceColor.White) _capturedByWhite.Add(capturedPiece);
+            else                                  _capturedByBlack.Add(capturedPiece);
+            UpdateCapturesDisplay();
+        }
         _moves.Add(GetNotation(move, movingPiece, isCapture, state));
         UpdateMoveList();
 
@@ -523,9 +548,18 @@ public class GameViewModel : INotifyPropertyChanged
         UpdateStatus(state);
 
         if (!_gameOver)
-            _ = RunAIAsync();
+        {
+            if (IsFriendMode)
+            {
+                var nextName = _board.CurrentTurn == PieceColor.White ? WhitePlayerName : BlackPlayerName;
+                ResetMoveTimer();
+                RequestHandoff?.Invoke(nextName);
+            }
+            else
+                _ = RunAIAsync();
+        }
         else
-            ResetMoveTimer(); // esconde o contador quando o jogo acaba
+            ResetMoveTimer();
     }
 
     private void OnPromote(string pieceType)
@@ -693,6 +727,7 @@ public class GameViewModel : INotifyPropertyChanged
         StopClock();
         StatusMessage = IsTournamentMode
             ? $"Você desistiu. {TournamentOpponent} vence!"
+            : IsFriendMode ? "Partida encerrada por desistência."
             : "Você desistiu. Pretas (IA) vencem!";
         if (IsTournamentMode) SetTournamentResult(false);
         GameOver = true;
@@ -725,8 +760,8 @@ public class GameViewModel : INotifyPropertyChanged
                 // CurrentTurn = quem está em xeque-mate (perdeu)
                 bool whiteCheckmated = _board.CurrentTurn == PieceColor.White;
                 var winnerName = whiteCheckmated
-                    ? (IsTournamentMode ? TournamentOpponent : "Pretas (IA)")
-                    : "Brancas";
+                    ? (IsFriendMode ? BlackPlayerName : IsTournamentMode ? TournamentOpponent : "Pretas (IA)")
+                    : (IsFriendMode ? WhitePlayerName : "Brancas");
                 StatusMessage = $"Xeque-Mate! {winnerName} vencem!";
                 if (IsTournamentMode) SetTournamentResult(!whiteCheckmated);
                 GameOver = true;
@@ -736,9 +771,14 @@ public class GameViewModel : INotifyPropertyChanged
             case GameState.Stalemate:
                 // CurrentTurn = quem ficou sem movimentos (o afogado)
                 bool humanStalemated = _board.CurrentTurn == PieceColor.White;
-                if (IsTournamentMode)
+                if (IsFriendMode)
                 {
-                    // Torneio: afogamento = vitória de quem provocou, derrota do afogado
+                    StatusMessage = humanStalemated
+                        ? $"Afogamento! {WhitePlayerName} ficou sem movimentos. {BlackPlayerName} vence!"
+                        : $"Afogamento! {BlackPlayerName} ficou sem movimentos. {WhitePlayerName} vence!";
+                }
+                else if (IsTournamentMode)
+                {
                     if (humanStalemated)
                         StatusMessage = $"Afogamento! Você ficou sem movimentos. {TournamentOpponent} vence!";
                     else
@@ -772,14 +812,14 @@ public class GameViewModel : INotifyPropertyChanged
                 var (kr, kc) = _board.FindKing(_board.CurrentTurn);
                 if (kr >= 0) Squares[kr, kc].IsInCheck = true;
                 StatusMessage = _board.CurrentTurn == PieceColor.White
-                    ? "Xeque! Sua vez (Brancas)"
-                    : "Xeque! IA pensando...";
+                    ? (IsFriendMode ? $"Xeque! Vez de {WhitePlayerName}" : "Xeque! Sua vez (Brancas)")
+                    : (IsFriendMode ? $"Xeque! Vez de {BlackPlayerName}" : "Xeque! IA pensando...");
                 break;
 
             default:
                 StatusMessage = _board.CurrentTurn == PieceColor.White
-                    ? "Sua vez (Brancas)"
-                    : "IA pensando...";
+                    ? (IsFriendMode ? $"Vez de {WhitePlayerName}" : "Sua vez (Brancas)")
+                    : (IsFriendMode ? $"Vez de {BlackPlayerName}" : "IA pensando...");
                 break;
         }
     }

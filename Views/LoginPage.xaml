@@ -190,12 +190,12 @@
                     <Label Text="Confirmar senha" TextColor="#4A6080" FontSize="12" Margin="4,0,0,6"/>
                     <Border BackgroundColor="#111D32" Stroke="#1C2D4A"
                             StrokeThickness="1" StrokeShape="RoundRectangle 12"
-                            Padding="12,0,4,0" Margin="0,0,0,6">
+                            Padding="12,0,4,0" Margin="0,0,0,14">
                         <Grid ColumnDefinitions="*,Auto">
                             <Entry x:Name="RegConfirmPasswordEntry"
                                    Placeholder="Repita a senha"
                                    PlaceholderColor="#2A3D5E" TextColor="White"
-                                   IsPassword="True" ReturnType="Done"
+                                   IsPassword="True" ReturnType="Next"
                                    Completed="OnRegConfirmPasswordCompleted"
                                    BackgroundColor="Transparent" FontSize="15"/>
                             <Button x:Name="ToggleRegConfirmPwdBtn"
@@ -206,6 +206,38 @@
                                     HeightRequest="46" WidthRequest="44"/>
                         </Grid>
                     </Border>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,0,0,14">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="País" TextColor="#4A6080" FontSize="12" Margin="4,0,0,0"/>
+                            <Border BackgroundColor="#111D32" Stroke="#1C2D4A"
+                                    StrokeThickness="1" StrokeShape="RoundRectangle 12"
+                                    Padding="16,4">
+                                <Entry x:Name="RegCountryEntry"
+                                       Placeholder="Ex: Brasil"
+                                       PlaceholderColor="#2A3D5E" TextColor="White"
+                                       Keyboard="Text" ReturnType="Next"
+                                       Completed="OnRegCountryCompleted"
+                                       BackgroundColor="Transparent" FontSize="14"/>
+                            </Border>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Estado / Cidade" TextColor="#4A6080" FontSize="12" Margin="4,0,0,0"/>
+                            <Border BackgroundColor="#111D32" Stroke="#1C2D4A"
+                                    StrokeThickness="1" StrokeShape="RoundRectangle 12"
+                                    Padding="16,4">
+                                <Entry x:Name="RegStateEntry"
+                                       Placeholder="Ex: SP"
+                                       PlaceholderColor="#2A3D5E" TextColor="White"
+                                       Keyboard="Text" ReturnType="Done"
+                                       Completed="OnRegStateCompleted"
+                                       BackgroundColor="Transparent" FontSize="14"/>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Label Text="* País e estado são opcionais" TextColor="#2A3D5E"
+                           FontSize="10" Margin="4,0,0,6"/>
 
                     <Label x:Name="RegisterErrorLabel"
                            TextColor="#F87171" FontSize="12"

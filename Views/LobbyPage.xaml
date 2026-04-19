@@ -21,8 +21,13 @@
                         StrokeShape="RoundRectangle 30"
                         WidthRequest="58" HeightRequest="58"
                         VerticalOptions="Center" Margin="0,0,14,0">
-                    <Label x:Name="AvatarLabel" Text="♟" FontSize="28"
-                           HorizontalOptions="Center" VerticalOptions="Center"/>
+                    <Grid>
+                        <Label x:Name="AvatarLabel" Text="♟" FontSize="28"
+                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                        <Image x:Name="AvatarImage" IsVisible="False"
+                               Aspect="AspectFill"
+                               WidthRequest="58" HeightRequest="58"/>
+                    </Grid>
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnAvatarTapped"/>
                     </Border.GestureRecognizers>
@@ -96,46 +101,125 @@
                     BackgroundColor="#769656" TextColor="White"
                     FontAttributes="Bold" FontSize="16"
                     CornerRadius="14" HeightRequest="58"
+                    Margin="0,0,0,8"/>
+
+            <Button Text="👥  Jogar com Amigo"
+                    Clicked="OnFriendGameClicked"
+                    BackgroundColor="#2A4A6A" TextColor="White"
+                    FontAttributes="Bold" FontSize="15"
+                    CornerRadius="14" HeightRequest="50"
                     Margin="0,0,0,10"/>
 
-            <!-- ══ Torneios + Ranking ══ -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,0,0,28">
+            <!-- ══ Liga ChessArena ══ -->
+            <Border BackgroundColor="#12101E" Stroke="#4A3090" StrokeThickness="1.5"
+                    StrokeShape="RoundRectangle 12" HeightRequest="72" Padding="16,0"
+                    Margin="0,0,0,10">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Label Text="♚" FontSize="24" TextColor="#C0A020" VerticalOptions="Center"/>
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Margin="12,0,0,0" Spacing="2">
+                        <Label Text="Liga ChessArena" TextColor="White" FontSize="15" FontAttributes="Bold"/>
+                        <Label Text="Torneios que valem ranking e títulos" TextColor="#8878CC" FontSize="10"/>
+                    </VerticalStackLayout>
+                    <Label Grid.Column="2" Text="›" TextColor="#8878CC" FontSize="22" VerticalOptions="Center"/>
+                </Grid>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnLeagueClicked"/>
+                </Border.GestureRecognizers>
+            </Border>
 
-                <Border BackgroundColor="#1A3A65" Stroke="#2A5090" StrokeThickness="1"
-                        StrokeShape="RoundRectangle 12" HeightRequest="68" Padding="14,0">
-                    <Grid ColumnDefinitions="Auto,*,Auto">
-                        <Label Text="♛" FontSize="20" TextColor="#5A8AD0"
-                               VerticalOptions="Center"/>
-                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Margin="10,0,0,0" Spacing="1">
-                            <Label Text="Torneios" TextColor="White" FontSize="14" FontAttributes="Bold"/>
-                            <Label Text="Compita online" TextColor="#607890" FontSize="10"/>
-                        </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="›" TextColor="#607890"
-                               FontSize="20" VerticalOptions="Center"/>
-                    </Grid>
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnTournamentsClicked"/>
-                    </Border.GestureRecognizers>
+            <!-- ══ Destaques da Liga ══ -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,0,0,10">
+
+                <!-- Campeão da Semana -->
+                <Border BackgroundColor="#0D1020" Stroke="#4A3090" StrokeThickness="1"
+                        StrokeShape="RoundRectangle 10" Padding="12,10">
+                    <VerticalStackLayout Spacing="3">
+                        <Label Text="🏆 Campeão da Semana" TextColor="#8878CC"
+                               FontSize="9" FontAttributes="Bold"/>
+                        <HorizontalStackLayout Spacing="8">
+                            <Label x:Name="WeekChampAvatar" Text="♟" FontSize="20"
+                                   VerticalOptions="Center"/>
+                            <VerticalStackLayout VerticalOptions="Center" Spacing="1">
+                                <Label x:Name="WeekChampName" Text="—"
+                                       TextColor="White" FontSize="12" FontAttributes="Bold"/>
+                                <Label x:Name="WeekChampTitle" Text="—"
+                                       TextColor="#6060A0" FontSize="9"/>
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+                        <Label x:Name="WeekChampPoints" Text="—"
+                               TextColor="#FFD700" FontSize="10"/>
+                    </VerticalStackLayout>
                 </Border>
 
-                <Border Grid.Column="1" BackgroundColor="#22164A" Stroke="#3A2878"
-                        StrokeThickness="1" StrokeShape="RoundRectangle 12"
-                        HeightRequest="68" Padding="14,0">
-                    <Grid ColumnDefinitions="Auto,*,Auto">
-                        <Label Text="♜" FontSize="20" TextColor="#8B78EE"
-                               VerticalOptions="Center"/>
-                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Margin="10,0,0,0" Spacing="1">
-                            <Label Text="Ranking" TextColor="White" FontSize="14" FontAttributes="Bold"/>
-                            <Label Text="Classificação" TextColor="#607890" FontSize="10"/>
-                        </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="›" TextColor="#607890"
-                               FontSize="20" VerticalOptions="Center"/>
-                    </Grid>
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnRankingClicked"/>
-                    </Border.GestureRecognizers>
+                <!-- Líder do Mês -->
+                <Border Grid.Column="1" BackgroundColor="#0D1020" Stroke="#6B3A00"
+                        StrokeThickness="1" StrokeShape="RoundRectangle 10" Padding="12,10">
+                    <VerticalStackLayout Spacing="3">
+                        <Label Text="👑 Líder do Mês" TextColor="#C0A020"
+                               FontSize="9" FontAttributes="Bold"/>
+                        <HorizontalStackLayout Spacing="8">
+                            <Label x:Name="MonthChampAvatar" Text="♟" FontSize="20"
+                                   VerticalOptions="Center"/>
+                            <VerticalStackLayout VerticalOptions="Center" Spacing="1">
+                                <Label x:Name="MonthChampName" Text="—"
+                                       TextColor="White" FontSize="12" FontAttributes="Bold"/>
+                                <Label x:Name="MonthChampTitle" Text="—"
+                                       TextColor="#6060A0" FontSize="9"/>
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+                        <Label x:Name="MonthChampPoints" Text="—"
+                               TextColor="#FFD700" FontSize="10"/>
+                    </VerticalStackLayout>
                 </Border>
+
             </Grid>
+
+            <!-- ══ Arena Casual ══ -->
+            <Border x:Name="CasualBorder"
+                    BackgroundColor="#0E1E38" Stroke="#2A5090" StrokeThickness="1.5"
+                    StrokeShape="RoundRectangle 12" Padding="14,12"
+                    Margin="0,0,0,28">
+                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+
+                    <!-- Linha 1: ícone + título + seta -->
+                    <Label Text="♛" FontSize="22" TextColor="#5A8AD0"
+                           VerticalOptions="Center" Grid.RowSpan="3"/>
+
+                    <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" Spacing="2">
+                        <Label Text="Arena Casual" TextColor="White"
+                               FontSize="15" FontAttributes="Bold"/>
+                        <Label Text="Torneios amistosos · ganhe prioridade na Liga"
+                               TextColor="#5A7898" FontSize="10"/>
+                    </VerticalStackLayout>
+
+                    <Label Grid.Column="2" Text="›" TextColor="#5A8AD0"
+                           FontSize="22" VerticalOptions="Center" Grid.RowSpan="3"/>
+
+                    <!-- Linha 2: barra de progresso de prioridade -->
+                    <Grid Grid.Row="1" Grid.Column="1" Margin="12,0,0,0"
+                          ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Grid HeightRequest="6" VerticalOptions="Center">
+                            <BoxView x:Name="CasualBarBg" Color="#1A2840"
+                                     CornerRadius="3" HorizontalOptions="Fill"/>
+                            <BoxView x:Name="CasualBarFill" Color="#3A6AB0"
+                                     CornerRadius="3" HorizontalOptions="Start"
+                                     WidthRequest="0"/>
+                        </Grid>
+                        <Label x:Name="CasualPtsLabel" Grid.Column="1"
+                               Text="0/5 pts" TextColor="#5A7898"
+                               FontSize="10" VerticalOptions="Center"/>
+                    </Grid>
+
+                    <!-- Linha 3: status de prioridade -->
+                    <Label x:Name="CasualStatusLabel" Grid.Row="2" Grid.Column="1"
+                           Text="Jogue para garantir vaga prioritária na Liga"
+                           TextColor="#4A6888" FontSize="10" Margin="12,0,0,0"/>
+
+                </Grid>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnTournamentsClicked"/>
+                </Border.GestureRecognizers>
+            </Border>
 
             <!-- ══ Bônus Diário ══ -->
             <Border x:Name="BonusFrame"
@@ -195,17 +279,43 @@
                 </Grid>
             </Border>
 
-            <!-- ══ Mini Ranking ══ -->
-            <Border BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+            <!-- ══ Assinatura ══ -->
+            <Border x:Name="SubBanner"
+                    BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12" Padding="16,14" Margin="0,0,0,10">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout VerticalOptions="Center" Spacing="2">
+                        <Label x:Name="SubTitleLabel"
+                               Text="Plano Gratuito"
+                               TextColor="White" FontSize="13" FontAttributes="Bold"/>
+                        <Label x:Name="SubDetailLabel"
+                               Text="Assine e jogue sem anúncios"
+                               TextColor="#607890" FontSize="11"/>
+                    </VerticalStackLayout>
+                    <Button x:Name="SubBtn"
+                            Grid.Column="1"
+                            Text="Ver planos"
+                            Clicked="OnSubscriptionClicked"
+                            BackgroundColor="#1A3A65" TextColor="#4A8AC0"
+                            FontAttributes="Bold" FontSize="11"
+                            CornerRadius="8" HeightRequest="34" WidthRequest="90"/>
+                </Grid>
+            </Border>
+
+            <!-- ══ Mini Ranking Temporada ══ -->
+            <Border BackgroundColor="#0D1828" Stroke="#2A1A50" StrokeThickness="1"
                     StrokeShape="RoundRectangle 12" Padding="16,14">
                 <VerticalStackLayout Spacing="6">
                     <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
-                        <Label Text="Top Jogadores" TextColor="White"
-                               FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
-                        <Label Grid.Column="1" Text="ver todos →"
-                               TextColor="#3A6AB0" FontSize="11" VerticalOptions="Center">
+                        <VerticalStackLayout VerticalOptions="Center" Spacing="1">
+                            <Label Text="♛  Temporada — Liga" TextColor="White"
+                                   FontSize="13" FontAttributes="Bold"/>
+                            <Label x:Name="SeasonSubLabel" Text="" TextColor="#6050A0" FontSize="9"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1" Text="ver Liga →"
+                               TextColor="#8878CC" FontSize="11" VerticalOptions="Center">
                             <Label.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnRankingClicked"/>
+                                <TapGestureRecognizer Tapped="OnSeasonRankingClicked"/>
                             </Label.GestureRecognizers>
                         </Label>
                     </Grid>

@@ -57,7 +57,9 @@ public partial class LoginPage : ContentPage
     private void OnRegLoginCompleted(object? sender, EventArgs e)           => RegEmailEntry.Focus();
     private void OnRegEmailCompleted(object? sender, EventArgs e)           => RegPasswordEntry.Focus();
     private void OnRegPasswordCompleted(object? sender, EventArgs e)        => RegConfirmPasswordEntry.Focus();
-    private void OnRegConfirmPasswordCompleted(object? sender, EventArgs e) => OnCadastrarClicked(sender, e);
+    private void OnRegConfirmPasswordCompleted(object? sender, EventArgs e) => RegCountryEntry.Focus();
+    private void OnRegCountryCompleted(object? sender, EventArgs e)         => RegStateEntry.Focus();
+    private void OnRegStateCompleted(object? sender, EventArgs e)           => OnCadastrarClicked(sender, e);
     private void OnResetCredentialCompleted(object? sender, EventArgs e)    => NewPasswordEntry.Focus();
     private void OnNewPasswordCompleted(object? sender, EventArgs e)        => ConfirmPasswordEntry.Focus();
     private void OnConfirmPasswordCompleted(object? sender, EventArgs e)    => OnResetPasswordClicked(sender, e);
@@ -107,7 +109,10 @@ public partial class LoginPage : ContentPage
         if (!verified) return;
 
         _auth.TryRegister(login, email, password);
-        AppState.Current.Profile.Name = login;
+        var profile    = AppState.Current.Profile;
+        profile.Name    = login;
+        profile.Country = RegCountryEntry.Text?.Trim() ?? "";
+        profile.State   = RegStateEntry.Text?.Trim() ?? "";
         await GoToShell();
     }
 

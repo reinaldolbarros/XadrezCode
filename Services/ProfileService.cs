@@ -6,16 +6,19 @@ namespace ChessMAUI.Services;
 /// <summary>Perfil do jogador persistido via Preferences.</summary>
 public class ProfileService
 {
-    private const string KeyName      = "profile_name";
-    private const string KeyBalance   = "profile_balance";
-    private const string KeyWins      = "profile_wins";
-    private const string KeyLosses    = "profile_losses";
-    private const string KeyTourneys  = "profile_tourneys";
-    private const string KeyAvatar    = "profile_avatar";
-    private const string KeyPoints    = "profile_points";
-    private const string KeyWeekPts   = "profile_week_points";
-    private const string KeyWeekReset = "profile_week_reset";
-    private const string KeyTickets   = "profile_tickets";
+    private const string KeyName       = "profile_name";
+    private const string KeyBalance    = "profile_balance";
+    private const string KeyWins       = "profile_wins";
+    private const string KeyLosses     = "profile_losses";
+    private const string KeyTourneys   = "profile_tourneys";
+    private const string KeyAvatar     = "profile_avatar";
+    private const string KeyAvatarPath = "profile_avatar_path";
+    private const string KeyPoints     = "profile_points";
+    private const string KeyWeekPts    = "profile_week_points";
+    private const string KeyWeekReset  = "profile_week_reset";
+    private const string KeyTickets    = "profile_tickets";
+    private const string KeyCountry    = "profile_country";
+    private const string KeyState      = "profile_state";
 
     public string Name
     {
@@ -51,6 +54,24 @@ public class ProfileService
     {
         get => Preferences.Default.Get(KeyAvatar, "♟");
         set => Preferences.Default.Set(KeyAvatar, value);
+    }
+
+    public string AvatarPath
+    {
+        get => Preferences.Default.Get(KeyAvatarPath, "");
+        set => Preferences.Default.Set(KeyAvatarPath, value);
+    }
+
+    public string Country
+    {
+        get => Preferences.Default.Get(KeyCountry, "");
+        set => Preferences.Default.Set(KeyCountry, value);
+    }
+
+    public string State
+    {
+        get => Preferences.Default.Get(KeyState, "");
+        set => Preferences.Default.Set(KeyState, value);
     }
 
     public int Points

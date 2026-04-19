@@ -266,31 +266,29 @@ public class TournamentService
     }
 
     // -------------------------------------------------------------------------
-    // Rake (10% retido pela casa)
+    // Sem rake — redistribuição total (fichas fictícias, casa lucra via assinatura)
     // -------------------------------------------------------------------------
-    internal const decimal RakePct = 0.10m;
+    internal const decimal RakePct = 0m;
 
-    /// <summary>Calcula o rake de um torneio (10% do pool bruto).</summary>
-    public static decimal GetRakeAmount(int size, decimal buyIn)
-        => Math.Round(buyIn * size * RakePct, 2);
+    public static decimal GetRakeAmount(int size, decimal buyIn) => 0m;
 
     // -------------------------------------------------------------------------
-    // Tabela de prêmios — distribui 90% do pool bruto
+    // Tabela de prêmios — 100% do pool redistribuído
+    // 3º lugar em 8j recebe o buy-in de volta; último pagante sempre ≥ 1× buy-in
     // -------------------------------------------------------------------------
     private static Dictionary<int, decimal> BuildPrizeTable(int size, decimal pool)
     {
-        decimal net = Math.Round(pool * (1m - RakePct), 2);
         return size switch
         {
-            2   => Dist(net, (1,1m)),
-            8   => Dist(net, (1,.70m),(2,.30m)),
-            16  => Dist(net, (1,.60m),(2,.30m),(3,.10m)),
-            32  => Dist(net, (1,.50m),(2,.25m),(3,.12m),(4,.08m),(5,.05m)),
-            64  => Dist(net, (1,.40m),(2,.22m),(3,.14m),(4,.10m),(5,.035m),(6,.035m),(7,.035m),(8,.035m)),
-            128 => Dist(net, (1,.30m),(2,.18m),(3,.12m),(4,.08m),(5,.06m),(6,.04m),
-                             (7,.03m),(8,.03m),(9,.025m),(10,.025m),(11,.02m),(12,.02m),
-                             (13,.02m),(14,.02m),(15,.015m),(16,.015m)),
-            _   => Dist(net, (1,1m))
+            2   => Dist(pool, (1,1m)),
+            8   => Dist(pool, (1,.60m),(2,.26m),(3,.14m)),
+            16  => Dist(pool, (1,.55m),(2,.25m),(3,.13m),(4,.07m)),
+            32  => Dist(pool, (1,.45m),(2,.22m),(3,.13m),(4,.09m),(5,.06m),(6,.05m)),
+            64  => Dist(pool, (1,.38m),(2,.22m),(3,.14m),(4,.10m),(5,.04m),(6,.04m),(7,.04m),(8,.04m)),
+            128 => Dist(pool, (1,.28m),(2,.16m),(3,.11m),(4,.08m),(5,.06m),(6,.05m),
+                              (7,.03m),(8,.03m),(9,.025m),(10,.025m),(11,.025m),(12,.025m),
+                              (13,.025m),(14,.025m),(15,.025m),(16,.025m)),
+            _   => Dist(pool, (1,1m))
         };
     }
 

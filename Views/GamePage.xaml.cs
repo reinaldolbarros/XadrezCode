@@ -37,9 +37,10 @@ public partial class GamePage : ContentPage
         _vm.PromotionRequested  += OnPromotionRequested;
         _vm.ChatMessageReceived += OnChatMessageReceived;
         _vm.TournamentGameEnded += OnTournamentGameEnded;
-        _vm.ResignRequested    += OnResignRequested;
-        _vm.DrawOfferRequested += OnDrawOfferRequested;
-        _vm.PropertyChanged    += OnVmPropertyChanged;
+        _vm.ResignRequested     += OnResignRequested;
+        _vm.DrawOfferRequested  += OnDrawOfferRequested;
+        _vm.PropertyChanged     += OnVmPropertyChanged;
+        _vm.RequestHandoff      += ShowHandoffOverlay;
 
         BuildBoard();
         BoardThemeService.ThemeChanged += OnThemeChanged;
@@ -62,7 +63,17 @@ public partial class GamePage : ContentPage
                 state.TournamentTimeMinutes,
                 state.TournamentAIDepth);
         }
-        else if (!_vm.IsTournamentMode && _vm.GameOver)
+        else if (state.PendingFriendGame)
+        {
+            state.PendingFriendGame = false;
+            Title = $"{state.FriendOpponentName} vs Você";
+            _vm.StartFriendGame("Você", state.FriendOpponentName, state.FriendTimeMinutes);
+            WhitePlayerLabel.Text = "♙ Você (Brancas)";
+            BlackPlayerLabel.Text = $"♟ {state.FriendOpponentName} (Pretas)";
+            SetupPanel.IsVisible  = false;
+            HandoffPanel.IsVisible = false;
+        }
+        else if (!_vm.IsTournamentMode && !_vm.IsFriendMode && _vm.GameOver)
         {
             // Abre os menus de configuração automaticamente
             OnSetupNewGameClicked();
@@ -102,34 +113,43 @@ public partial class GamePage : ContentPage
         if (e.PropertyName != nameof(_vm.GameOver) || !_vm.GameOver) return;
         if (_vm.IsTournamentMode) return;
 
+        if (_vm.IsFriendMode)
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                HandoffPanel.IsVisible = false;
+                bool isDraw   = _vm.StatusMessage.Contains("Empate") || _vm.StatusMessage.Contains("Afogamento");
+                bool whiteWon = _vm.StatusMessage.Contains(_vm.WhitePlayerName) && _vm.StatusMessage.Contains("vence");
+                ResultTitle.Text      = isDraw ? "Empate" : whiteWon ? $"{_vm.WhitePlayerName} vence!" : $"{_vm.BlackPlayerName} vence!";
+                ResultTitle.TextColor = isDraw ? Color.FromArgb("#FFD700") : Color.FromArgb("#4CAF50");
+                ResultDetail.Text     = _vm.StatusMessage;
+                ResultPanel.IsVisible = true;
+            });
+            return;
+        }
+
         bool humanWon = _vm.StatusMessage.Contains("Brancas vencem");
 
         MainThread.BeginInvokeOnMainThread(async () =>
         {
             var state = AppState.Current;
 
-            // Pontos e W/L
-            if (humanWon)
-            {
-                state.Profile.RecordWin();
-                state.Profile.AddPoints(10, "Vitória – partida rápida", "♟");
-            }
-            else
-            {
-                state.Profile.RecordLoss();
-            }
+            // Registra W/L para estatísticas do perfil (sem recompensa em fichas)
+            if (humanWon) state.Profile.RecordWin();
+            else          state.Profile.RecordLoss();
 
-            // Missões diárias
+            // Missão 1 — jogar 3 partidas (dá fichas por engajamento, não por vencer)
             bool m1Done = state.Daily.RecordGamePlayed();
-            bool m2Done = humanWon && state.Daily.RecordWin();
-
-            if (m1Done || m2Done)
+            if (m1Done)
             {
-                var missions = state.Daily.GetMissions();
-                if (m1Done) { var m = missions[0]; state.Profile.Credit(m.BalanceReward, "Missão – Partida jogada", "♟"); }
-                if (m2Done) { var m = missions[1]; state.Profile.Credit(m.BalanceReward, "Missão – Vitória em partida", "♟"); }
-                await DisplayAlert("Missão Completa", "Recompensa creditada!", "OK");
+                var m = state.Daily.GetMissions()[0];
+                state.Profile.Credit(m.BalanceReward, "Missão – 3 partidas jogadas", "♟");
+                await DisplayAlert("Missão Completa", $"+{m.BalanceReward} fichas por jogar 3 partidas!", "OK");
             }
+
+            // Anúncio intersticial (apenas usuários gratuitos, máx 2/dia)
+            if (state.Ads.ShouldShowAd(state.Subscription))
+                await state.Ads.SimulateInterstitialAsync(this);
 
             // Painel de resultado
             bool isDraw = _vm.StatusMessage.Contains("Empate") || _vm.StatusMessage.Contains("Afogamento");
@@ -140,6 +160,23 @@ public partial class GamePage : ContentPage
             ResultDetail.Text     = _vm.StatusMessage;
             ResultPanel.IsVisible = true;
         });
+    }
+
+    // -----------------------------------------------------------------------
+    // Handoff pass-and-play — exibe overlay entre turnos
+    // -----------------------------------------------------------------------
+    private void ShowHandoffOverlay(string nextPlayerName)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            HandoffLabel.Text      = $"Vez de {nextPlayerName}";
+            HandoffPanel.IsVisible = true;
+        });
+    }
+
+    private void OnHandoffDismissed(object? sender, EventArgs e)
+    {
+        HandoffPanel.IsVisible = false;
     }
 
     // -----------------------------------------------------------------------
@@ -219,7 +256,10 @@ public partial class GamePage : ContentPage
         }
         int minutes = TimeOptions.First(o => o.Label == timeChoice).Minutes;
 
-        SetupPanel.IsVisible = false;
+        SetupPanel.IsVisible   = false;
+        WhitePlayerLabel.Text  = "♙ Você (Brancas)";
+        BlackPlayerLabel.Text  = "♟ IA (Pretas)";
+        Title                  = "Xadrez";
         _vm.StartNewGame(minutes, depth);
     }
 

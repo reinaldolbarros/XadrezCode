@@ -72,6 +72,18 @@ build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.GamePage.x
 build_metadata.AdditionalFiles.TargetPath = Views\GamePage.xaml
 build_metadata.AdditionalFiles.RelativePath = Views\GamePage.xaml
 
+[C:/Users/reina/Documents/ChessMAUI/Views/HallOfFamePage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.HallOfFamePage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\HallOfFamePage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\HallOfFamePage.xaml
+
+[C:/Users/reina/Documents/ChessMAUI/Views/LeaguePage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.LeaguePage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\LeaguePage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\LeaguePage.xaml
+
 [C:/Users/reina/Documents/ChessMAUI/Views/LobbyPage.xaml]
 build_metadata.AdditionalFiles.GenKind = Xaml
 build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.LobbyPage.xaml
@@ -90,11 +102,29 @@ build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.PointsExtr
 build_metadata.AdditionalFiles.TargetPath = Views\PointsExtractPage.xaml
 build_metadata.AdditionalFiles.RelativePath = Views\PointsExtractPage.xaml
 
+[C:/Users/reina/Documents/ChessMAUI/Views/ProfilePage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.ProfilePage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\ProfilePage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\ProfilePage.xaml
+
 [C:/Users/reina/Documents/ChessMAUI/Views/RankingPage.xaml]
 build_metadata.AdditionalFiles.GenKind = Xaml
 build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.RankingPage.xaml
 build_metadata.AdditionalFiles.TargetPath = Views\RankingPage.xaml
 build_metadata.AdditionalFiles.RelativePath = Views\RankingPage.xaml
+
+[C:/Users/reina/Documents/ChessMAUI/Views/SeasonRankingPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.SeasonRankingPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\SeasonRankingPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\SeasonRankingPage.xaml
+
+[C:/Users/reina/Documents/ChessMAUI/Views/SubscriptionPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.SubscriptionPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\SubscriptionPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\SubscriptionPage.xaml
 
 [C:/Users/reina/Documents/ChessMAUI/Views/TournamentHistoryPage.xaml]
 build_metadata.AdditionalFiles.GenKind = Xaml

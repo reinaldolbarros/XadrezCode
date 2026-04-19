@@ -4,9 +4,6 @@ namespace ChessMAUI.Views;
 
 public partial class LobbyPage : ContentPage
 {
-    private static readonly string[] Avatars =
-        ["♟","♛","♚","♜","♝","♞","🎯","🔥","💎","👑","🦁","🐉","⚡","🌟","🎭","🛡️"];
-
     public LobbyPage()
     {
         InitializeComponent();
@@ -20,12 +17,8 @@ public partial class LobbyPage : ContentPage
 
         if (profile.IsNew)
         {
-            string? name = await DisplayPromptAsync(
-                "Bem-vindo!", "Qual é o seu nome?",
-                maxLength: 20, keyboard: Keyboard.Text);
-
-            profile.Name   = string.IsNullOrWhiteSpace(name) ? "Jogador" : name.Trim();
-            profile.Avatar = "♟";
+            await Shell.Current.GoToAsync("ProfilePage");
+            return;
         }
 
         RefreshUI();
@@ -36,8 +29,13 @@ public partial class LobbyPage : ContentPage
         var p     = AppState.Current.Profile;
         var daily = AppState.Current.Daily;
 
-        // Perfil
-        AvatarLabel.Text    = p.Avatar;
+        // Perfil — avatar (foto ou emoji)
+        bool hasPhoto = !string.IsNullOrEmpty(p.AvatarPath) && File.Exists(p.AvatarPath);
+        AvatarImage.IsVisible = hasPhoto;
+        AvatarLabel.IsVisible = !hasPhoto;
+        if (hasPhoto) AvatarImage.Source = ImageSource.FromFile(p.AvatarPath);
+        else          AvatarLabel.Text   = p.Avatar;
+
         NameLabel.Text      = p.Name;
         TierLabel.Text      = p.TierIcon;
         TierName.Text       = p.TierName;
@@ -46,17 +44,11 @@ public partial class LobbyPage : ContentPage
         LossesLabel.Text    = p.Losses.ToString();
         TournWinsLabel.Text = p.TournamentsWon.ToString();
 
-        // Tickets de satélite (exibe abaixo do nome se houver algum)
+        // Tickets de satélite
         var tickets = p.GetAllTickets();
-        if (tickets.Count > 0)
-        {
-            string ticketStr = string.Join("  ", tickets.Select(kv => $"${kv.Key:N0}×{kv.Value}"));
-            RatingLabel.Text = $"{p.Points:N0} pts  ·  {ticketStr}";
-        }
-        else
-        {
-            RatingLabel.Text = $"{p.Points:N0} pts";
-        }
+        string ticketStr = tickets.Count > 0
+            ? "  ·  " + string.Join("  ", tickets.Select(kv => $"${kv.Key:N0}×{kv.Value}"))
+            : "";
 
         // Bônus diário
         bool claimed = daily.BonusClaimedToday;
@@ -69,6 +61,56 @@ public partial class LobbyPage : ContentPage
         // Botão admin (visível apenas em modo admin)
         AdminBtn.IsVisible = AppState.Current.IsAdminMode;
 
+        // Banner de assinatura
+        var sub = AppState.Current.Subscription;
+        if (sub.IsActive)
+        {
+            SubTitleLabel.Text   = $"{sub.BadgeIcon} Plano {sub.BadgeLabel}";
+            SubDetailLabel.Text  = $"Ativo até {sub.ExpiresAt:dd/MM/yyyy} · Sem anúncios";
+            SubBanner.Stroke     = new SolidColorBrush(sub.ActiveTier == SubscriptionTier.Ouro
+                ? Color.FromArgb("#B8860B") : Color.FromArgb("#2A5090"));
+            SubBtn.Text          = "Gerenciar";
+        }
+        else
+        {
+            SubTitleLabel.Text   = "Plano Gratuito";
+            SubDetailLabel.Text  = "Assine e jogue sem anúncios";
+            SubBanner.Stroke     = new SolidColorBrush(Color.FromArgb("#1A2840"));
+            SubBtn.Text          = "Ver planos";
+        }
+
+        // Prioridade da Liga via Arena Casual
+        var casual = AppState.Current.CasualRanking;
+        string priorityStr = casual.HasLigaPriority ? "  ·  ⚡ Prioridade Liga" : "";
+        RatingLabel.Text = $"{p.Points:N0} pts{ticketStr}{priorityStr}";
+
+        // Banner Arena Casual — barra de progresso + status
+        int    wpts      = casual.WeeklyPoints;
+        int    threshold = CasualRankingService.PriorityThreshold;
+        double fillPct   = Math.Min(1.0, (double)wpts / threshold);
+        bool   hasPrio   = casual.HasLigaPriority;
+
+        // Largura da barra (estimada; recalculada no layout)
+        double barMax = DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density - 120;
+        CasualBarFill.WidthRequest = Math.Max(0, barMax * fillPct);
+        CasualBarFill.Color        = hasPrio ? Color.FromArgb("#4CAF50") : Color.FromArgb("#3A6AB0");
+        CasualPtsLabel.Text        = hasPrio ? "✓ Prioridade" : $"{wpts}/{threshold} pts";
+        CasualPtsLabel.TextColor   = hasPrio ? Color.FromArgb("#4CAF50") : Color.FromArgb("#5A7898");
+
+        CasualBorder.Stroke        = new SolidColorBrush(hasPrio
+            ? Color.FromArgb("#2A6040") : Color.FromArgb("#2A5090"));
+        CasualStatusLabel.Text     = hasPrio
+            ? "⚡ Vaga prioritária garantida na Liga esta semana!"
+            : wpts > 0
+                ? $"Continue jogando — faltam {threshold - wpts} pts para prioridade"
+                : "Jogue para garantir vaga prioritária na Liga";
+        CasualStatusLabel.TextColor = hasPrio
+            ? Color.FromArgb("#4CAF50") : Color.FromArgb("#4A6888");
+
+        // Destaques da Liga
+        SeasonSubLabel.Text = AppState.Current.Season.CurrentSeasonLabel;
+        BuildChampions(AppState.Current);
+
         // Missões
         BuildMissions(daily);
 
@@ -77,19 +119,66 @@ public partial class LobbyPage : ContentPage
     }
 
     // -----------------------------------------------------------------------
+    // Destaques da Liga
+    // -----------------------------------------------------------------------
+    private void BuildChampions(AppState state)
+    {
+        var weekly = state.League.GetWeeklyChampion(state.Profile, state.Titles);
+        WeekChampAvatar.Text = weekly.Avatar;
+        WeekChampName.Text   = weekly.Name;
+        WeekChampTitle.Text  = $"{weekly.TitleIcon} {weekly.TitleLabel}";
+        WeekChampPoints.Text = $"{weekly.Points:N0} pts";
+        if (weekly.IsHuman)
+        {
+            WeekChampName.TextColor   = Color.FromArgb("#4CAF50");
+            WeekChampPoints.TextColor = Color.FromArgb("#4CAF50");
+        }
+        else
+        {
+            WeekChampName.TextColor   = Colors.White;
+            WeekChampPoints.TextColor = Color.FromArgb("#FFD700");
+        }
+
+        var monthly = state.Season.GetMonthlyLeader(state.Titles, state.Profile);
+        MonthChampAvatar.Text = monthly.Avatar;
+        MonthChampName.Text   = monthly.Name;
+        MonthChampTitle.Text  = $"{monthly.TitleIcon} {monthly.TitleLabel}";
+        MonthChampPoints.Text = $"{monthly.Points:N0} pts";
+        if (monthly.IsHuman)
+        {
+            MonthChampName.TextColor   = Color.FromArgb("#4CAF50");
+            MonthChampPoints.TextColor = Color.FromArgb("#4CAF50");
+        }
+        else
+        {
+            MonthChampName.TextColor   = Colors.White;
+            MonthChampPoints.TextColor = Color.FromArgb("#FFD700");
+        }
+    }
+
+    // -----------------------------------------------------------------------
     // Bônus diário
     // -----------------------------------------------------------------------
     private async void OnBonusClicked(object? sender, EventArgs e)
     {
         var state = AppState.Current;
-        int fichas = state.Daily.ClaimDailyBonus();
+        var sub   = state.Subscription;
+        int fichas = state.Daily.ClaimDailyBonus(sub.BonusMultiplier, sub.FlatDailyBonus);
         state.Profile.Credit(fichas, "Bônus Diário", "♟");
         state.Profile.AddPoints(5, "Bônus de login diário", "♟");
 
+        // Missão bônus Ouro: crédito automático diário
+        if (sub.ActiveTier == SubscriptionTier.Ouro && sub.ClaimOuroBonusMission())
+        {
+            state.Profile.Credit(30, "Missão bônus Ouro", "◆");
+            fichas += 30;
+        }
+
         int streak = state.Daily.LoginStreak;
+        string extra = sub.IsActive ? $"\n{sub.BadgeIcon} Bônus {sub.BadgeLabel} incluído" : "";
         string next = streak switch { >= 7 => "Máximo!", >= 5 => "7 dias = 150 fichas", >= 3 => "5 dias = 100 fichas", >= 2 => "3 dias = 75 fichas", _ => "2 dias = 50 fichas" };
         await DisplayAlert("Bônus Diário",
-            $"+{fichas} fichas\n\nSequência: {streak} dia{(streak != 1 ? "s" : "")}\nPróximo prêmio: {next}", "OK");
+            $"+{fichas} fichas{extra}\n\nSequência: {streak} dia{(streak != 1 ? "s" : "")}\nPróximo prêmio: {next}", "OK");
 
         RefreshUI();
     }
@@ -132,45 +221,104 @@ public partial class LobbyPage : ContentPage
     }
 
     // -----------------------------------------------------------------------
-    // Mini ranking (top 5)
+    // Mini ranking da temporada da Liga — pódio destacado para top 3
     // -----------------------------------------------------------------------
     private void BuildMiniRanking()
     {
         MiniRankContainer.Children.Clear();
-        var profile = AppState.Current.Profile;
-        var entries = AppState.Current.Ranking.GetGlobal(profile).Take(5);
+        var state   = AppState.Current;
+        var board   = state.Season.GetLeaderboard(state.Titles, state.Profile);
+        var sub     = state.Subscription;
 
-        foreach (var e in entries)
+        // Pega top 10; se o humano estiver fora do top 10, adiciona ao final
+        var human   = board.FirstOrDefault(e => e.IsHuman);
+        var toShow  = board.Take(10).ToList();
+        bool humanOutside = human != null && human.Position > 10;
+        if (humanOutside) toShow.Add(human!);
+
+        bool separatorAdded = false;
+
+        foreach (var e in toShow)
         {
-            var row = new Grid { ColumnDefinitions = { new(32), new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto) }, Margin = new Thickness(0,1) };
+            // Separador "· · ·" antes do jogador se ele está fora do top 5
+            if (humanOutside && e.IsHuman && !separatorAdded)
+            {
+                separatorAdded = true;
+                MiniRankContainer.Children.Add(new Label
+                {
+                    Text = "·  ·  ·", TextColor = Color.FromArgb("#3A5070"),
+                    HorizontalTextAlignment = TextAlignment.Center, FontSize = 11, Margin = new Thickness(0, 2)
+                });
+            }
 
-            row.Add(new Label { Text = e.PositionLabel, FontSize = e.Position <= 3 ? 15 : 12,
-                TextColor = e.Position <= 3 ? Colors.White : Color.FromArgb("#7090B0"),
-                HorizontalTextAlignment = TextAlignment.Center, VerticalOptions = LayoutOptions.Center });
+            bool isPodium = e.Position <= 3;
 
-            var tierLbl = new Label { Text = e.TierIcon, FontSize = 14, Margin = new Thickness(4,0),
-                HorizontalTextAlignment = TextAlignment.Center, VerticalOptions = LayoutOptions.Center };
-            Grid.SetColumn(tierLbl, 1);
-            row.Add(tierLbl);
+            // Cores por posição
+            string bgHex  = e.IsHuman ? "#1C2A0A" : e.Position switch { 1 => "#1A1400", 2 => "#111118", 3 => "#140C00", _ => "transparent" };
+            string posColor = e.Position switch { 1 => "#FFD700", 2 => "#C0C0D0", 3 => "#CD7F32", _ => "#7090B0" };
+            string medal    = e.Position switch { 1 => "🥇", 2 => "🥈", 3 => "🥉", _ => "" };
 
-            var nameStack = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center };
-            nameStack.Add(new Label { Text = e.Name, TextColor = e.NameColor, FontSize = 12,
-                FontAttributes = e.IsHuman ? FontAttributes.Bold : FontAttributes.None });
-            nameStack.Add(new Label { Text = e.TierName, TextColor = Color.FromArgb("#6080A0"), FontSize = 9 });
+            var row = new Grid
+            {
+                ColumnDefinitions = isPodium
+                    ? new ColumnDefinitionCollection(new(30), new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto))
+                    : new ColumnDefinitionCollection(new(28), new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto)),
+                Margin          = new Thickness(0, isPodium ? 3 : 1),
+                Padding         = new Thickness(isPodium ? 6 : 2, isPodium ? 5 : 2),
+                BackgroundColor = bgHex == "transparent" ? Colors.Transparent : Color.FromArgb(bgHex)
+            };
+
+            // Posição / medalha
+            row.Add(new Label
+            {
+                Text = isPodium ? medal : e.PositionLabel,
+                FontSize = isPodium ? 18 : 11,
+                TextColor = Color.FromArgb(posColor),
+                HorizontalTextAlignment = TextAlignment.Center,
+                VerticalOptions = LayoutOptions.Center
+            });
+
+            // Avatar
+            var avatarLbl = new Label
+            {
+                Text = e.Avatar, FontSize = isPodium ? 18 : 13,
+                Margin = new Thickness(isPodium ? 6 : 4, 0),
+                VerticalOptions = LayoutOptions.Center
+            };
+            Grid.SetColumn(avatarLbl, 1);
+            row.Add(avatarLbl);
+
+            // Nome + título
+            string subBadge = e.IsHuman && sub.IsActive ? $" {sub.BadgeIcon}" : "";
+            var nameStack = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, Spacing = 1 };
+            nameStack.Add(new Label
+            {
+                Text = e.Name + subBadge,
+                TextColor = e.IsHuman ? Color.FromArgb("#4CAF50") : e.NameColor,
+                FontSize = isPodium ? 13 : 11,
+                FontAttributes = (isPodium || e.IsHuman) ? FontAttributes.Bold : FontAttributes.None
+            });
+            string loc = e.LocationLabel;
+            nameStack.Add(new Label
+            {
+                Text = string.IsNullOrEmpty(loc) ? "—" : loc,
+                TextColor = Color.FromArgb(isPodium ? "#8090B0" : "#506070"),
+                FontSize = isPodium ? 10 : 9
+            });
             Grid.SetColumn(nameStack, 2);
             row.Add(nameStack);
 
-            var pts = new Label { Text = $"{e.Points:N0} pts", TextColor = Color.FromArgb("#4CAF50"),
-                FontSize = 11, FontAttributes = FontAttributes.Bold,
-                VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.End };
+            // Pontos
+            var pts = new Label
+            {
+                Text = $"{e.Points:N0} pts",
+                TextColor = Color.FromArgb(e.Position == 1 ? "#FFD700" : e.Position == 2 ? "#C0C0D0" : e.Position == 3 ? "#CD7F32" : "#607890"),
+                FontSize = isPodium ? 12 : 10,
+                FontAttributes = isPodium ? FontAttributes.Bold : FontAttributes.None,
+                VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.End
+            };
             Grid.SetColumn(pts, 3);
             row.Add(pts);
-
-            if (e.IsHuman)
-            {
-                var highlight = new BoxView { Color = Color.FromArgb("#1C2A0A"), CornerRadius = 4 };
-                row.BackgroundColor = Color.FromArgb("#1C2A0A");
-            }
 
             MiniRankContainer.Children.Add(row);
         }
@@ -210,19 +358,26 @@ public partial class LobbyPage : ContentPage
         => await Shell.Current.GoToAsync("AdminPage");
 
     // -----------------------------------------------------------------------
-    // Avatar: toque para escolher
+    // Avatar: toque → abre ProfilePage
     // -----------------------------------------------------------------------
     private async void OnAvatarTapped(object? sender, EventArgs e)
-    {
-        string? choice = await DisplayActionSheet("Escolha seu avatar", "Cancelar", null, Avatars);
-        if (choice == null || choice == "Cancelar") return;
-        AppState.Current.Profile.Avatar = choice;
-        AvatarLabel.Text = choice;
-    }
+        => await Shell.Current.GoToAsync("ProfilePage");
 
     // -----------------------------------------------------------------------
     // Navegação
     // -----------------------------------------------------------------------
+    private async void OnSubscriptionClicked(object? sender, EventArgs e)
+        => await Shell.Current.GoToAsync("SubscriptionPage");
+
+    private async void OnSubscriptionBannerTapped(object? sender, TappedEventArgs e)
+        => await Shell.Current.GoToAsync("SubscriptionPage");
+
+    private async void OnLeagueClicked(object? sender, TappedEventArgs e)
+        => await Shell.Current.GoToAsync("LeaguePage");
+
+    private async void OnSeasonRankingClicked(object? sender, TappedEventArgs e)
+        => await Shell.Current.GoToAsync("SeasonRankingPage");
+
     private async void OnTournamentsClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync("TournamentLobbyPage");
 
@@ -235,6 +390,31 @@ public partial class LobbyPage : ContentPage
     private async void OnQuickPlayClicked(object? sender, EventArgs e)
     {
         AppState.Current.PendingTournamentGame = false;
+        AppState.Current.PendingFriendGame     = false;
+        await Shell.Current.GoToAsync("GamePage");
+    }
+
+    private async void OnFriendGameClicked(object? sender, EventArgs e)
+    {
+        string? opponentName = await DisplayPromptAsync(
+            "Jogar com Amigo", "Nome do adversário (Pretas):",
+            placeholder: "ex: João", maxLength: 20, keyboard: Keyboard.Default);
+        if (string.IsNullOrWhiteSpace(opponentName)) return;
+
+        string[] timeLabels = ["Sem limite", "1 minuto", "3 minutos", "5 minutos", "10 minutos"];
+        int[]    timeValues = [0, 1, 3, 5, 10];
+        string? timeChoice = await DisplayActionSheet("Tempo por jogador", "Cancelar", null, timeLabels);
+        if (timeChoice == null || timeChoice == "Cancelar") return;
+
+        int idx     = Array.IndexOf(timeLabels, timeChoice);
+        int minutes = idx >= 0 ? timeValues[idx] : 0;
+
+        var state = AppState.Current;
+        state.PendingFriendGame     = true;
+        state.PendingTournamentGame = false;
+        state.FriendOpponentName    = opponentName.Trim();
+        state.FriendTimeMinutes     = minutes;
+
         await Shell.Current.GoToAsync("GamePage");
     }
 

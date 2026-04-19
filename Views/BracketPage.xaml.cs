@@ -82,11 +82,14 @@ public partial class BracketPage : ContentPage
 
             if (prize > 0) prof.AddPoints(25, $"Premiado – {t.RoundName} ({t.Size} jogadores)", "🏅");
 
+            // Pontos de temporada (Liga) ou prioridade casual (Arena Casual)
+            string extraMsg = AwardCompetitivePoints(t, position);
+
             string msg = t.IsHeadsUp
                 ? $"Adversário venceu a série 2–{t.HumanSeriesWins}.\nMelhor sorte da próxima vez!"
                 : prize > 0
-                    ? $"Você foi eliminado na {t.RoundName}.\nPrêmio: $ {prize:N0} creditado!"
-                    : $"Você foi eliminado na {t.RoundName}.\nMelhor sorte da próxima vez!";
+                    ? $"Você foi eliminado na {t.RoundName}.\nPrêmio: $ {prize:N0} creditado!{extraMsg}"
+                    : $"Você foi eliminado na {t.RoundName}.\nMelhor sorte da próxima vez!{extraMsg}";
 
             await DisplayAlert("Eliminado!", msg, "OK");
             state.ActiveTournament = null;
@@ -140,14 +143,46 @@ public partial class BracketPage : ContentPage
                 {
                     Size = t.Size, BuyIn = t.BuyIn, Prize = prize, Position = 1
                 });
+
+                string extraMsg = AwardCompetitivePoints(t, 1);
                 winMsg = $"Parabéns! Você venceu o torneio de {t.Size} jogadores!\n\n" +
-                         $"Prêmio: $ {prize:N0} creditado!";
+                         $"Prêmio: $ {prize:N0} creditado!{extraMsg}";
                 await DisplayAlert("🏆 CAMPEÃO!", winMsg, "Incrível!");
             }
 
             state.ActiveTournament = null;
             await Shell.Current.GoToAsync("//LobbyPage");
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // Pontos competitivos: Liga → temporada | Casual → prioridade semanal
+    // -----------------------------------------------------------------------
+    private static string AwardCompetitivePoints(Tournament t, int position)
+    {
+        var s = AppState.Current;
+
+        if (t.IsLiga)
+        {
+            if (t.LeaguePointsTable.TryGetValue(position, out int pts) && pts > 0)
+            {
+                s.Season.AddPoints(pts);
+                if (position == 1)
+                {
+                    s.Titles.RecordLeagueWin();
+                    if (t.LeagueIsSemanal)
+                        s.League.RecordSemanalWin(s.Profile, s.Titles);
+                }
+                return $"\n♛ +{pts} pontos de temporada";
+            }
+            return "";
+        }
+
+        s.CasualRanking.AddPointsForPosition(position, t.Size);
+        int casual = s.CasualRanking.WeeklyPoints;
+        return s.CasualRanking.HasLigaPriority
+            ? $"\n⚡ Prioridade Liga garantida! ({casual} pts)"
+            : $"\n⚡ Arena Casual: {casual}/{CasualRankingService.PriorityThreshold} pts para prioridade";
     }
 
     // -----------------------------------------------------------------------

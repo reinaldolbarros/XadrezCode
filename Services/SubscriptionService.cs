@@ -61,8 +61,8 @@ public class SubscriptionService
 
     public string BadgeLabel => ActiveTier switch
     {
-        SubscriptionTier.Ouro  => "Ouro",
-        SubscriptionTier.Prata => "Prata",
+        SubscriptionTier.Ouro  => "Grande Mestre",
+        SubscriptionTier.Prata => "Challenger",
         _                      => "Gratuito"
     };
 
@@ -71,21 +71,21 @@ public class SubscriptionService
         get
         {
             if (!IsActive) return "Plano Gratuito";
-            return $"Plano {BadgeLabel} · até {ExpiresAt:dd/MM/yyyy}";
+            return $"{BadgeLabel} · até {ExpiresAt:dd/MM/yyyy}";
         }
     }
 
     // Preços e nomes dos planos (usados na UI)
     public static readonly (SubscriptionTier Tier, string Label, string Price, string[] Benefits)[] Plans =
     [
-        (SubscriptionTier.Free,  "Gratuito", "Grátis",
-            ["Até 2 anúncios por dia", "Bônus diário base", "2 missões diárias"]),
+        (SubscriptionTier.Free,  "Gratuito",      "Grátis",
+            ["Até 2 anúncios por dia", "Bônus diário base", "Buy-in padrão na Liga"]),
 
-        (SubscriptionTier.Prata, "Prata",    "R$ 5,90/mês",
-            ["Sem anúncios", "Bônus diário +50%", "+25 fichas/dia bônus", "Badge Prata no ranking"]),
+        (SubscriptionTier.Prata, "Challenger",    "R$ 5,90/mês",
+            ["Sem anúncios", "Bônus diário +50%", "10% desconto no buy-in da Liga", "Badge ◈ no ranking"]),
 
-        (SubscriptionTier.Ouro,  "Ouro",     "R$ 9,90/mês",
-            ["Sem anúncios", "Bônus diário dobrado", "+50 fichas/dia bônus", "Badge Ouro em destaque", "Missão bônus diária"]),
+        (SubscriptionTier.Ouro,  "Grande Mestre", "R$ 9,90/mês",
+            ["Sem anúncios", "Bônus diário dobrado", "20% desconto no buy-in da Liga", "Badge ◆ em destaque", "Missão bônus diária"]),
     ];
 
     public void Subscribe(SubscriptionTier tier, int months = 1)

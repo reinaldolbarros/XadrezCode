@@ -20,6 +20,11 @@ public class Tournament
     // Posição → prêmio em dinheiro virtual
     public Dictionary<int, decimal> PrizeTable { get; set; } = [];
 
+    // Torneio da Liga — premiação em pontos de temporada
+    public bool                  IsLiga            { get; set; }
+    public bool                  LeagueIsSemanal   { get; set; }
+    public Dictionary<int, int>  LeaguePointsTable { get; set; } = [];
+
     // Heads-Up: melhor de 3
     public bool IsHeadsUp            { get; set; }
     public int  HumanSeriesWins      { get; set; }

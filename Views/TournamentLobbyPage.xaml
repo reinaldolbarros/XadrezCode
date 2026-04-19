@@ -7,13 +7,19 @@
 
     <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
 
-        <!-- ══ Saldo ══ -->
+        <!-- ══ Cabeçalho ══ -->
         <Grid Grid.Row="0" BackgroundColor="#16213E" Padding="14,8"
-              ColumnDefinitions="*,Auto">
-            <Label Text="Torneios" TextColor="White" FontSize="15"
-                   FontAttributes="Bold" VerticalOptions="Center"/>
+              ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+            <VerticalStackLayout VerticalOptions="Center" Spacing="1">
+                <Label Text="Arena Casual" TextColor="White" FontSize="15" FontAttributes="Bold"/>
+                <Label Text="Ranking →" TextColor="#5A8AD0" FontSize="10">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnRankingClicked"/>
+                    </Label.GestureRecognizers>
+                </Label>
+            </VerticalStackLayout>
             <Frame Grid.Column="1" BackgroundColor="#0F3460" CornerRadius="10"
-                   Padding="12,5" HasShadow="False">
+                   Padding="12,5" HasShadow="False" VerticalOptions="Center">
                 <HorizontalStackLayout Spacing="6">
                     <Label Text="💰" FontSize="14" VerticalOptions="Center"/>
                     <Label x:Name="BalanceLabel" Text="$ 0"

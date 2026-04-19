@@ -725,4 +725,7 @@ public partial class TournamentLobbyPage : ContentPage
 
         await Shell.Current.GoToAsync("WaitingRoomPage");
     }
+
+    private async void OnRankingClicked(object? sender, TappedEventArgs e)
+        => await Shell.Current.GoToAsync("RankingPage");
 }

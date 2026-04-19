@@ -13,14 +13,23 @@
         <member name="P:ChessMAUI.Models.TournamentRoom.HighStakesName">
             <summary>Nome descritivo para torneios de alto valor.</summary>
         </member>
+        <member name="T:ChessMAUI.Services.AdService">
+            <summary>
+            Controla a exibição de anúncios para usuários gratuitos.
+            Em produção, substituir SimulateInterstitialAsync por chamada real ao AdMob/Unity Ads.
+            </summary>
+        </member>
         <member name="T:ChessMAUI.Services.BotChatService">
             <summary>Gera mensagens de chat simuladas do bot adversário.</summary>
+        </member>
+        <member name="T:ChessMAUI.Services.CasualRankingService">
+            <summary>Rastreia pontuação semanal do Arena Casual — define prioridade de entrada na Liga.</summary>
         </member>
         <member name="T:ChessMAUI.Services.DailyService">
             <summary>Gerencia bônus diário e missões diárias.</summary>
         </member>
-        <member name="M:ChessMAUI.Services.DailyService.ClaimDailyBonus">
-            <summary>Reivindica o bônus diário e retorna fichas ganhas.</summary>
+        <member name="M:ChessMAUI.Services.DailyService.ClaimDailyBonus(System.Single,System.Int32)">
+            <summary>Reivindica o bônus diário e retorna fichas ganhas (já com multiplicador de assinatura).</summary>
         </member>
         <member name="M:ChessMAUI.Services.DailyService.RecordGamePlayed">
             <summary>Registra uma partida jogada. Chame ao fim de qualquer jogo.</summary>
@@ -30,6 +39,13 @@
         </member>
         <member name="M:ChessMAUI.Services.DailyService.RecordTournamentElimination">
             <summary>Registra eliminação em torneio.</summary>
+        </member>
+        <member name="M:ChessMAUI.Services.LeagueService.CanEnterWithPriority(ChessMAUI.Models.LeagueEvent,ChessMAUI.Services.CasualRankingService)">
+            <summary>
+            Retorna se o jogador pode entrar e se tem prioridade.
+            Quando o evento está cheio (≥256 inscritos), apenas quem tem
+            prioridade via Arena Casual consegue vaga.
+            </summary>
         </member>
         <member name="T:ChessMAUI.Services.MatchmakingService">
             <summary>
@@ -92,9 +108,6 @@
             Bubble = próximo a ser eliminado antes das premiações.
             ITM    = acabou de entrar na zona de prêmios.
             </summary>
-        </member>
-        <member name="M:ChessMAUI.Services.TournamentService.GetRakeAmount(System.Int32,System.Decimal)">
-            <summary>Calcula o rake de um torneio (10% do pool bruto).</summary>
         </member>
         <member name="T:ChessMAUI.Resource">
             <summary>
