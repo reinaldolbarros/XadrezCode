@@ -16,12 +16,13 @@
                 <Label Text="Extrato financeiro · Somente leitura"
                        TextColor="#AAAACC" FontSize="11"/>
             </VerticalStackLayout>
-            <Frame Grid.Column="1" BackgroundColor="#1A2A1A" BorderColor="#4CAF50"
-                   CornerRadius="8" Padding="10,5" HasShadow="False">
+            <Border Grid.Column="1" BackgroundColor="#1A2A1A"
+                    Stroke="#4CAF50" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8" Padding="10,5">
                 <Label x:Name="TotalRakeLabel" Text="$ 0"
                        TextColor="#4CAF50" FontSize="18" FontAttributes="Bold"
                        HorizontalTextAlignment="Center"/>
-            </Frame>
+            </Border>
         </Grid>
 
         <!-- ══ Conteúdo rolável ══ -->
@@ -30,8 +31,8 @@
 
                 <!-- ══ Cards de resumo ══ -->
                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
-                    <Frame BackgroundColor="#16213E" BorderColor="#0F3460"
-                           CornerRadius="10" Padding="10,8" HasShadow="False">
+                    <Border BackgroundColor="#16213E" Stroke="#0F3460" StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10" Padding="10,8">
                         <VerticalStackLayout HorizontalOptions="Center">
                             <Label x:Name="TodayRakeLabel" Text="$ 0"
                                    TextColor="#FFD700" FontSize="16" FontAttributes="Bold"
@@ -39,9 +40,9 @@
                             <Label Text="Hoje" TextColor="#AAAACC" FontSize="10"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
-                    </Frame>
-                    <Frame Grid.Column="1" BackgroundColor="#16213E" BorderColor="#0F3460"
-                           CornerRadius="10" Padding="10,8" HasShadow="False">
+                    </Border>
+                    <Border Grid.Column="1" BackgroundColor="#16213E" Stroke="#0F3460" StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10" Padding="10,8">
                         <VerticalStackLayout HorizontalOptions="Center">
                             <Label x:Name="WeekRakeLabel" Text="$ 0"
                                    TextColor="#7B68EE" FontSize="16" FontAttributes="Bold"
@@ -49,9 +50,9 @@
                             <Label Text="Semana" TextColor="#AAAACC" FontSize="10"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
-                    </Frame>
-                    <Frame Grid.Column="2" BackgroundColor="#16213E" BorderColor="#0F3460"
-                           CornerRadius="10" Padding="10,8" HasShadow="False">
+                    </Border>
+                    <Border Grid.Column="2" BackgroundColor="#16213E" Stroke="#0F3460" StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10" Padding="10,8">
                         <VerticalStackLayout HorizontalOptions="Center">
                             <Label x:Name="AvgRakeLabel" Text="$ 0"
                                    TextColor="#FF9800" FontSize="16" FontAttributes="Bold"
@@ -59,12 +60,12 @@
                             <Label Text="Média/Torn." TextColor="#AAAACC" FontSize="10"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
-                    </Frame>
+                    </Border>
                 </Grid>
 
                 <!-- ══ Contador de torneios ══ -->
-                <Frame BackgroundColor="#16213E" BorderColor="#0F3460"
-                       CornerRadius="10" Padding="14,10" HasShadow="False">
+                <Border BackgroundColor="#16213E" Stroke="#0F3460" StrokeThickness="1"
+                        StrokeShape="RoundRectangle 10" Padding="14,10">
                     <Grid ColumnDefinitions="*,Auto">
                         <Label Text="Total de torneios realizados"
                                TextColor="#AAAACC" FontSize="13" VerticalOptions="Center"/>
@@ -73,7 +74,7 @@
                                TextColor="White" FontSize="20" FontAttributes="Bold"
                                VerticalOptions="Center"/>
                     </Grid>
-                </Frame>
+                </Border>
 
                 <!-- ══ Cabeçalho da lista ══ -->
                 <Grid ColumnDefinitions="*,72,60,60" Padding="4,0">

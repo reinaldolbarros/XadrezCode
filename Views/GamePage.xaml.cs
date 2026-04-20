@@ -10,23 +10,10 @@ public partial class GamePage : ContentPage
     private CancellationTokenSource? _chatCts;
     private double _squareSize;
 
-    private static readonly (string Label, int Depth)[] DifficultyOptions =
-    [
-        ("Fácil",   1),
-        ("Médio",   3),
-        ("Difícil", 5),
-    ];
+    // Índice da dificuldade selecionada: 0=Fácil, 1=Médio, 2=Difícil
+    private int _selectedDiff = 0;
 
-    private static readonly (string Label, int Minutes)[] TimeOptions =
-    [
-        ("Sem limite",  0),
-        ("1 minuto",    1),
-        ("3 minutos",   3),
-        ("5 minutos",   5),
-        ("10 minutos", 10),
-        ("15 minutos", 15),
-        ("30 minutos", 30),
-    ];
+    private static readonly int[] DiffDepths = [1, 3, 5];
 
     public GamePage()
     {
@@ -51,6 +38,10 @@ public partial class GamePage : ContentPage
         base.OnAppearing();
         AdminBar.IsVisible = AppState.Current.IsAdminMode;
 
+        // Inicializa visuais dos toggles do setup
+        SelectDiff(_selectedDiff);
+
+
         var state = AppState.Current;
 
         // Consome a flag UMA ÚNICA VEZ — evita reiniciar o jogo em cada OnAppearing
@@ -66,17 +57,22 @@ public partial class GamePage : ContentPage
         else if (state.PendingFriendGame)
         {
             state.PendingFriendGame = false;
-            Title = $"{state.FriendOpponentName} vs Você";
-            _vm.StartFriendGame("Você", state.FriendOpponentName, state.FriendTimeMinutes);
-            WhitePlayerLabel.Text = "♙ Você (Brancas)";
-            BlackPlayerLabel.Text = $"♟ {state.FriendOpponentName} (Pretas)";
-            SetupPanel.IsVisible  = false;
+            string p1 = string.IsNullOrWhiteSpace(state.FriendPlayer1Name) ? "Jogador 1" : state.FriendPlayer1Name;
+            string p2 = string.IsNullOrWhiteSpace(state.FriendOpponentName) ? "Jogador 2" : state.FriendOpponentName;
+            Title = $"{p1} vs {p2}";
+            _vm.StartFriendGame(p1, p2, state.FriendTimeMinutes);
+            WhitePlayerLabel.Text = $"♙ {p1} (Brancas)";
+            BlackPlayerLabel.Text = $"♟ {p2} (Pretas)";
+            SetupPanel.IsVisible   = false;
             HandoffPanel.IsVisible = false;
         }
         else if (!_vm.IsTournamentMode && !_vm.IsFriendMode && _vm.GameOver)
         {
-            // Abre os menus de configuração automaticamente
-            OnSetupNewGameClicked();
+            // Mostra o painel de setup estilizado
+            ResultPanel.IsVisible = false;
+            SetupPanel.IsVisible  = true;
+            SelectDiff(_selectedDiff);
+    
         }
     }
 
@@ -233,34 +229,39 @@ public partial class GamePage : ContentPage
         await Shell.Current.GoToAsync("..");
     }
 
-    private async void OnSetupNewGameClicked(object? sender = null, EventArgs? e = null)
+    // Chamado pelos botões toggle de dificuldade no SetupPanel
+    private void OnDiffSelected(object? sender, TappedEventArgs e)
     {
-        ResultPanel.IsVisible = false;
-        bool fromSetupPanel = SetupPanel.IsVisible;
+        if (e.Parameter is string s && int.TryParse(s, out int idx))
+            SelectDiff(idx);
+    }
 
-        string[] diffLabels = DifficultyOptions.Select(o => o.Label).ToArray();
-        string? diff = await DisplayActionSheet("Dificuldade da IA", "Cancelar", null, diffLabels);
-        if (diff == null || diff == "Cancelar")
+    private void SelectDiff(int idx)
+    {
+        _selectedDiff = idx;
+        Border[] btns = [DiffBtn0, DiffBtn1, DiffBtn2];
+        for (int i = 0; i < btns.Length; i++)
         {
-            if (fromSetupPanel) await Shell.Current.GoToAsync("..");
-            return;
+            bool sel = i == idx;
+            btns[i].BackgroundColor = Color.FromArgb(sel ? "#1A3A65" : "#111D32");
+            btns[i].Stroke          = new SolidColorBrush(Color.FromArgb(sel ? "#2A5090" : "#1A2840"));
+            btns[i].StrokeThickness = sel ? 1.5 : 1;
+            if (btns[i].Content is Label lbl)
+            {
+                lbl.TextColor      = sel ? Colors.White : Color.FromArgb("#607890");
+                lbl.FontAttributes = sel ? FontAttributes.Bold : FontAttributes.None;
+            }
         }
-        int depth = DifficultyOptions.First(o => o.Label == diff).Depth;
+    }
 
-        string[] timeLabels = TimeOptions.Select(o => o.Label).ToArray();
-        string? timeChoice = await DisplayActionSheet("Tempo por jogador", "Cancelar", null, timeLabels);
-        if (timeChoice == null || timeChoice == "Cancelar")
-        {
-            if (fromSetupPanel) await Shell.Current.GoToAsync("..");
-            return;
-        }
-        int minutes = TimeOptions.First(o => o.Label == timeChoice).Minutes;
-
+    private void OnSetupNewGameClicked(object? sender = null, EventArgs? e = null)
+    {
+        ResultPanel.IsVisible  = false;
         SetupPanel.IsVisible   = false;
         WhitePlayerLabel.Text  = "♙ Você (Brancas)";
         BlackPlayerLabel.Text  = "♟ IA (Pretas)";
-        Title                  = "Xadrez";
-        _vm.StartNewGame(minutes, depth);
+        Title                  = "ChessArena";
+        _vm.StartNewGame(0, DiffDepths[_selectedDiff]); // 0 = sem limite de tempo
     }
 
     // -----------------------------------------------------------------------

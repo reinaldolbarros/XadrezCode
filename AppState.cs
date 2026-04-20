@@ -45,6 +45,7 @@ public class AppState
 
     // Jogo com amigo (pass-and-play)
     public bool   PendingFriendGame  { get; set; }
+    public string FriendPlayer1Name  { get; set; } = "";
     public string FriendOpponentName { get; set; } = "";
     public int    FriendTimeMinutes  { get; set; }
 

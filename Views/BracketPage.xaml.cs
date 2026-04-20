@@ -232,8 +232,9 @@ public partial class BracketPage : ContentPage
     {
         AlertLabel.Text               = text;
         AlertLabel.TextColor          = Color.FromArgb(hexColor);
-        AlertBanner.BackgroundColor   = Color.FromArgb(hexColor + "22");
-        AlertBanner.BorderColor       = Color.FromArgb(hexColor);
+        AlertBanner.BackgroundColor = Color.FromArgb(hexColor + "22");
+        AlertBanner.Stroke          = new SolidColorBrush(Color.FromArgb(hexColor));
+        AlertBanner.StrokeThickness = 1;
         AlertBanner.IsVisible         = true;
     }
 

@@ -90,22 +90,25 @@ public partial class LeaguePage : ContentPage
             Grid.SetColumn(avatarLbl, 1);
             row.Add(avatarLbl);
 
-            var nameStack = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center };
-            nameStack.Add(new Label
+            var nameLbl2   = new Label { VerticalOptions = LayoutOptions.Center };
+            var formatted2 = new FormattedString();
+            formatted2.Spans.Add(new Span
             {
-                Text = e.Name,
-                TextColor = e.NameColor,
-                FontSize = 12,
+                Text           = e.Name,
+                TextColor      = e.NameColor,
+                FontSize       = 12,
                 FontAttributes = e.IsHuman ? FontAttributes.Bold : FontAttributes.None
             });
-            nameStack.Add(new Label
-            {
-                Text = string.IsNullOrEmpty(e.LocationLabel) ? "—" : e.LocationLabel,
-                TextColor = Color.FromArgb("#6080A0"),
-                FontSize = 9
-            });
-            Grid.SetColumn(nameStack, 2);
-            row.Add(nameStack);
+            if (!string.IsNullOrEmpty(e.LocationLabel))
+                formatted2.Spans.Add(new Span
+                {
+                    Text      = $"  {e.LocationLabel}",
+                    TextColor = Color.FromArgb("#6080A0"),
+                    FontSize  = 9
+                });
+            nameLbl2.FormattedText = formatted2;
+            Grid.SetColumn(nameLbl2, 2);
+            row.Add(nameLbl2);
 
             var pts = new Label
             {

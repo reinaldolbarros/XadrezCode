@@ -24,8 +24,8 @@ public class BoardDrawable : IDrawable
 
         float cw       = bounds.Width  / 8f;
         float ch       = bounds.Height / 8f;
-        float fontSize = MathF.Min(cw, ch) * 0.70f;
-        float off      = MathF.Max(1.0f, fontSize * 0.042f);
+        float fontSize = MathF.Min(cw, ch) * 0.80f;
+        float off      = MathF.Max(1.5f, fontSize * 0.055f);
 
         var (coordLight, coordDark) = BoardThemeService.CoordColors;
         canvas.Antialias = true;
@@ -72,26 +72,26 @@ public class BoardDrawable : IDrawable
 
             if (isWhite)
             {
-                // Sombra ao redor (reduzida)
-                canvas.FontColor = ShadowColor.WithAlpha(0.16f);
+                // Contorno escuro externo (3 camadas para parecer mais grosso)
+                canvas.FontColor = ShadowColor.WithAlpha(0.30f);
                 for (int dx = -1; dx <= 1; dx++)
                 for (int dy = -1; dy <= 1; dy++)
                 {
                     if (dx == 0 && dy == 0) continue;
                     canvas.DrawString(sq.PieceSymbol,
-                        x + dx * off * 1.4f, y + dy * off * 1.4f, cw, ch,
+                        x + dx * off * 1.8f, y + dy * off * 1.8f, cw, ch,
                         HorizontalAlignment.Center, VerticalAlignment.Center);
                 }
-                canvas.FontColor = ShadowColor.WithAlpha(0.07f);
+                canvas.FontColor = ShadowColor.WithAlpha(0.18f);
                 for (int dx = -1; dx <= 1; dx++)
                 for (int dy = -1; dy <= 1; dy++)
                 {
                     if (dx == 0 && dy == 0) continue;
                     canvas.DrawString(sq.PieceSymbol,
-                        x + dx * off * 2.6f, y + dy * off * 2.6f, cw, ch,
+                        x + dx * off * 3.2f, y + dy * off * 3.2f, cw, ch,
                         HorizontalAlignment.Center, VerticalAlignment.Center);
                 }
-                // Peça principal: branca
+                // Peça principal: branca sólida
                 canvas.FontColor = WhitePiece;
                 canvas.DrawString(sq.PieceSymbol,
                     x, y, cw, ch,
@@ -99,14 +99,23 @@ public class BoardDrawable : IDrawable
             }
             else
             {
-                // Glow ao redor (reduzido)
-                canvas.FontColor = GlowColor.WithAlpha(0.60f);
+                // Glow branco ao redor (2 camadas para definir borda)
+                canvas.FontColor = GlowColor.WithAlpha(0.80f);
                 for (int dx = -1; dx <= 1; dx++)
                 for (int dy = -1; dy <= 1; dy++)
                 {
                     if (dx == 0 && dy == 0) continue;
                     canvas.DrawString(sq.PieceSymbol,
-                        x + dx * off, y + dy * off, cw, ch,
+                        x + dx * off * 1.2f, y + dy * off * 1.2f, cw, ch,
+                        HorizontalAlignment.Center, VerticalAlignment.Center);
+                }
+                canvas.FontColor = GlowColor.WithAlpha(0.35f);
+                for (int dx = -1; dx <= 1; dx++)
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    if (dx == 0 && dy == 0) continue;
+                    canvas.DrawString(sq.PieceSymbol,
+                        x + dx * off * 2.5f, y + dy * off * 2.5f, cw, ch,
                         HorizontalAlignment.Center, VerticalAlignment.Center);
                 }
                 // Peça principal: quase preta

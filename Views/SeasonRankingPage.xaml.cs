@@ -52,9 +52,9 @@ public partial class SeasonRankingPage : ContentPage
                 Stroke          = new SolidColorBrush(e.IsHuman
                     ? Color.FromArgb("#2A5020")
                     : isPodium ? Color.FromArgb("#2A2010") : Color.FromArgb("#1A2030")),
-                StrokeThickness = e.IsHuman || isPodium ? 1 : 0,
+                StrokeThickness = e.IsHuman ? 1 : 0,
                 StrokeShape     = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 8 },
-                Padding         = new Thickness(12, isPodium ? 10 : 7)
+                Padding         = new Thickness(12, 7)
             };
 
             var row = new Grid
@@ -64,11 +64,11 @@ public partial class SeasonRankingPage : ContentPage
             };
 
             // Posição
-            string medal = e.Position switch { 1 => "🥇", 2 => "🥈", 3 => "🥉", _ => $"{e.Position}º" };
+            string medal = $"{e.Position}º";
             string posColor = e.Position switch { 1 => "#FFD700", 2 => "#C0C0D0", 3 => "#CD7F32", _ => "#607890" };
             row.Add(new Label
             {
-                Text = medal, FontSize = isPodium ? 18 : 12,
+                Text = medal, FontSize = 13,
                 TextColor = Color.FromArgb(posColor),
                 HorizontalTextAlignment = TextAlignment.Center, VerticalOptions = LayoutOptions.Center
             });
@@ -76,30 +76,33 @@ public partial class SeasonRankingPage : ContentPage
             // Avatar
             var avatarLbl = new Label
             {
-                Text = e.Avatar, FontSize = isPodium ? 18 : 14,
+                Text = e.Avatar, FontSize = 14,
                 Margin = new Thickness(4, 0), VerticalOptions = LayoutOptions.Center
             };
             Grid.SetColumn(avatarLbl, 1);
             row.Add(avatarLbl);
 
-            // Nome + localização
-            var nameStack = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, Spacing = 1 };
-            nameStack.Add(new Label
+            // Nome + localização na mesma linha
+            string loc    = e.LocationLabel;
+            var nameLbl   = new Label { VerticalOptions = LayoutOptions.Center };
+            var formatted = new FormattedString();
+            formatted.Spans.Add(new Span
             {
-                Text = e.Name,
-                TextColor = e.IsHuman ? Color.FromArgb("#4CAF50") : Colors.White,
-                FontSize = isPodium ? 14 : 12,
-                FontAttributes = (isPodium || e.IsHuman) ? FontAttributes.Bold : FontAttributes.None
+                Text           = e.Name,
+                TextColor      = e.IsHuman ? Color.FromArgb("#4CAF50") : Colors.White,
+                FontSize       = 12,
+                FontAttributes = e.IsHuman ? FontAttributes.Bold : FontAttributes.None
             });
-            string loc = e.LocationLabel;
-            nameStack.Add(new Label
-            {
-                Text = string.IsNullOrEmpty(loc) ? "—" : loc,
-                TextColor = Color.FromArgb("#6080A0"),
-                FontSize = isPodium ? 10 : 9
-            });
-            Grid.SetColumn(nameStack, 2);
-            row.Add(nameStack);
+            if (!string.IsNullOrEmpty(loc))
+                formatted.Spans.Add(new Span
+                {
+                    Text      = $"  {loc}",
+                    TextColor = Color.FromArgb("#6080A0"),
+                    FontSize  = 9
+                });
+            nameLbl.FormattedText = formatted;
+            Grid.SetColumn(nameLbl, 2);
+            row.Add(nameLbl);
 
             // Pontos
             string ptsColor = e.Position == 1 ? "#FFD700" : e.Position == 2 ? "#C0C0D0"
@@ -108,8 +111,8 @@ public partial class SeasonRankingPage : ContentPage
             {
                 Text = $"{e.Points:N0} pts",
                 TextColor = Color.FromArgb(ptsColor),
-                FontSize = isPodium ? 13 : 11,
-                FontAttributes = isPodium ? FontAttributes.Bold : FontAttributes.None,
+                FontSize = 11,
+                FontAttributes = FontAttributes.None,
                 VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.End
             };
             Grid.SetColumn(pts, 3);

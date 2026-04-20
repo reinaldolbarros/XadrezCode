@@ -17,13 +17,6 @@
             <Setter Property="InputTransparent"        Value="True"/>
         </Style>
 
-        <Style x:Key="TimerFrame" TargetType="Frame">
-            <Setter Property="CornerRadius"  Value="10"/>
-            <Setter Property="Padding"       Value="12,8"/>
-            <Setter Property="Margin"        Value="0,4"/>
-            <Setter Property="HasShadow"     Value="False"/>
-        </Style>
-
         <Style x:Key="ClockLabel" TargetType="Label">
             <Setter Property="FontSize"       Value="26"/>
             <Setter Property="FontAttributes" Value="Bold"/>
@@ -36,11 +29,12 @@
         <!-- ══════════════════════════════════════════════
              Linha 0 — Relógio das PRETAS (IA)
              ══════════════════════════════════════════════ -->
-        <Frame Grid.Row="0"
-               Style="{StaticResource TimerFrame}"
-               BackgroundColor="#1E1E1E"
-               Margin="0,4,0,10"
-               IsVisible="{Binding TimerVisible}">
+        <Border Grid.Row="0"
+                BackgroundColor="#1E1E1E"
+                StrokeShape="RoundRectangle 10"
+                StrokeThickness="0"
+                Padding="12,8" Margin="0,4,0,10"
+                IsVisible="{Binding TimerVisible}">
             <Grid ColumnDefinitions="*,Auto,Auto">
                 <StackLayout Orientation="Horizontal" Spacing="8" VerticalOptions="Center">
                     <Label x:Name="BlackPlayerLabel" Text="♟ IA (Pretas)" TextColor="#CCCCCC" FontSize="13" VerticalOptions="Center"/>
@@ -62,23 +56,22 @@
                     </Label.Triggers>
                 </Label>
             </Grid>
-        </Frame>
+        </Border>
 
         <!-- ══════════════════════════════════════════════
              Linha 1 — Barra de status
              ══════════════════════════════════════════════ -->
-        <Frame Grid.Row="1"
-               BackgroundColor="#403D38"
-               BorderColor="Transparent"
-               CornerRadius="8"
-               Padding="10,6"
-               Margin="0,0,0,2">
+        <Border Grid.Row="1"
+                BackgroundColor="#403D38"
+                StrokeShape="RoundRectangle 8"
+                StrokeThickness="0"
+                Padding="10,6" Margin="0,0,0,2">
             <Label Text="{Binding StatusMessage}"
                    TextColor="White"
                    FontSize="14"
                    FontAttributes="Bold"
                    HorizontalTextAlignment="Center"/>
-        </Frame>
+        </Border>
 
         <!-- ══════════════════════════════════════════════
              Linha 2 — Peças capturadas + vantagem de material
@@ -105,20 +98,19 @@
         <!-- ══════════════════════════════════════════════
              Linha 3 — Balão de chat do bot (oculto por padrão)
              ══════════════════════════════════════════════ -->
-        <Frame Grid.Row="3"
-               x:Name="ChatBubble"
-               IsVisible="False"
-               BackgroundColor="#2A2A3A"
-               BorderColor="#555577"
-               CornerRadius="10"
-               Padding="10,6"
-               Margin="4,0">
+        <Border Grid.Row="3"
+                x:Name="ChatBubble"
+                IsVisible="False"
+                BackgroundColor="#2A2A3A"
+                Stroke="#555577" StrokeThickness="1"
+                StrokeShape="RoundRectangle 10"
+                Padding="10,6" Margin="4,0">
             <Label x:Name="ChatLabel"
                    Text=""
                    TextColor="#DDDDFF"
                    FontSize="13"
                    HorizontalTextAlignment="Center"/>
-        </Frame>
+        </Border>
 
         <!-- ══════════════════════════════════════════════
              Linha 4 — Tabuleiro 8×8
@@ -131,11 +123,12 @@
         <!-- ══════════════════════════════════════════════
              Linha 5 — Relógio das BRANCAS (jogador)
              ══════════════════════════════════════════════ -->
-        <Frame Grid.Row="5"
-               Style="{StaticResource TimerFrame}"
-               BackgroundColor="#4A4035"
-               Margin="0,10,0,4"
-               IsVisible="{Binding TimerVisible}">
+        <Border Grid.Row="5"
+                BackgroundColor="#4A4035"
+                StrokeShape="RoundRectangle 10"
+                StrokeThickness="0"
+                Padding="12,8" Margin="0,10,0,4"
+                IsVisible="{Binding TimerVisible}">
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="14">
                 <Label x:Name="WhitePlayerLabel"
                        Text="♙ Você (Brancas)"
@@ -176,7 +169,7 @@
                     </Label.Triggers>
                 </Label>
             </Grid>
-        </Frame>
+        </Border>
 
         <!-- ══════════════════════════════════════════════
              Linha 6 — Botões
@@ -361,33 +354,77 @@
             </Border>
         </Grid>
 
-        <!-- ══════════════════════════════════════════════
-             Painel de SETUP — declarado por último para ficar sobre tudo
-             ══════════════════════════════════════════════ -->
-        <VerticalStackLayout x:Name="SetupPanel"
-                             Grid.Row="0" Grid.RowSpan="9"
-                             BackgroundColor="#302E2B"
-                             VerticalOptions="Fill"
-                             HorizontalOptions="Fill"
-                             Spacing="24"
-                             Padding="32,0"
-                             IsVisible="True">
+        <!-- ══ Painel de SETUP ══ -->
+        <ScrollView x:Name="SetupPanel"
+                    Grid.Row="0" Grid.RowSpan="9"
+                    BackgroundColor="#0A1020"
+                    IsVisible="True">
+            <VerticalStackLayout Padding="28,32,28,40" Spacing="14"
+                                 VerticalOptions="Center">
 
-            <BoxView BackgroundColor="Transparent" VerticalOptions="FillAndExpand"/>
+                <!-- Peças decorativas -->
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="0">
+                    <Label Text="♚" FontSize="72" TextColor="White"
+                           VerticalOptions="End"/>
+                    <Label Text="♞" FontSize="64" TextColor="#1A1209"
+                           VerticalOptions="End" Margin="-20,0,0,0"/>
+                </HorizontalStackLayout>
 
-            <Label Text="♟" FontSize="64" TextColor="White"
-                   HorizontalTextAlignment="Center" Opacity="0.15"/>
+                <Label Text="ChessArena"
+                       TextColor="White" FontSize="26" FontAttributes="Bold"
+                       HorizontalTextAlignment="Center" Margin="0,0,0,16"/>
 
-            <Button Text="Novo Jogo"
-                    Clicked="OnSetupNewGameClicked"
-                    BackgroundColor="#769656" TextColor="White"
-                    FontAttributes="Bold" FontSize="17"
-                    CornerRadius="12" HeightRequest="56"
-                    Margin="0,16,0,0"/>
+                <!-- Dificuldade -->
+                <Border BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+                        StrokeShape="RoundRectangle 12" Padding="18,16">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="🤖  Dificuldade da IA"
+                               TextColor="White" FontSize="15" FontAttributes="Bold"/>
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                            <Border x:Name="DiffBtn0"
+                                    BackgroundColor="#1A3A65" Stroke="#2A5090"
+                                    StrokeThickness="1.5" StrokeShape="RoundRectangle 10"
+                                    Padding="0,13">
+                                <Label Text="Fácil" TextColor="White" FontSize="14"
+                                       FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDiffSelected" CommandParameter="0"/>
+                                </Border.GestureRecognizers>
+                            </Border>
+                            <Border Grid.Column="1" x:Name="DiffBtn1"
+                                    BackgroundColor="#111D32" Stroke="#1A2840"
+                                    StrokeThickness="1" StrokeShape="RoundRectangle 10"
+                                    Padding="0,13">
+                                <Label Text="Médio" TextColor="#607890" FontSize="14"
+                                       HorizontalTextAlignment="Center"/>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDiffSelected" CommandParameter="1"/>
+                                </Border.GestureRecognizers>
+                            </Border>
+                            <Border Grid.Column="2" x:Name="DiffBtn2"
+                                    BackgroundColor="#111D32" Stroke="#1A2840"
+                                    StrokeThickness="1" StrokeShape="RoundRectangle 10"
+                                    Padding="0,13">
+                                <Label Text="Difícil" TextColor="#607890" FontSize="14"
+                                       HorizontalTextAlignment="Center"/>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDiffSelected" CommandParameter="2"/>
+                                </Border.GestureRecognizers>
+                            </Border>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
 
-            <BoxView BackgroundColor="Transparent" VerticalOptions="FillAndExpand"/>
+                <!-- Botão iniciar -->
+                <Button Text="▶  INICIAR PARTIDA"
+                        Clicked="OnSetupNewGameClicked"
+                        BackgroundColor="#769656" TextColor="White"
+                        FontAttributes="Bold" FontSize="17"
+                        CornerRadius="14" HeightRequest="58"
+                        Margin="0,8,0,0"/>
 
-        </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
 
     </Grid>
 </ContentPage>

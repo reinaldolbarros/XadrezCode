@@ -63,20 +63,23 @@
                     <VerticalStackLayout Spacing="4">
                         <Label Text="País" TextColor="#8AADCC" FontSize="12"/>
                         <Border BackgroundColor="#111D32" Stroke="#1C3050" StrokeThickness="1"
-                                StrokeShape="RoundRectangle 8">
-                            <Entry x:Name="CountryEntry" Placeholder="Ex: Brasil"
-                                   PlaceholderColor="#3A5070" TextColor="White"
-                                   FontSize="15" Margin="4,0"/>
+                                StrokeShape="RoundRectangle 8" Padding="8,0">
+                            <Picker x:Name="CountryPicker"
+                                    Title="Selecione o país"
+                                    TitleColor="#3A5070" TextColor="White"
+                                    BackgroundColor="Transparent"
+                                    SelectedIndexChanged="OnCountryChanged"/>
                         </Border>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="Estado / Cidade" TextColor="#8AADCC" FontSize="12"/>
+                    <VerticalStackLayout x:Name="StateSection" Spacing="4" IsVisible="False">
+                        <Label Text="Estado" TextColor="#8AADCC" FontSize="12"/>
                         <Border BackgroundColor="#111D32" Stroke="#1C3050" StrokeThickness="1"
-                                StrokeShape="RoundRectangle 8">
-                            <Entry x:Name="StateEntry" Placeholder="Ex: SP ou São Paulo"
-                                   PlaceholderColor="#3A5070" TextColor="White"
-                                   FontSize="15" Margin="4,0"/>
+                                StrokeShape="RoundRectangle 8" Padding="8,0">
+                            <Picker x:Name="StatePicker"
+                                    Title="Selecione o estado"
+                                    TitleColor="#3A5070" TextColor="White"
+                                    BackgroundColor="Transparent"/>
                         </Border>
                     </VerticalStackLayout>
 

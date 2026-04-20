@@ -9,8 +9,8 @@
     <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
 
         <!-- ══ Cabeçalho: info do torneio ══ -->
-        <Frame Grid.Row="0" BackgroundColor="#16213E" BorderColor="#0F3460"
-               CornerRadius="0" Padding="16,14" HasShadow="False">
+        <Border Grid.Row="0" BackgroundColor="#16213E"
+                Stroke="#0F3460" StrokeThickness="1" Padding="16,14">
             <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto">
 
                 <Label x:Name="TournTitle"
@@ -23,33 +23,33 @@
                        TextColor="#AAAACC" FontSize="12"
                        Grid.Row="1"/>
 
-                <Frame Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
-                       BackgroundColor="#0F3460" CornerRadius="8"
-                       Padding="12,6" HasShadow="False" Margin="8,0">
+                <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
+                        BackgroundColor="#0F3460" StrokeShape="RoundRectangle 8"
+                        StrokeThickness="0" Padding="12,6" Margin="8,0">
                     <VerticalStackLayout HorizontalOptions="Center">
                         <Label Text="BUY-IN"    TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
                         <Label x:Name="BuyInLabel" Text="$ 0" TextColor="#FFD700"
                                FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
 
-                <Frame Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
-                       BackgroundColor="#0F3460" CornerRadius="8"
-                       Padding="12,6" HasShadow="False">
+                <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
+                        BackgroundColor="#0F3460" StrokeShape="RoundRectangle 8"
+                        StrokeThickness="0" Padding="12,6">
                     <VerticalStackLayout HorizontalOptions="Center">
                         <Label Text="TEMPO"     TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
                         <Label x:Name="TimeLabel" Text="5 min" TextColor="White"
                                FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
             </Grid>
-        </Frame>
+        </Border>
 
         <!-- ══ Frame de código privado (oculto para salas públicas) ══ -->
-        <Frame Grid.Row="1" x:Name="PrivateCodeFrame"
-               IsVisible="False"
-               BackgroundColor="#1A0D2E" BorderColor="#7B68EE"
-               CornerRadius="0" Padding="16,10" HasShadow="False">
+        <Border Grid.Row="1" x:Name="PrivateCodeFrame"
+                IsVisible="False"
+                BackgroundColor="#1A0D2E" Stroke="#7B68EE" StrokeThickness="1"
+                Padding="16,10">
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                 <VerticalStackLayout VerticalOptions="Center" Spacing="2">
                     <Label Text="🔒  TORNEIO PRIVADO  —  Compartilhe o código:"
@@ -69,11 +69,10 @@
                         FontAttributes="Bold" FontSize="12" CornerRadius="8"
                         HeightRequest="40" WidthRequest="80"/>
             </Grid>
-        </Frame>
+        </Border>
 
         <!-- ══ Barra de progresso ══ -->
-        <Frame Grid.Row="2" BackgroundColor="#16213E" BorderColor="Transparent"
-               CornerRadius="0" Padding="16,10" HasShadow="False">
+        <Border Grid.Row="2" BackgroundColor="#16213E" StrokeThickness="0" Padding="16,10">
             <VerticalStackLayout Spacing="6">
                 <Grid ColumnDefinitions="*,Auto">
                     <Label x:Name="StatusLabel"
@@ -90,7 +89,7 @@
                              BackgroundColor="#0F3460"
                              HeightRequest="6"/>
             </VerticalStackLayout>
-        </Frame>
+        </Border>
 
         <!-- ══ Lista de slots ══ -->
         <ScrollView Grid.Row="3">
@@ -110,13 +109,10 @@
                     HeightRequest="52"/>
 
             <!-- Overlay de countdown (aparece quando sala está cheia) -->
-            <Frame x:Name="CountdownFrame"
-                   IsVisible="False"
-                   BackgroundColor="#0D2A0D"
-                   BorderColor="#4CAF50"
-                   CornerRadius="0"
-                   Padding="0"
-                   HasShadow="False">
+            <Border x:Name="CountdownFrame"
+                    IsVisible="False"
+                    BackgroundColor="#0D2A0D"
+                    Stroke="#4CAF50" StrokeThickness="1">
                 <Label x:Name="CountdownLabel"
                        Text="🎮  SALA COMPLETA!  Iniciando em 3..."
                        TextColor="#4CAF50"
@@ -125,7 +121,7 @@
                        HorizontalTextAlignment="Center"
                        VerticalOptions="Center"
                        HeightRequest="52"/>
-            </Frame>
+            </Border>
         </Grid>
 
     </Grid>

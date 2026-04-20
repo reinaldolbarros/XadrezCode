@@ -8,39 +8,39 @@
     <Grid RowDefinitions="Auto,Auto,Auto,*">
 
         <!-- Resumo financeiro -->
-        <Frame Grid.Row="0" BackgroundColor="#16213E" BorderColor="Transparent"
-               CornerRadius="0" Padding="16,12" HasShadow="False">
+        <Border Grid.Row="0" BackgroundColor="#16213E" StrokeThickness="0" Padding="16,12">
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                 <VerticalStackLayout VerticalOptions="Center" Spacing="2">
                     <Label Text="SALDO ATUAL" TextColor="#AAAACC" FontSize="10"/>
                     <Label x:Name="BalanceLabel" Text="$ 0"
                            TextColor="#FFD700" FontSize="20" FontAttributes="Bold"/>
                 </VerticalStackLayout>
-                <Frame Grid.Column="1" BackgroundColor="#0A1E0A" BorderColor="#4CAF50"
-                       CornerRadius="10" Padding="12,8" HasShadow="False">
+                <Border Grid.Column="1" BackgroundColor="#0A1E0A"
+                        Stroke="#4CAF50" StrokeThickness="1"
+                        StrokeShape="RoundRectangle 10" Padding="12,8">
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="1">
                         <Label Text="ENTRADAS" TextColor="#4CAF50" FontSize="9" HorizontalTextAlignment="Center"/>
                         <Label x:Name="CreditsLabel" Text="$ 0"
                                TextColor="#4CAF50" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
-                </Frame>
-                <Frame Grid.Column="2" BackgroundColor="#1E0A0A" BorderColor="#FF5252"
-                       CornerRadius="10" Padding="12,8" HasShadow="False">
+                </Border>
+                <Border Grid.Column="2" BackgroundColor="#1E0A0A"
+                        Stroke="#FF5252" StrokeThickness="1"
+                        StrokeShape="RoundRectangle 10" Padding="12,8">
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="1">
                         <Label Text="SAÍDAS" TextColor="#FF5252" FontSize="9" HorizontalTextAlignment="Center"/>
                         <Label x:Name="DebitsLabel" Text="$ 0"
                                TextColor="#FF5252" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
             </Grid>
-        </Frame>
+        </Border>
 
         <!-- Filtros -->
-        <Frame Grid.Row="1" BackgroundColor="#16213E" BorderColor="Transparent"
-               CornerRadius="0" Padding="12,8" HasShadow="False">
+        <Border Grid.Row="1" BackgroundColor="#16213E" StrokeThickness="0" Padding="12,8">
             <FlexLayout x:Name="FilterBar" Direction="Row" Wrap="Wrap"
                         JustifyContent="Start" AlignItems="Center"/>
-        </Frame>
+        </Border>
 
         <!-- Separador -->
         <BoxView Grid.Row="2" Color="#0F3460" HeightRequest="1"/>

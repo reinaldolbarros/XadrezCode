@@ -15,7 +15,8 @@ public partial class LobbyPage : ContentPage
 
         var profile = AppState.Current.Profile;
 
-        if (profile.IsNew)
+        // Visitantes pulam o cadastro de perfil
+        if (profile.IsNew && !AppState.Current.Auth.IsAnonymous)
         {
             await Shell.Current.GoToAsync("ProfilePage");
             return;
@@ -40,6 +41,12 @@ public partial class LobbyPage : ContentPage
         TierLabel.Text      = p.TierIcon;
         TierName.Text       = p.TierName;
         BalanceLabel.Text   = $"$ {p.Balance:N0}";
+
+        // Localização inline com o nome
+        string loc = p.Country.Length > 0 && p.State.Length > 0 ? $"{p.Country} · {p.State}"
+                   : p.Country.Length > 0 ? p.Country
+                   : p.State.Length > 0   ? p.State : "";
+        ProfileLocationLabel.Text = loc;
         WinsLabel.Text      = p.Wins.ToString();
         LossesLabel.Text    = p.Losses.ToString();
         TournWinsLabel.Text = p.TournamentsWon.ToString();
@@ -55,7 +62,7 @@ public partial class LobbyPage : ContentPage
         BonusBtn.IsVisible        = !claimed;
         BonusStreakLabel.Text     = $"Sequência: {daily.LoginStreak} dia{(daily.LoginStreak != 1 ? "s" : "")}";
         BonusFrame.Stroke         = new SolidColorBrush(claimed ? Color.FromArgb("#1A2840") : Color.FromArgb("#FFD700"));
-        BonusTitle.Text           = claimed ? "Bônus Diário  ·  Resgatado" : "Bônus Diário";
+        BonusTitle.Text           = claimed ? "Bônus Diário  ·  Resgatado ✓" : "Bônus Diário  ·  Disponível!";
         BonusTitle.TextColor      = claimed ? Color.FromArgb("#666688") : Color.FromArgb("#FFD700");
 
         // Botão admin (visível apenas em modo admin)
@@ -124,36 +131,14 @@ public partial class LobbyPage : ContentPage
     private void BuildChampions(AppState state)
     {
         var weekly = state.League.GetWeeklyChampion(state.Profile, state.Titles);
-        WeekChampAvatar.Text = weekly.Avatar;
-        WeekChampName.Text   = weekly.Name;
-        WeekChampTitle.Text  = $"{weekly.TitleIcon} {weekly.TitleLabel}";
-        WeekChampPoints.Text = $"{weekly.Points:N0} pts";
-        if (weekly.IsHuman)
-        {
-            WeekChampName.TextColor   = Color.FromArgb("#4CAF50");
-            WeekChampPoints.TextColor = Color.FromArgb("#4CAF50");
-        }
-        else
-        {
-            WeekChampName.TextColor   = Colors.White;
-            WeekChampPoints.TextColor = Color.FromArgb("#FFD700");
-        }
+        WeekChampAvatar.Text     = weekly.Avatar;
+        WeekChampName.Text       = weekly.Name;
+        WeekChampName.TextColor  = weekly.IsHuman ? Color.FromArgb("#4CAF50") : Colors.White;
 
         var monthly = state.Season.GetMonthlyLeader(state.Titles, state.Profile);
-        MonthChampAvatar.Text = monthly.Avatar;
-        MonthChampName.Text   = monthly.Name;
-        MonthChampTitle.Text  = $"{monthly.TitleIcon} {monthly.TitleLabel}";
-        MonthChampPoints.Text = $"{monthly.Points:N0} pts";
-        if (monthly.IsHuman)
-        {
-            MonthChampName.TextColor   = Color.FromArgb("#4CAF50");
-            MonthChampPoints.TextColor = Color.FromArgb("#4CAF50");
-        }
-        else
-        {
-            MonthChampName.TextColor   = Colors.White;
-            MonthChampPoints.TextColor = Color.FromArgb("#FFD700");
-        }
+        MonthChampAvatar.Text    = monthly.Avatar;
+        MonthChampName.Text      = monthly.Name;
+        MonthChampName.TextColor = monthly.IsHuman ? Color.FromArgb("#4CAF50") : Colors.White;
     }
 
     // -----------------------------------------------------------------------
@@ -230,94 +215,81 @@ public partial class LobbyPage : ContentPage
         var board   = state.Season.GetLeaderboard(state.Titles, state.Profile);
         var sub     = state.Subscription;
 
-        // Pega top 10; se o humano estiver fora do top 10, adiciona ao final
+        // Pega top 5; se o humano estiver fora do top 5, adiciona ao final
         var human   = board.FirstOrDefault(e => e.IsHuman);
-        var toShow  = board.Take(10).ToList();
-        bool humanOutside = human != null && human.Position > 10;
+        var toShow  = board.Take(5).ToList();
+        bool humanOutside = human != null && human.Position > 5;
         if (humanOutside) toShow.Add(human!);
 
         bool separatorAdded = false;
 
         foreach (var e in toShow)
         {
-            // Separador "· · ·" antes do jogador se ele está fora do top 5
             if (humanOutside && e.IsHuman && !separatorAdded)
             {
                 separatorAdded = true;
                 MiniRankContainer.Children.Add(new Label
                 {
                     Text = "·  ·  ·", TextColor = Color.FromArgb("#3A5070"),
-                    HorizontalTextAlignment = TextAlignment.Center, FontSize = 11, Margin = new Thickness(0, 2)
+                    HorizontalTextAlignment = TextAlignment.Center, FontSize = 10, Margin = new Thickness(0, 1)
                 });
             }
 
             bool isPodium = e.Position <= 3;
 
             // Cores por posição
-            string bgHex  = e.IsHuman ? "#1C2A0A" : e.Position switch { 1 => "#1A1400", 2 => "#111118", 3 => "#140C00", _ => "transparent" };
+            string bgHex  = e.IsHuman ? "#1C2A0A" : "transparent";
             string posColor = e.Position switch { 1 => "#FFD700", 2 => "#C0C0D0", 3 => "#CD7F32", _ => "#7090B0" };
-            string medal    = e.Position switch { 1 => "🥇", 2 => "🥈", 3 => "🥉", _ => "" };
+            string medal    = e.PositionLabel;
 
             var row = new Grid
             {
-                ColumnDefinitions = isPodium
-                    ? new ColumnDefinitionCollection(new(30), new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto))
-                    : new ColumnDefinitionCollection(new(28), new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto)),
-                Margin          = new Thickness(0, isPodium ? 3 : 1),
-                Padding         = new Thickness(isPodium ? 6 : 2, isPodium ? 5 : 2),
+                ColumnDefinitions = new ColumnDefinitionCollection(new(26), new(GridLength.Star), new(GridLength.Auto)),
+                Padding         = new Thickness(2, 2),
                 BackgroundColor = bgHex == "transparent" ? Colors.Transparent : Color.FromArgb(bgHex)
             };
 
-            // Posição / medalha
+            // Posição
             row.Add(new Label
             {
-                Text = isPodium ? medal : e.PositionLabel,
-                FontSize = isPodium ? 18 : 11,
+                Text = medal, FontSize = 12,
                 TextColor = Color.FromArgb(posColor),
                 HorizontalTextAlignment = TextAlignment.Center,
                 VerticalOptions = LayoutOptions.Center
             });
 
-            // Avatar
-            var avatarLbl = new Label
-            {
-                Text = e.Avatar, FontSize = isPodium ? 18 : 13,
-                Margin = new Thickness(isPodium ? 6 : 4, 0),
-                VerticalOptions = LayoutOptions.Center
-            };
-            Grid.SetColumn(avatarLbl, 1);
-            row.Add(avatarLbl);
-
-            // Nome + título
+            // Nome + localização inline (sem avatar)
             string subBadge = e.IsHuman && sub.IsActive ? $" {sub.BadgeIcon}" : "";
-            var nameStack = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, Spacing = 1 };
-            nameStack.Add(new Label
+            string loc      = e.LocationLabel;
+            var nameLbl     = new Label { VerticalOptions = LayoutOptions.Center };
+            var fmt         = new FormattedString();
+            fmt.Spans.Add(new Span
             {
-                Text = e.Name + subBadge,
-                TextColor = e.IsHuman ? Color.FromArgb("#4CAF50") : e.NameColor,
-                FontSize = isPodium ? 13 : 11,
-                FontAttributes = (isPodium || e.IsHuman) ? FontAttributes.Bold : FontAttributes.None
+                Text           = e.Name + subBadge,
+                TextColor      = e.IsHuman ? Color.FromArgb("#4CAF50") : e.NameColor,
+                FontSize       = 13,
+                FontAttributes = e.IsHuman ? FontAttributes.Bold : FontAttributes.None
             });
-            string loc = e.LocationLabel;
-            nameStack.Add(new Label
-            {
-                Text = string.IsNullOrEmpty(loc) ? "—" : loc,
-                TextColor = Color.FromArgb(isPodium ? "#8090B0" : "#506070"),
-                FontSize = isPodium ? 10 : 9
-            });
-            Grid.SetColumn(nameStack, 2);
-            row.Add(nameStack);
+            if (!string.IsNullOrEmpty(loc))
+                fmt.Spans.Add(new Span
+                {
+                    Text      = $"  {loc}",
+                    TextColor = Color.FromArgb("#506070"),
+                    FontSize  = 11
+                });
+            nameLbl.FormattedText = fmt;
+            Grid.SetColumn(nameLbl, 1);
+            row.Add(nameLbl);
 
             // Pontos
             var pts = new Label
             {
                 Text = $"{e.Points:N0} pts",
                 TextColor = Color.FromArgb(e.Position == 1 ? "#FFD700" : e.Position == 2 ? "#C0C0D0" : e.Position == 3 ? "#CD7F32" : "#607890"),
-                FontSize = isPodium ? 12 : 10,
-                FontAttributes = isPodium ? FontAttributes.Bold : FontAttributes.None,
+                FontSize = 12,
                 VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.End
             };
-            Grid.SetColumn(pts, 3);
+            Grid.SetColumn(pts, 2);
             row.Add(pts);
 
             MiniRankContainer.Children.Add(row);
@@ -396,26 +368,7 @@ public partial class LobbyPage : ContentPage
 
     private async void OnFriendGameClicked(object? sender, EventArgs e)
     {
-        string? opponentName = await DisplayPromptAsync(
-            "Jogar com Amigo", "Nome do adversário (Pretas):",
-            placeholder: "ex: João", maxLength: 20, keyboard: Keyboard.Default);
-        if (string.IsNullOrWhiteSpace(opponentName)) return;
-
-        string[] timeLabels = ["Sem limite", "1 minuto", "3 minutos", "5 minutos", "10 minutos"];
-        int[]    timeValues = [0, 1, 3, 5, 10];
-        string? timeChoice = await DisplayActionSheet("Tempo por jogador", "Cancelar", null, timeLabels);
-        if (timeChoice == null || timeChoice == "Cancelar") return;
-
-        int idx     = Array.IndexOf(timeLabels, timeChoice);
-        int minutes = idx >= 0 ? timeValues[idx] : 0;
-
-        var state = AppState.Current;
-        state.PendingFriendGame     = true;
-        state.PendingTournamentGame = false;
-        state.FriendOpponentName    = opponentName.Trim();
-        state.FriendTimeMinutes     = minutes;
-
-        await Shell.Current.GoToAsync("GamePage");
+        await Shell.Current.GoToAsync("FriendInvitePage");
     }
 
     private async void OnChangePasswordClicked(object? sender, EventArgs e)

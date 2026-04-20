@@ -22,6 +22,7 @@ public partial class TournamentLobbyPage : ContentPage
     private int            _customTime      = 5;
     private decimal        _customBuyIn     = 25;
     private bool           _customIsPrivate = false;
+    private CancellationTokenSource? _refreshCts;
 
     public TournamentLobbyPage()
     {
@@ -45,10 +46,21 @@ public partial class TournamentLobbyPage : ContentPage
     {
         base.OnDisappearing();
         AppState.Current.RoomLobby.RoomsUpdated -= OnRoomsUpdated;
+        _refreshCts?.Cancel();
     }
 
-    private void OnRoomsUpdated() =>
-        MainThread.BeginInvokeOnMainThread(RefreshList);
+    private void OnRoomsUpdated()
+    {
+        _refreshCts?.Cancel();
+        _refreshCts = new CancellationTokenSource();
+        var token = _refreshCts.Token;
+        Task.Run(async () =>
+        {
+            await Task.Delay(600, token);
+            if (!token.IsCancellationRequested)
+                MainThread.BeginInvokeOnMainThread(RefreshList);
+        }, token);
+    }
 
     // -----------------------------------------------------------------------
     // Abas de tipo

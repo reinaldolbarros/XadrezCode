@@ -9,8 +9,8 @@
     <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
 
         <!-- ══ Cabeçalho do torneio ══ -->
-        <Frame Grid.Row="0" BackgroundColor="#16213E" BorderColor="#0F3460"
-               CornerRadius="0" Padding="16,12" HasShadow="False">
+        <Border Grid.Row="0" BackgroundColor="#16213E"
+                Stroke="#0F3460" StrokeThickness="1" Padding="16,12">
             <Grid ColumnDefinitions="*,Auto,Auto">
                 <VerticalStackLayout Spacing="2">
                     <Label x:Name="RoundLabel"   Text="Rodada"
@@ -19,35 +19,35 @@
                            TextColor="#AAAACC"   FontSize="12"/>
                 </VerticalStackLayout>
 
-                <Frame Grid.Column="1" BackgroundColor="#0F3460" CornerRadius="8"
-                       Padding="12,6" HasShadow="False" Margin="0,0,8,0">
+                <Border Grid.Column="1" BackgroundColor="#0F3460"
+                        StrokeShape="RoundRectangle 8" StrokeThickness="0"
+                        Padding="12,6" Margin="0,0,8,0">
                     <VerticalStackLayout HorizontalOptions="Center">
                         <Label Text="PRÊMIO TOTAL" TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
                         <Label x:Name="PoolLabel" Text="$ 0" TextColor="#FFD700"
                                FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
 
-                <Frame Grid.Column="2" BackgroundColor="#0F3460" CornerRadius="8"
-                       Padding="12,6" HasShadow="False">
+                <Border Grid.Column="2" BackgroundColor="#0F3460"
+                        StrokeShape="RoundRectangle 8" StrokeThickness="0" Padding="12,6">
                     <VerticalStackLayout HorizontalOptions="Center">
                         <Label Text="SEU PRÊMIO"  TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
                         <Label x:Name="YourPrizeLabel" Text="$ 0" TextColor="#4CAF50"
                                FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
             </Grid>
-        </Frame>
+        </Border>
 
         <!-- ══ Banner de alerta (Bubble / ITM) ══ -->
-        <Frame Grid.Row="1" x:Name="AlertBanner"
-               IsVisible="False"
-               CornerRadius="0" Padding="12,8" HasShadow="False">
+        <Border Grid.Row="1" x:Name="AlertBanner"
+                IsVisible="False" StrokeThickness="0" Padding="12,8">
             <Label x:Name="AlertLabel"
                    Text=""
                    FontSize="14" FontAttributes="Bold"
                    HorizontalTextAlignment="Center"/>
-        </Frame>
+        </Border>
 
         <!-- ══ Tabela de premiação ══ -->
         <ScrollView Grid.Row="2" Orientation="Horizontal">
@@ -77,10 +77,10 @@
               IsVisible="False"
               BackgroundColor="#BB000020">
 
-            <Frame BackgroundColor="#16213E" BorderColor="#FFD700"
-                   CornerRadius="16" Padding="24,20" Margin="24,0"
-                   VerticalOptions="Center" HorizontalOptions="Center"
-                   MaximumWidthRequest="380" HasShadow="False">
+            <Border BackgroundColor="#16213E" Stroke="#FFD700" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16" Padding="24,20" Margin="24,0"
+                    VerticalOptions="Center" HorizontalOptions="Center"
+                    MaximumWidthRequest="380">
                 <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
 
                     <Label Text="PRÓXIMA PARTIDA"
@@ -144,7 +144,7 @@
                     </Grid>
 
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
         </Grid>
 
     </Grid>

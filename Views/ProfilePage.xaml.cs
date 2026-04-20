@@ -13,6 +13,8 @@ public partial class ProfilePage : ContentPage
     public ProfilePage()
     {
         InitializeComponent();
+        CountryPicker.ItemsSource = GeoData.Countries.ToList();
+        StatePicker.ItemsSource   = GeoData.BrazilStates.ToList();
     }
 
     protected override void OnAppearing()
@@ -20,14 +22,30 @@ public partial class ProfilePage : ContentPage
         base.OnAppearing();
         var p = AppState.Current.Profile;
 
-        NameEntry.Text    = p.Name;
-        CountryEntry.Text = p.Country;
-        StateEntry.Text   = p.State;
+        NameEntry.Text = p.Name;
+
+        int ci = GeoData.Countries.IndexOf(p.Country);
+        if (ci >= 0) CountryPicker.SelectedIndex = ci;
+
+        bool isBrazil = p.Country == "Brasil";
+        StateSection.IsVisible = isBrazil;
+        if (isBrazil && !string.IsNullOrEmpty(p.State))
+        {
+            int si = GeoData.BrazilStates.FindIndex(s => s.StartsWith(p.State));
+            if (si >= 0) StatePicker.SelectedIndex = si;
+        }
 
         _pendingAvatarPath = p.AvatarPath;
         _pendingEmoji      = p.Avatar;
 
         RefreshAvatarDisplay();
+    }
+
+    private void OnCountryChanged(object? sender, EventArgs e)
+    {
+        bool isBrazil = CountryPicker.SelectedItem as string == "Brasil";
+        StateSection.IsVisible = isBrazil;
+        if (!isBrazil) StatePicker.SelectedIndex = -1;
     }
 
     private void RefreshAvatarDisplay()
@@ -92,10 +110,10 @@ public partial class ProfilePage : ContentPage
             return;
         }
 
-        var p        = AppState.Current.Profile;
-        p.Name       = name;
-        p.Country    = CountryEntry.Text?.Trim() ?? "";
-        p.State      = StateEntry.Text?.Trim() ?? "";
+        var p     = AppState.Current.Profile;
+        p.Name    = name;
+        p.Country = CountryPicker.SelectedItem as string ?? "";
+        p.State   = GeoData.StateAbbr(StatePicker.SelectedItem as string);
         p.AvatarPath = _pendingAvatarPath;
 
         if (string.IsNullOrEmpty(_pendingAvatarPath))

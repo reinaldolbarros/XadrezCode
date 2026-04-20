@@ -103,7 +103,7 @@ public class RoomLobbyService
     {
         while (true)
         {
-            await Task.Delay(_rng.Next(1500, 4000));
+            await Task.Delay(_rng.Next(8000, 15000));
 
             bool changed = false;
             foreach (var room in _rooms.ToList())

@@ -18,15 +18,16 @@
                     </Label.GestureRecognizers>
                 </Label>
             </VerticalStackLayout>
-            <Frame Grid.Column="1" BackgroundColor="#0F3460" CornerRadius="10"
-                   Padding="12,5" HasShadow="False" VerticalOptions="Center">
+            <Border Grid.Column="1" BackgroundColor="#0F3460"
+                    StrokeShape="RoundRectangle 10" StrokeThickness="0"
+                    Padding="12,5" VerticalOptions="Center">
                 <HorizontalStackLayout Spacing="6">
                     <Label Text="💰" FontSize="14" VerticalOptions="Center"/>
                     <Label x:Name="BalanceLabel" Text="$ 0"
                            TextColor="#4CAF50" FontSize="15" FontAttributes="Bold"
                            VerticalOptions="Center"/>
                 </HorizontalStackLayout>
-            </Frame>
+            </Border>
         </Grid>
 
         <!-- ══ Abas de tipo ══ -->

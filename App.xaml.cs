@@ -11,12 +11,7 @@ public partial class App : Application
 
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
-		var auth  = AppState.Current.Auth;
-		Page root = (auth.IsAuthenticated && !auth.IsAnonymous)
-			? new AppShell()
-			: new LoginPage();
-
-		var window = new Window(root)
+		var window = new Window(new Views.SplashPage())
 		{
 			MinimumWidth  = 480,
 			MinimumHeight = 600

@@ -8,12 +8,12 @@
     <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto">
 
         <!-- ══ Faixas de classificação ══ -->
-        <Frame Grid.Row="0" BackgroundColor="#16213E" BorderColor="Transparent"
-               CornerRadius="0" Padding="12,10" HasShadow="False">
+        <Border Grid.Row="0" BackgroundColor="#16213E"
+                StrokeThickness="0" Padding="12,10">
             <ScrollView Orientation="Horizontal">
                 <HorizontalStackLayout Spacing="8" x:Name="TierBar"/>
             </ScrollView>
-        </Frame>
+        </Border>
 
         <!-- ══ Abas Global / Semanal ══ -->
         <Grid Grid.Row="1" ColumnDefinitions="*,*" BackgroundColor="#0F3460">
@@ -47,9 +47,9 @@
                 FontSize="11" CornerRadius="0" HeightRequest="30" Padding="0"/>
 
         <!-- ══ Sua posição (fixada no rodapé) ══ -->
-        <Frame Grid.Row="5" x:Name="MyPositionFrame"
-               BackgroundColor="#1C2A1C" BorderColor="#FFD700"
-               CornerRadius="0" Padding="10,8" HasShadow="False">
+        <Border Grid.Row="5" x:Name="MyPositionFrame"
+                BackgroundColor="#1C2A1C" Stroke="#FFD700" StrokeThickness="1"
+                Padding="10,8">
             <Grid ColumnDefinitions="44,Auto,*,80">
                 <Label x:Name="MyPosLabel"   TextColor="#FFD700" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                 <Label x:Name="MyTierLabel"  Grid.Column="1" FontSize="16" Margin="8,0" HorizontalTextAlignment="Center"/>
@@ -59,7 +59,7 @@
                 </StackLayout>
                 <Label x:Name="MyPointsLabel" Grid.Column="3" TextColor="#4CAF50" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
             </Grid>
-        </Frame>
+        </Border>
 
     </Grid>
 </ContentPage>
