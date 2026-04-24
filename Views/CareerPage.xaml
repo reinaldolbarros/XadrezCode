@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ChessMAUI.Views.CareerPage"
+             Title="Modo Carreira"
+             BackgroundColor="#0A1020">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,16,20,40" Spacing="12">
+
+            <!-- Header -->
+            <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                <VerticalStackLayout Spacing="2">
+                    <Label x:Name="TournamentNameLabel" Text="Modo Carreira"
+                           TextColor="White" FontSize="22" FontAttributes="Bold"/>
+                    <Label x:Name="RoundInfoLabel" Text=""
+                           TextColor="#607890" FontSize="13"/>
+                </VerticalStackLayout>
+                <Button Grid.Column="1" Text="ℹ Fluxo"
+                        Clicked="OnShowFlowClicked"
+                        BackgroundColor="#1A2840" TextColor="#4A8AC0"
+                        FontSize="12" CornerRadius="8"
+                        Padding="10,6" VerticalOptions="Center"/>
+            </Grid>
+
+            <!-- Level indicator -->
+            <Border BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10" Padding="14,10">
+                <VerticalStackLayout Spacing="3">
+                    <Label x:Name="LevelLabel" Text="" TextColor="#8878CC"
+                           FontSize="12" FontAttributes="Bold"/>
+                    <Label x:Name="LevelSubLabel" Text="" TextColor="#607890" FontSize="12"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Welcome (carreira não iniciada) -->
+            <VerticalStackLayout x:Name="WelcomeSection" IsVisible="False" Spacing="14">
+                <Label Text="Suba da base até o topo. Passe por 7 níveis do circuito FIDE e torne-se Campeão Mundial."
+                       TextColor="#8878CC" FontSize="14" HorizontalTextAlignment="Center"/>
+                <Button Text="Iniciar Carreira"
+                        Clicked="OnStartCareerClicked"
+                        BackgroundColor="#769656" TextColor="White"
+                        FontAttributes="Bold" FontSize="16"
+                        CornerRadius="12" HeightRequest="50"/>
+            </VerticalStackLayout>
+
+            <!-- Classificação Swiss -->
+            <Border x:Name="StandingsSection" IsVisible="False"
+                    BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10" Padding="0,0,0,4">
+                <VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,Auto" Padding="14,10,14,6">
+                        <Label Text="Classificação" TextColor="#607890"
+                               FontSize="12" FontAttributes="Bold"/>
+                        <Label x:Name="ZoneLabel" Grid.Column="1"
+                               Text="" TextColor="#4A8AC0" FontSize="11"/>
+                    </Grid>
+                    <VerticalStackLayout x:Name="StandingsList" Spacing="0"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Copa do Mundo – bracket -->
+            <Border x:Name="CopaSection" IsVisible="False"
+                    BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10" Padding="14,12">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Copa do Mundo FIDE — Eliminação Direta"
+                           TextColor="#607890" FontSize="12" FontAttributes="Bold"/>
+                    <VerticalStackLayout x:Name="CopaBracket" Spacing="6"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Mundial – score -->
+            <Border x:Name="MundialSection" IsVisible="False"
+                    BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10" Padding="16,14">
+                <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                    <Label Text="Campeonato Mundial de Xadrez"
+                           TextColor="#607890" FontSize="12" FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"/>
+                    <Label x:Name="MundialScoreLabel" Text="0 × 0"
+                           TextColor="White" FontSize="32" FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"/>
+                    <Label x:Name="MundialSubLabel" Text=""
+                           TextColor="#4A8AC0" FontSize="12"
+                           HorizontalTextAlignment="Center"/>
+                    <VerticalStackLayout x:Name="MundialHistory" Spacing="4"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Próximo adversário -->
+            <Border x:Name="OpponentSection" IsVisible="False"
+                    BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10" Padding="14,10">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout Spacing="2">
+                        <Label x:Name="OpponentContextLabel" Text="Próximo adversário"
+                               TextColor="#607890" FontSize="11"/>
+                        <Label x:Name="OpponentNameLabel" Text="" TextColor="White"
+                               FontSize="14" FontAttributes="Bold"/>
+                    </VerticalStackLayout>
+                    <Label x:Name="OpponentDiffLabel" Grid.Column="1"
+                           Text="" TextColor="#4A6888" FontSize="12"
+                           VerticalOptions="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Botão jogar -->
+            <Button x:Name="PlayBtn" Text="Jogar"
+                    IsVisible="False"
+                    Clicked="OnPlayRoundClicked"
+                    BackgroundColor="#769656" TextColor="White"
+                    FontAttributes="Bold" FontSize="16"
+                    CornerRadius="12" HeightRequest="50"/>
+
+            <!-- Resultado da fase -->
+            <Border x:Name="ResultSection" IsVisible="False"
+                    BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 10" Padding="16,16">
+                <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                    <Label x:Name="ResultIcon" Text="" FontSize="32"
+                           HorizontalTextAlignment="Center"/>
+                    <Label x:Name="ResultTitle" Text=""
+                           TextColor="White" FontSize="17" FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"/>
+                    <Label x:Name="ResultDetail" Text=""
+                           TextColor="#607890" FontSize="13"
+                           HorizontalTextAlignment="Center"/>
+                    <Label x:Name="ResultDestination" Text=""
+                           TextColor="#4A8AC0" FontSize="12" FontAttributes="Bold"
+                           HorizontalTextAlignment="Center" Margin="0,4,0,0"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Ação pós-resultado -->
+            <Button x:Name="NextBtn" Text=""
+                    IsVisible="False"
+                    Clicked="OnNextActionClicked"
+                    BackgroundColor="#2A5090" TextColor="White"
+                    FontAttributes="Bold" FontSize="15"
+                    CornerRadius="12" HeightRequest="48"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -114,6 +114,14 @@ public partial class LobbyPage : ContentPage
         CasualStatusLabel.TextColor = hasPrio
             ? Color.FromArgb("#4CAF50") : Color.FromArgb("#4A6888");
 
+        // Modo Carreira — subtítulo dinâmico
+        var career = AppState.Current.Career.Progress;
+        CareerSubLabel.Text = career.IsCareerCompleted
+            ? "🏆 Campeão Mundial de Xadrez"
+            : career.ActiveTournament != null
+                ? $"Nível {(int)career.CurrentLevel + 1}/7  ·  {career.ActiveTournament.LevelName}"
+                : "Do Local ao Campeonato Mundial";
+
         // Destaques da Liga
         SeasonSubLabel.Text = AppState.Current.Season.CurrentSeasonLabel;
         BuildChampions(AppState.Current);
@@ -343,6 +351,18 @@ public partial class LobbyPage : ContentPage
 
     private async void OnSubscriptionBannerTapped(object? sender, TappedEventArgs e)
         => await Shell.Current.GoToAsync("SubscriptionPage");
+
+    private async void OnCareerClicked(object? sender, TappedEventArgs e)
+    {
+        try
+        {
+            await Shell.Current.GoToAsync("CareerPage");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Erro navegação", ex.Message + "\n\n" + ex.GetType().Name, "OK");
+        }
+    }
 
     private async void OnLeagueClicked(object? sender, TappedEventArgs e)
         => await Shell.Current.GoToAsync("LeaguePage");

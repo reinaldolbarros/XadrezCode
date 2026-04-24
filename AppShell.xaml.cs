@@ -24,5 +24,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("HallOfFamePage",       typeof(HallOfFamePage));
         Routing.RegisterRoute("ProfilePage",          typeof(ProfilePage));
         Routing.RegisterRoute("SeasonRankingPage",    typeof(SeasonRankingPage));
+        Routing.RegisterRoute("CareerPage",           typeof(CareerPage));
+        Routing.RegisterRoute("CareerFlowPage",       typeof(CareerFlowPage));
     }
 }

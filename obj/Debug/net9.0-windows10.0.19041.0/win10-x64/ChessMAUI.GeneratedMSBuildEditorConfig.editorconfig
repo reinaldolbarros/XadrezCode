@@ -64,6 +64,18 @@ build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.BracketPag
 build_metadata.AdditionalFiles.TargetPath = Views\BracketPage.xaml
 build_metadata.AdditionalFiles.RelativePath = Views\BracketPage.xaml
 
+[C:/Users/reina/Documents/ChessMAUI/Views/CareerFlowPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.CareerFlowPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\CareerFlowPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\CareerFlowPage.xaml
+
+[C:/Users/reina/Documents/ChessMAUI/Views/CareerPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.CareerPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\CareerPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\CareerPage.xaml
+
 [C:/Users/reina/Documents/ChessMAUI/Views/ExtractPage.xaml]
 build_metadata.AdditionalFiles.GenKind = Xaml
 build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.ExtractPage.xaml

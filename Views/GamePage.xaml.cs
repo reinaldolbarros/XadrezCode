@@ -1,3 +1,4 @@
+using ChessMAUI.Models;
 using ChessMAUI.Services;
 using ChessMAUI.ViewModels;
 
@@ -10,10 +11,9 @@ public partial class GamePage : ContentPage
     private CancellationTokenSource? _chatCts;
     private double _squareSize;
 
-    // Índice da dificuldade selecionada: 0=Fácil, 1=Médio, 2=Difícil
     private int _selectedDiff = 0;
-
-    private static readonly int[] DiffDepths = [1, 3, 5];
+    private static readonly int[]    DiffDepths  = [1, 3, 5];
+    private static readonly string[] DiffLabels  = ["Fácil", "Médio", "Difícil"];
 
     public GamePage()
     {
@@ -29,6 +29,7 @@ public partial class GamePage : ContentPage
         _vm.PropertyChanged     += OnVmPropertyChanged;
         _vm.RequestHandoff      += ShowHandoffOverlay;
 
+        _selectedDiff = Preferences.Default.Get("AiDifficulty", 0);
         BuildBoard();
         BoardThemeService.ThemeChanged += OnThemeChanged;
     }
@@ -38,16 +39,28 @@ public partial class GamePage : ContentPage
         base.OnAppearing();
         AdminBar.IsVisible = AppState.Current.IsAdminMode;
 
-        // Inicializa visuais dos toggles do setup
         SelectDiff(_selectedDiff);
 
 
         var state = AppState.Current;
 
         // Consome a flag UMA ÚNICA VEZ — evita reiniciar o jogo em cada OnAppearing
-        if (state.PendingTournamentGame)
+        if (state.PendingCareerGame)
+        {
+            state.PendingCareerGame  = false;
+            SetupPanel.IsVisible     = false;
+            ResultPanel.IsVisible    = false;
+            Title = "Modo Carreira";
+            _vm.StartTournamentGame(
+                state.CareerOpponentName,
+                state.CareerTimeMinutes,
+                state.CareerAIDepth);
+        }
+        else if (state.PendingTournamentGame)
         {
             state.PendingTournamentGame = false;
+            SetupPanel.IsVisible        = false;
+            ResultPanel.IsVisible       = false;
             Title = $"vs {state.TournamentOpponentName}";
             _vm.StartTournamentGame(
                 state.TournamentOpponentName,
@@ -68,11 +81,9 @@ public partial class GamePage : ContentPage
         }
         else if (!_vm.IsTournamentMode && !_vm.IsFriendMode && _vm.GameOver)
         {
-            // Mostra o painel de setup estilizado
             ResultPanel.IsVisible = false;
             SetupPanel.IsVisible  = true;
             SelectDiff(_selectedDiff);
-    
         }
     }
 
@@ -80,9 +91,21 @@ public partial class GamePage : ContentPage
     {
         base.OnDisappearing();
 
-        // Fallback: se o jogo terminou sem navegar automaticamente (ex: back do sistema)
-        if (_vm.IsTournamentMode && _vm.GameOver && !AppState.Current.MatchResultReady)
-            AppState.Current.MatchResultReady = true;
+        var state = AppState.Current;
+
+        // Fallback para carreira: captura resultado real mesmo que TournamentGameEnded não tenha disparado
+        if (state.IsCareerGame && _vm.GameOver && !state.MatchResultReady)
+        {
+            bool isDraw = _vm.StatusMessage.Contains("Empate") || _vm.StatusMessage.Contains("Afogamento");
+            state.LastMatchHumanWon = _vm.HumanWon == true;
+            state.LastMatchWasDraw  = isDraw;
+            state.MatchResultReady  = true;
+        }
+        // Fallback original para torneios de bracket
+        else if (_vm.IsTournamentMode && _vm.GameOver && !state.MatchResultReady)
+        {
+            state.MatchResultReady = true;
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -90,13 +113,70 @@ public partial class GamePage : ContentPage
     // -----------------------------------------------------------------------
     private void OnTournamentGameEnded(bool humanWon)
     {
-        AppState.Current.Daily.RecordGamePlayed();
+        var state = AppState.Current;
+        state.Daily.RecordGamePlayed();
+
+        if (state.IsCareerGame)
+        {
+            bool isDraw = _vm.StatusMessage.Contains("Empate") || _vm.StatusMessage.Contains("Afogamento");
+            state.LastMatchHumanWon = humanWon;
+            state.LastMatchWasDraw  = isDraw;
+            state.MatchResultReady  = true;
+        }
+
+        bool   hasNextRound = false;
+        int    nextRoundNum = 1;
+        string nextBtnText  = "Próxima";
+        if (state.IsCareerGame)
+        {
+            var prog = state.Career.Progress;
+            var t    = prog.ActiveTournament;
+            if (t != null)
+            {
+                nextRoundNum = t.CurrentRound + 1;
+                bool isDraw  = state.LastMatchWasDraw;
+                hasNextRound = t.Format switch
+                {
+                    CareerFormat.Swiss => t.CurrentRound < t.TotalRounds,
+                    // Elimination: only continue if human won (loss = eliminated)
+                    CareerFormat.Elimination => humanWon && !isDraw && t.CurrentRound < t.TotalRounds,
+                    // BestOfN: continue if neither player reached win threshold
+                    CareerFormat.BestOfN =>
+                        (t.HumanWins   + (humanWon && !isDraw ? 1 : 0)) < t.WinsNeeded &&
+                        (t.HumanLosses + (!humanWon && !isDraw ? 1 : 0)) < t.WinsNeeded &&
+                        t.CurrentRound < t.TotalRounds,
+                    _ => false
+                };
+                nextBtnText = t.Format switch
+                {
+                    CareerFormat.Elimination => nextRoundNum == 3 ? "Jogar a Final" : $"Fase {nextRoundNum}",
+                    CareerFormat.BestOfN     => $"Partida {nextRoundNum}",
+                    _                        => $"Rodada {nextRoundNum}"
+                };
+            }
+        }
 
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            ResultTitle.Text      = humanWon ? "Vitória!" : "Derrota";
-            ResultTitle.TextColor = humanWon ? Color.FromArgb("#4CAF50") : Color.FromArgb("#FF5252");
+            bool isDraw = state.LastMatchWasDraw;
+            ResultTitle.Text      = humanWon ? "Vitória!" : isDraw ? "Empate" : "Derrota";
+            ResultTitle.TextColor = humanWon ? Color.FromArgb("#4CAF50")
+                                 : isDraw    ? Color.FromArgb("#FFD700")
+                                 : Color.FromArgb("#FF5252");
             ResultDetail.Text     = _vm.StatusMessage;
+            if (state.IsCareerGame)
+            {
+                ResultActionBtn.IsVisible      = hasNextRound;
+                ResultActionBtn.Text           = nextBtnText;
+                ResultSecondaryLabel.IsVisible = true;
+                ResultSecondaryLabel.Text      = "Ver resultado da fase";
+            }
+            else
+            {
+                ResultActionBtn.IsVisible  = true;
+                ResultActionBtn.Text       = "Voltar ao Torneio";
+                ResultSecondaryLabel.Text  = "← Voltar ao lobby";
+            }
             ResultPanel.IsVisible = true;
         });
     }
@@ -116,15 +196,20 @@ public partial class GamePage : ContentPage
                 HandoffPanel.IsVisible = false;
                 bool isDraw   = _vm.StatusMessage.Contains("Empate") || _vm.StatusMessage.Contains("Afogamento");
                 bool whiteWon = _vm.StatusMessage.Contains(_vm.WhitePlayerName) && _vm.StatusMessage.Contains("vence");
-                ResultTitle.Text      = isDraw ? "Empate" : whiteWon ? $"{_vm.WhitePlayerName} vence!" : $"{_vm.BlackPlayerName} vence!";
-                ResultTitle.TextColor = isDraw ? Color.FromArgb("#FFD700") : Color.FromArgb("#4CAF50");
-                ResultDetail.Text     = _vm.StatusMessage;
-                ResultPanel.IsVisible = true;
+                ResultTitle.Text       = isDraw ? "Empate" : whiteWon ? $"{_vm.WhitePlayerName} vence!" : $"{_vm.BlackPlayerName} vence!";
+                ResultTitle.TextColor  = isDraw ? Color.FromArgb("#FFD700") : Color.FromArgb("#4CAF50");
+                ResultDetail.Text      = _vm.StatusMessage;
+                ResultActionBtn.Text   = "← Voltar ao lobby";
+                ResultSecondaryLabel.IsVisible = false;
+                ResultPanel.IsVisible  = true;
             });
             return;
         }
 
-        bool humanWon = _vm.StatusMessage.Contains("Brancas vencem");
+        // HumanWon é setado pelo admin (ForceWin/ForceLoss); senão, lê o StatusMessage
+        bool humanWon = _vm.HumanWon.HasValue
+            ? _vm.HumanWon == true
+            : _vm.StatusMessage.Contains("Brancas vencem");
 
         MainThread.BeginInvokeOnMainThread(async () =>
         {
@@ -153,8 +238,11 @@ public partial class GamePage : ContentPage
             ResultTitle.TextColor = humanWon
                 ? Color.FromArgb("#4CAF50")
                 : isDraw ? Color.FromArgb("#FFD700") : Color.FromArgb("#FF5252");
-            ResultDetail.Text     = _vm.StatusMessage;
-            ResultPanel.IsVisible = true;
+            ResultDetail.Text              = _vm.StatusMessage;
+            ResultActionBtn.Text           = "Novo Jogo";
+            ResultSecondaryLabel.IsVisible = true;
+            ResultSecondaryLabel.Text      = "← Voltar ao lobby";
+            ResultPanel.IsVisible          = true;
         });
     }
 
@@ -220,48 +308,82 @@ public partial class GamePage : ContentPage
         return aiAccepts;
     }
 
-    // -----------------------------------------------------------------------
-    // Botão: NOVO JOGO dentro do SetupPanel — abre os menus e inicia o jogo
-    // -----------------------------------------------------------------------
     private async void OnResultBackTapped(object? sender, TappedEventArgs e)
     {
         ResultPanel.IsVisible = false;
         await Shell.Current.GoToAsync("..");
     }
 
-    // Chamado pelos botões toggle de dificuldade no SetupPanel
-    private void OnDiffSelected(object? sender, TappedEventArgs e)
-    {
-        if (e.Parameter is string s && int.TryParse(s, out int idx))
-            SelectDiff(idx);
-    }
-
     private void SelectDiff(int idx)
     {
         _selectedDiff = idx;
-        Border[] btns = [DiffBtn0, DiffBtn1, DiffBtn2];
-        for (int i = 0; i < btns.Length; i++)
-        {
-            bool sel = i == idx;
-            btns[i].BackgroundColor = Color.FromArgb(sel ? "#1A3A65" : "#111D32");
-            btns[i].Stroke          = new SolidColorBrush(Color.FromArgb(sel ? "#2A5090" : "#1A2840"));
-            btns[i].StrokeThickness = sel ? 1.5 : 1;
-            if (btns[i].Content is Label lbl)
-            {
-                lbl.TextColor      = sel ? Colors.White : Color.FromArgb("#607890");
-                lbl.FontAttributes = sel ? FontAttributes.Bold : FontAttributes.None;
-            }
-        }
+        Preferences.Default.Set("AiDifficulty", idx);
+        DiffLabel.Text = $"🤖  IA: {DiffLabels[idx]}";
+    }
+
+    private async void OnDiffSettingsClicked(object? sender, EventArgs e)
+    {
+        string? choice = await DisplayActionSheet(
+            "Dificuldade da IA", "Cancelar", null, "Fácil", "Médio", "Difícil");
+        if (choice == null || choice == "Cancelar") return;
+        int idx = Array.IndexOf(DiffLabels, choice);
+        if (idx >= 0) SelectDiff(idx);
     }
 
     private void OnSetupNewGameClicked(object? sender = null, EventArgs? e = null)
     {
-        ResultPanel.IsVisible  = false;
-        SetupPanel.IsVisible   = false;
-        WhitePlayerLabel.Text  = "♙ Você (Brancas)";
-        BlackPlayerLabel.Text  = "♟ IA (Pretas)";
-        Title                  = "ChessArena";
-        _vm.StartNewGame(0, DiffDepths[_selectedDiff]); // 0 = sem limite de tempo
+        ResultPanel.IsVisible         = false;
+        SetupPanel.IsVisible          = false;
+        WhitePlayerLabel.Text         = "♙ Você (Brancas)";
+        BlackPlayerLabel.Text         = "♟ IA (Pretas)";
+        Title                         = "ChessArena";
+        AppState.Current.IsCareerGame = false;
+        _vm.StartNewGame(0, DiffDepths[_selectedDiff]);
+    }
+
+    private async void OnResultActionClicked(object? sender, EventArgs e)
+    {
+        var state = AppState.Current;
+
+        if (state.IsCareerGame)
+        {
+            // Grava resultado e inicia próxima rodada sem sair da página
+            var prog = state.Career.Progress;
+            if (prog.ActiveTournament != null && state.MatchResultReady)
+            {
+                var result = state.LastMatchHumanWon ? CareerRoundResult.Win
+                           : state.LastMatchWasDraw  ? CareerRoundResult.Draw
+                           : CareerRoundResult.Loss;
+                state.Career.RecordRound(prog.ActiveTournament, state.CareerOpponentName, result);
+                state.Career.Save(prog);
+                state.MatchResultReady = false;
+            }
+
+            var prog2 = state.Career.Progress;
+            var t     = prog2.ActiveTournament;
+            if (t == null || t.IsCompleted)
+            {
+                // Botão não deveria ser visível aqui, mas navega por segurança
+                ResultPanel.IsVisible = false;
+                await Shell.Current.GoToAsync("..");
+                return;
+            }
+
+            var opp = state.Career.GetNextOpponent(t);
+            state.CareerOpponentName = opp.Name;
+            state.CareerAIDepth      = CareerService.GetAIDepth(opp.Difficulty);
+            state.CareerTimeMinutes  = CareerService.GetTimeMinutes(opp.Difficulty);
+
+            ResultPanel.IsVisible = false;
+            _vm.StartTournamentGame(opp.Name, state.CareerTimeMinutes, state.CareerAIDepth);
+            return;
+        }
+
+        ResultPanel.IsVisible = false;
+        if (_vm.IsTournamentMode || _vm.IsFriendMode)
+            await Shell.Current.GoToAsync("..");
+        else
+            OnSetupNewGameClicked();
     }
 
     // -----------------------------------------------------------------------

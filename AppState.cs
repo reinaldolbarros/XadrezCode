@@ -51,4 +51,15 @@ public class AppState
 
     // Modo administrador para testes
     public bool IsAdminMode { get; set; } = false;
+
+    // Modo carreira
+    public CareerService Career { get; } = new();
+
+    // CareerPage → GamePage
+    public bool   PendingCareerGame  { get; set; }
+    public bool   IsCareerGame       { get; set; }
+    public string CareerOpponentName { get; set; } = "";
+    public int    CareerAIDepth      { get; set; } = 1;
+    public int    CareerTimeMinutes  { get; set; } = 10;
+    public bool   LastMatchWasDraw   { get; set; }
 }

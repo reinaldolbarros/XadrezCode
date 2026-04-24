@@ -113,6 +113,27 @@
                         CornerRadius="14" HeightRequest="50"/>
             </Grid>
 
+            <!-- ══ Modo Carreira ══ -->
+            <Border BackgroundColor="#0E1E14" Stroke="#1A4030" StrokeThickness="1.5"
+                    StrokeShape="RoundRectangle 12" Padding="14,12"
+                    Margin="0,0,0,10">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Label Text="♟" FontSize="26" TextColor="#4CAF50" VerticalOptions="Center"/>
+                    <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" Spacing="2">
+                        <Label Text="Modo Carreira" TextColor="White"
+                               FontSize="17" FontAttributes="Bold"/>
+                        <Label x:Name="CareerSubLabel"
+                               Text="Do clube local ao campeonato mundial"
+                               TextColor="#4A6888" FontSize="12"/>
+                    </VerticalStackLayout>
+                    <Label Grid.Column="2" Text="›" TextColor="#4CAF50"
+                           FontSize="25" VerticalOptions="Center"/>
+                </Grid>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnCareerClicked"/>
+                </Border.GestureRecognizers>
+            </Border>
+
             <!-- ══ Liga ChessArena — com ranking da temporada integrado ══ -->
             <Border BackgroundColor="#12101E" Stroke="#4A3090" StrokeThickness="1.5"
                     StrokeShape="RoundRectangle 12" Padding="0"
