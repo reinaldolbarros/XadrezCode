@@ -130,6 +130,12 @@ build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.ProfilePag
 build_metadata.AdditionalFiles.TargetPath = Views\ProfilePage.xaml
 build_metadata.AdditionalFiles.RelativePath = Views\ProfilePage.xaml
 
+[C:/Users/reina/Documents/ChessMAUI/Views/RandomMatchPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.RandomMatchPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\RandomMatchPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\RandomMatchPage.xaml
+
 [C:/Users/reina/Documents/ChessMAUI/Views/RankingPage.xaml]
 build_metadata.AdditionalFiles.GenKind = Xaml
 build_metadata.AdditionalFiles.ManifestResourceName = ChessMAUI.Views.RankingPage.xaml

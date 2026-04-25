@@ -113,6 +113,26 @@
                         CornerRadius="14" HeightRequest="50"/>
             </Grid>
 
+            <!-- ══ Jogo Aleatório Online ══ -->
+            <Border BackgroundColor="#0C1830" Stroke="#1E3A6A" StrokeThickness="1.5"
+                    StrokeShape="RoundRectangle 12" Padding="14,12"
+                    Margin="0,0,0,10">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Label Text="🌐" FontSize="26" VerticalOptions="Center"/>
+                    <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" Spacing="2">
+                        <Label Text="Jogar Aleatório" TextColor="White"
+                               FontSize="17" FontAttributes="Bold"/>
+                        <Label Text="Conecte com um jogador online agora"
+                               TextColor="#4A6888" FontSize="12"/>
+                    </VerticalStackLayout>
+                    <Label Grid.Column="2" Text="›" TextColor="#5A8AD0"
+                           FontSize="25" VerticalOptions="Center"/>
+                </Grid>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnRandomMatchClicked"/>
+                </Border.GestureRecognizers>
+            </Border>
+
             <!-- ══ Modo Carreira ══ -->
             <Border BackgroundColor="#0E1E14" Stroke="#1A4030" StrokeThickness="1.5"
                     StrokeShape="RoundRectangle 12" Padding="14,12"
@@ -134,13 +154,12 @@
                 </Border.GestureRecognizers>
             </Border>
 
-            <!-- ══ Liga ChessArena — com ranking da temporada integrado ══ -->
+            <!-- ══ Liga ChessArena — COMENTADO: aguardando base de jogadores ══
             <Border BackgroundColor="#12101E" Stroke="#4A3090" StrokeThickness="1.5"
                     StrokeShape="RoundRectangle 12" Padding="0"
                     Margin="0,0,0,10">
                 <VerticalStackLayout Spacing="0">
 
-                    <!-- Cabeçalho clicável → LeaguePage -->
                     <Grid ColumnDefinitions="Auto,*,Auto" Padding="16,12">
                         <Label Text="♚" FontSize="27" TextColor="#C0A020" VerticalOptions="Center"/>
                         <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Margin="12,0,0,0" Spacing="2">
@@ -153,7 +172,6 @@
                         </Grid.GestureRecognizers>
                     </Grid>
 
-                    <!-- Destaques: Campeão da Semana + Líder do Mês -->
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Padding="12,0,12,10">
                         <Border BackgroundColor="#0D1020" Stroke="#4A3090" StrokeThickness="1"
                                 StrokeShape="RoundRectangle 10" Padding="12,10">
@@ -179,10 +197,8 @@
                         </Border>
                     </Grid>
 
-                    <!-- Separador -->
                     <BoxView Color="#2A1A50" HeightRequest="1" Margin="12,0"/>
 
-                    <!-- Cabeçalho do ranking da temporada -->
                     <Grid ColumnDefinitions="*,Auto" Padding="16,10,16,6">
                         <VerticalStackLayout VerticalOptions="Center" Spacing="1">
                             <Label Text="♛  Temporada — Liga" TextColor="White"
@@ -197,13 +213,13 @@
                         </Label>
                     </Grid>
 
-                    <!-- Mini ranking -->
                     <VerticalStackLayout x:Name="MiniRankContainer" Spacing="0" Padding="12,0,12,8"/>
 
                 </VerticalStackLayout>
             </Border>
+            ══ fim Liga ChessArena ══ -->
 
-            <!-- ══ Torneio Casual ══ -->
+            <!-- ══ Torneio Casual — COMENTADO: aguardando base de jogadores ══
             <Border x:Name="CasualBorder"
                     BackgroundColor="#0E1E38" Stroke="#2A5090" StrokeThickness="1.5"
                     StrokeShape="RoundRectangle 12" Padding="14,12"
@@ -246,6 +262,7 @@
                     <TapGestureRecognizer Tapped="OnTournamentsClicked"/>
                 </Border.GestureRecognizers>
             </Border>
+            ══ fim Torneio Casual ══ -->
 
             <!-- ══ Bônus Diário ══ -->
             <Border x:Name="BonusFrame"

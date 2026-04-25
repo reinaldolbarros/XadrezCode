@@ -67,6 +67,22 @@ public partial class GamePage : ContentPage
                 state.TournamentTimeMinutes,
                 state.TournamentAIDepth);
         }
+        else if (state.PendingOnlineGame)
+        {
+            state.PendingOnlineGame = false;
+            SetupPanel.IsVisible    = false;
+            ResultPanel.IsVisible   = false;
+            Title = $"vs {state.OnlineOpponentName}";
+            string myName  = AppState.Current.Profile.Name;
+            string oppName = state.OnlineOpponentName;
+            WhitePlayerLabel.Text = state.OnlinePlayerIsWhite
+                ? $"♙ {myName} (Brancas)"
+                : $"♙ {oppName} (Brancas)";
+            BlackPlayerLabel.Text = state.OnlinePlayerIsWhite
+                ? $"♟ {oppName} (Pretas)"
+                : $"♟ {myName} (Pretas)";
+            _vm.StartTournamentGame(oppName, state.OnlineTimeMinutes, 3);
+        }
         else if (state.PendingFriendGame)
         {
             state.PendingFriendGame = false;
@@ -170,6 +186,12 @@ public partial class GamePage : ContentPage
                 ResultActionBtn.Text           = nextBtnText;
                 ResultSecondaryLabel.IsVisible = true;
                 ResultSecondaryLabel.Text      = "Ver resultado da fase";
+            }
+            else if (state.IsOnlineGame)
+            {
+                ResultActionBtn.IsVisible      = true;
+                ResultActionBtn.Text           = "← Voltar ao lobby";
+                ResultSecondaryLabel.IsVisible = false;
             }
             else
             {
@@ -376,6 +398,14 @@ public partial class GamePage : ContentPage
 
             ResultPanel.IsVisible = false;
             _vm.StartTournamentGame(opp.Name, state.CareerTimeMinutes, state.CareerAIDepth);
+            return;
+        }
+
+        if (state.IsOnlineGame)
+        {
+            state.IsOnlineGame    = false;
+            ResultPanel.IsVisible = false;
+            await Shell.Current.GoToAsync("..");
             return;
         }
 

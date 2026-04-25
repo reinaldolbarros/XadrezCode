@@ -84,4 +84,8 @@ public class CareerProgress
     public int                    ZonalRetries      { get; set; }
     public CareerTournamentState? ActiveTournament  { get; set; }
     public bool                   IsCareerCompleted { get; set; }
+    public int                    CycleYear         { get; set; }
+    public int                    TitlesWon         { get; set; }
+
+    public int EffectiveCycleYear => CycleYear > 0 ? CycleYear : 2024;
 }

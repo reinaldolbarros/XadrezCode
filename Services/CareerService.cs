@@ -282,8 +282,20 @@ public class CareerService
         var p = new CareerProgress
         {
             CurrentLevel     = CareerLevel.Local,
+            CycleYear        = 2024,
             ActiveTournament = CreateSwissTournament(CareerLevel.Local)
         };
+        Save(p);
+    }
+
+    public void StartNewCycle(CareerProgress p)
+    {
+        p.IsCareerCompleted = false;
+        p.CurrentLevel      = CareerLevel.Local;
+        p.ZonalRetries      = 0;
+        p.CycleYear         = p.EffectiveCycleYear + 2;
+        p.TitlesWon++;
+        p.ActiveTournament  = CreateSwissTournament(CareerLevel.Local);
         Save(p);
     }
 
@@ -389,6 +401,7 @@ public class CareerService
                 {
                     p.IsCareerCompleted = true;
                     p.ActiveTournament  = null;
+                    // CycleYear e TitlesWon incrementados em StartNewCycle quando o jogador iniciar o próximo ciclo
                 }
                 else
                 {

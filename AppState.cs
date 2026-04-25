@@ -62,4 +62,12 @@ public class AppState
     public int    CareerAIDepth      { get; set; } = 1;
     public int    CareerTimeMinutes  { get; set; } = 10;
     public bool   LastMatchWasDraw   { get; set; }
+
+    // Jogo aleatório online
+    public OnlineMatchService OnlineMatch       { get; } = new();
+    public bool               PendingOnlineGame { get; set; }
+    public bool               IsOnlineGame      { get; set; }
+    public string             OnlineOpponentName  { get; set; } = "";
+    public int                OnlineTimeMinutes   { get; set; } = 5;
+    public bool               OnlinePlayerIsWhite { get; set; }
 }

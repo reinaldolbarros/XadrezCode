@@ -60,6 +60,19 @@
         <member name="E:ChessMAUI.Services.MatchmakingService.RoomFull">
             <summary>Disparado quando a sala está cheia e o torneio vai começar.</summary>
         </member>
+        <member name="T:ChessMAUI.Services.OnlineMatchService">
+            <summary>
+            Matchmaking 1v1 aleatório.
+            O tempo é definido por quem inicia a busca; o oponente aceita e entra.
+            Phase 1: mock local. Phase 2: substituir por Firebase/SignalR.
+            </summary>
+        </member>
+        <member name="E:ChessMAUI.Services.OnlineMatchService.MatchReady">
+            <summary>Oponente encontrado; partida pronta para iniciar.</summary>
+        </member>
+        <member name="E:ChessMAUI.Services.OnlineMatchService.SearchCancelled">
+            <summary>Busca cancelada.</summary>
+        </member>
         <member name="T:ChessMAUI.Services.ProfileService">
             <summary>Perfil do jogador persistido via Preferences.</summary>
         </member>

@@ -86,68 +86,61 @@ public partial class LobbyPage : ContentPage
             SubBtn.Text          = "Ver planos";
         }
 
-        // Prioridade da Liga via Arena Casual
-        var casual = AppState.Current.CasualRanking;
-        string priorityStr = casual.HasLigaPriority ? "  ·  ⚡ Prioridade Liga" : "";
-        RatingLabel.Text = $"{p.Points:N0} pts{ticketStr}{priorityStr}";
+        RatingLabel.Text = $"{p.Points:N0} pts{ticketStr}";
 
-        // Banner Arena Casual — barra de progresso + status
-        int    wpts      = casual.WeeklyPoints;
-        int    threshold = CasualRankingService.PriorityThreshold;
-        double fillPct   = Math.Min(1.0, (double)wpts / threshold);
-        bool   hasPrio   = casual.HasLigaPriority;
-
-        // Largura da barra (estimada; recalculada no layout)
-        double barMax = DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density - 120;
-        CasualBarFill.WidthRequest = Math.Max(0, barMax * fillPct);
-        CasualBarFill.Color        = hasPrio ? Color.FromArgb("#4CAF50") : Color.FromArgb("#3A6AB0");
-        CasualPtsLabel.Text        = hasPrio ? "✓ Prioridade" : $"{wpts}/{threshold} pts";
-        CasualPtsLabel.TextColor   = hasPrio ? Color.FromArgb("#4CAF50") : Color.FromArgb("#5A7898");
-
-        CasualBorder.Stroke        = new SolidColorBrush(hasPrio
-            ? Color.FromArgb("#2A6040") : Color.FromArgb("#2A5090"));
-        CasualStatusLabel.Text     = hasPrio
-            ? "⚡ Vaga prioritária garantida na Liga esta semana!"
-            : wpts > 0
-                ? $"Continue jogando — faltam {threshold - wpts} pts para prioridade"
-                : "Jogue para garantir vaga prioritária na Liga";
-        CasualStatusLabel.TextColor = hasPrio
-            ? Color.FromArgb("#4CAF50") : Color.FromArgb("#4A6888");
+        // Casual / Liga — COMENTADO: aguardando base de jogadores
+        // var casual = AppState.Current.CasualRanking;
+        // string priorityStr = casual.HasLigaPriority ? "  ·  ⚡ Prioridade Liga" : "";
+        // RatingLabel.Text = $"{p.Points:N0} pts{ticketStr}{priorityStr}";
+        // int    wpts      = casual.WeeklyPoints;
+        // int    threshold = CasualRankingService.PriorityThreshold;
+        // double fillPct   = Math.Min(1.0, (double)wpts / threshold);
+        // bool   hasPrio   = casual.HasLigaPriority;
+        // double barMax = DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density - 120;
+        // CasualBarFill.WidthRequest = Math.Max(0, barMax * fillPct);
+        // CasualBarFill.Color        = hasPrio ? Color.FromArgb("#4CAF50") : Color.FromArgb("#3A6AB0");
+        // CasualPtsLabel.Text        = hasPrio ? "✓ Prioridade" : $"{wpts}/{threshold} pts";
+        // CasualPtsLabel.TextColor   = hasPrio ? Color.FromArgb("#4CAF50") : Color.FromArgb("#5A7898");
+        // CasualBorder.Stroke        = new SolidColorBrush(hasPrio ? Color.FromArgb("#2A6040") : Color.FromArgb("#2A5090"));
+        // CasualStatusLabel.Text     = hasPrio ? "⚡ Vaga prioritária garantida na Liga esta semana!"
+        //     : wpts > 0 ? $"Continue jogando — faltam {threshold - wpts} pts para prioridade"
+        //     : "Jogue para garantir vaga prioritária na Liga";
+        // CasualStatusLabel.TextColor = hasPrio ? Color.FromArgb("#4CAF50") : Color.FromArgb("#4A6888");
 
         // Modo Carreira — subtítulo dinâmico
         var career = AppState.Current.Career.Progress;
+        string cycleTag = career.TitlesWon > 0 ? $"  ·  {career.TitlesWon}× 🏆" : "";
         CareerSubLabel.Text = career.IsCareerCompleted
-            ? "🏆 Campeão Mundial de Xadrez"
+            ? $"🏆 Campeão do Ciclo {career.EffectiveCycleYear}{cycleTag}"
             : career.ActiveTournament != null
-                ? $"Nível {(int)career.CurrentLevel + 1}/7  ·  {career.ActiveTournament.LevelName}"
-                : "Do Local ao Campeonato Mundial";
+                ? $"Ciclo {career.EffectiveCycleYear}  ·  {career.ActiveTournament.LevelName}{cycleTag}"
+                : "Do Torneio Local ao Campeonato Mundial";
 
-        // Destaques da Liga
-        SeasonSubLabel.Text = AppState.Current.Season.CurrentSeasonLabel;
-        BuildChampions(AppState.Current);
+        // Liga — COMENTADO: aguardando base de jogadores
+        // SeasonSubLabel.Text = AppState.Current.Season.CurrentSeasonLabel;
+        // BuildChampions(AppState.Current);
 
         // Missões
         BuildMissions(daily);
 
-        // Mini ranking
-        BuildMiniRanking();
+        // Liga — COMENTADO: aguardando base de jogadores
+        // BuildMiniRanking();
     }
 
     // -----------------------------------------------------------------------
-    // Destaques da Liga
+    // Destaques da Liga — COMENTADO: aguardando base de jogadores
     // -----------------------------------------------------------------------
-    private void BuildChampions(AppState state)
-    {
-        var weekly = state.League.GetWeeklyChampion(state.Profile, state.Titles);
-        WeekChampAvatar.Text     = weekly.Avatar;
-        WeekChampName.Text       = weekly.Name;
-        WeekChampName.TextColor  = weekly.IsHuman ? Color.FromArgb("#4CAF50") : Colors.White;
-
-        var monthly = state.Season.GetMonthlyLeader(state.Titles, state.Profile);
-        MonthChampAvatar.Text    = monthly.Avatar;
-        MonthChampName.Text      = monthly.Name;
-        MonthChampName.TextColor = monthly.IsHuman ? Color.FromArgb("#4CAF50") : Colors.White;
-    }
+    // private void BuildChampions(AppState state)
+    // {
+    //     var weekly = state.League.GetWeeklyChampion(state.Profile, state.Titles);
+    //     WeekChampAvatar.Text     = weekly.Avatar;
+    //     WeekChampName.Text       = weekly.Name;
+    //     WeekChampName.TextColor  = weekly.IsHuman ? Color.FromArgb("#4CAF50") : Colors.White;
+    //     var monthly = state.Season.GetMonthlyLeader(state.Titles, state.Profile);
+    //     MonthChampAvatar.Text    = monthly.Avatar;
+    //     MonthChampName.Text      = monthly.Name;
+    //     MonthChampName.TextColor = monthly.IsHuman ? Color.FromArgb("#4CAF50") : Colors.White;
+    // }
 
     // -----------------------------------------------------------------------
     // Bônus diário
@@ -214,95 +207,58 @@ public partial class LobbyPage : ContentPage
     }
 
     // -----------------------------------------------------------------------
-    // Mini ranking da temporada da Liga — pódio destacado para top 3
+    // Mini ranking da Liga — COMENTADO: aguardando base de jogadores
     // -----------------------------------------------------------------------
-    private void BuildMiniRanking()
-    {
-        MiniRankContainer.Children.Clear();
-        var state   = AppState.Current;
-        var board   = state.Season.GetLeaderboard(state.Titles, state.Profile);
-        var sub     = state.Subscription;
-
-        // Pega top 5; se o humano estiver fora do top 5, adiciona ao final
-        var human   = board.FirstOrDefault(e => e.IsHuman);
-        var toShow  = board.Take(5).ToList();
-        bool humanOutside = human != null && human.Position > 5;
-        if (humanOutside) toShow.Add(human!);
-
-        bool separatorAdded = false;
-
-        foreach (var e in toShow)
-        {
-            if (humanOutside && e.IsHuman && !separatorAdded)
-            {
-                separatorAdded = true;
-                MiniRankContainer.Children.Add(new Label
-                {
-                    Text = "·  ·  ·", TextColor = Color.FromArgb("#3A5070"),
-                    HorizontalTextAlignment = TextAlignment.Center, FontSize = 10, Margin = new Thickness(0, 1)
-                });
-            }
-
-            bool isPodium = e.Position <= 3;
-
-            // Cores por posição
-            string bgHex  = e.IsHuman ? "#1C2A0A" : "transparent";
-            string posColor = e.Position switch { 1 => "#FFD700", 2 => "#C0C0D0", 3 => "#CD7F32", _ => "#7090B0" };
-            string medal    = e.PositionLabel;
-
-            var row = new Grid
-            {
-                ColumnDefinitions = new ColumnDefinitionCollection(new(26), new(GridLength.Star), new(GridLength.Auto)),
-                Padding         = new Thickness(2, 2),
-                BackgroundColor = bgHex == "transparent" ? Colors.Transparent : Color.FromArgb(bgHex)
-            };
-
-            // Posição
-            row.Add(new Label
-            {
-                Text = medal, FontSize = 12,
-                TextColor = Color.FromArgb(posColor),
-                HorizontalTextAlignment = TextAlignment.Center,
-                VerticalOptions = LayoutOptions.Center
-            });
-
-            // Nome + localização inline (sem avatar)
-            string subBadge = e.IsHuman && sub.IsActive ? $" {sub.BadgeIcon}" : "";
-            string loc      = e.LocationLabel;
-            var nameLbl     = new Label { VerticalOptions = LayoutOptions.Center };
-            var fmt         = new FormattedString();
-            fmt.Spans.Add(new Span
-            {
-                Text           = e.Name + subBadge,
-                TextColor      = e.IsHuman ? Color.FromArgb("#4CAF50") : e.NameColor,
-                FontSize       = 13,
-                FontAttributes = e.IsHuman ? FontAttributes.Bold : FontAttributes.None
-            });
-            if (!string.IsNullOrEmpty(loc))
-                fmt.Spans.Add(new Span
-                {
-                    Text      = $"  {loc}",
-                    TextColor = Color.FromArgb("#506070"),
-                    FontSize  = 11
-                });
-            nameLbl.FormattedText = fmt;
-            Grid.SetColumn(nameLbl, 1);
-            row.Add(nameLbl);
-
-            // Pontos
-            var pts = new Label
-            {
-                Text = $"{e.Points:N0} pts",
-                TextColor = Color.FromArgb(e.Position == 1 ? "#FFD700" : e.Position == 2 ? "#C0C0D0" : e.Position == 3 ? "#CD7F32" : "#607890"),
-                FontSize = 12,
-                VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.End
-            };
-            Grid.SetColumn(pts, 2);
-            row.Add(pts);
-
-            MiniRankContainer.Children.Add(row);
-        }
-    }
+    // private void BuildMiniRanking()
+    // {
+    //     MiniRankContainer.Children.Clear();
+    //     var state   = AppState.Current;
+    //     var board   = state.Season.GetLeaderboard(state.Titles, state.Profile);
+    //     var sub     = state.Subscription;
+    //     var human   = board.FirstOrDefault(e => e.IsHuman);
+    //     var toShow  = board.Take(5).ToList();
+    //     bool humanOutside = human != null && human.Position > 5;
+    //     if (humanOutside) toShow.Add(human!);
+    //     bool separatorAdded = false;
+    //     foreach (var e in toShow)
+    //     {
+    //         if (humanOutside && e.IsHuman && !separatorAdded)
+    //         {
+    //             separatorAdded = true;
+    //             MiniRankContainer.Children.Add(new Label { Text = "·  ·  ·", TextColor = Color.FromArgb("#3A5070"),
+    //                 HorizontalTextAlignment = TextAlignment.Center, FontSize = 10, Margin = new Thickness(0, 1) });
+    //         }
+    //         string bgHex    = e.IsHuman ? "#1C2A0A" : "transparent";
+    //         string posColor = e.Position switch { 1 => "#FFD700", 2 => "#C0C0D0", 3 => "#CD7F32", _ => "#7090B0" };
+    //         string medal    = e.PositionLabel;
+    //         var row = new Grid
+    //         {
+    //             ColumnDefinitions = new ColumnDefinitionCollection(new(26), new(GridLength.Star), new(GridLength.Auto)),
+    //             Padding = new Thickness(2, 2),
+    //             BackgroundColor = bgHex == "transparent" ? Colors.Transparent : Color.FromArgb(bgHex)
+    //         };
+    //         row.Add(new Label { Text = medal, FontSize = 12, TextColor = Color.FromArgb(posColor),
+    //             HorizontalTextAlignment = TextAlignment.Center, VerticalOptions = LayoutOptions.Center });
+    //         string subBadge = e.IsHuman && sub.IsActive ? $" {sub.BadgeIcon}" : "";
+    //         string loc      = e.LocationLabel;
+    //         var nameLbl = new Label { VerticalOptions = LayoutOptions.Center };
+    //         var fmt     = new FormattedString();
+    //         fmt.Spans.Add(new Span { Text = e.Name + subBadge,
+    //             TextColor = e.IsHuman ? Color.FromArgb("#4CAF50") : e.NameColor, FontSize = 13,
+    //             FontAttributes = e.IsHuman ? FontAttributes.Bold : FontAttributes.None });
+    //         if (!string.IsNullOrEmpty(loc))
+    //             fmt.Spans.Add(new Span { Text = $"  {loc}", TextColor = Color.FromArgb("#506070"), FontSize = 11 });
+    //         nameLbl.FormattedText = fmt;
+    //         Grid.SetColumn(nameLbl, 1);
+    //         row.Add(nameLbl);
+    //         var pts = new Label { Text = $"{e.Points:N0} pts",
+    //             TextColor = Color.FromArgb(e.Position == 1 ? "#FFD700" : e.Position == 2 ? "#C0C0D0" : e.Position == 3 ? "#CD7F32" : "#607890"),
+    //             FontSize = 12, VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.End };
+    //         Grid.SetColumn(pts, 2);
+    //         row.Add(pts);
+    //         MiniRankContainer.Children.Add(row);
+    //     }
+    // }
 
     // -----------------------------------------------------------------------
     // Admin: 5 toques rápidos no saldo ativa/desativa
@@ -311,7 +267,7 @@ public partial class LobbyPage : ContentPage
     private DateTime _lastAdminTap  = DateTime.MinValue;
 
     private async void OnExtractClicked(object? sender, EventArgs e)
-        => await Shell.Current.GoToAsync("TournamentHistoryPage");
+        => await Shell.Current.GoToAsync("ExtractPage");
 
     private async void OnAdminActivate(object? sender, TappedEventArgs e)
     {
@@ -352,29 +308,21 @@ public partial class LobbyPage : ContentPage
     private async void OnSubscriptionBannerTapped(object? sender, TappedEventArgs e)
         => await Shell.Current.GoToAsync("SubscriptionPage");
 
+    private async void OnRandomMatchClicked(object? sender, TappedEventArgs e)
+        => await Shell.Current.GoToAsync("RandomMatchPage");
+
     private async void OnCareerClicked(object? sender, TappedEventArgs e)
-    {
-        try
-        {
-            await Shell.Current.GoToAsync("CareerPage");
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Erro navegação", ex.Message + "\n\n" + ex.GetType().Name, "OK");
-        }
-    }
+        => await Shell.Current.GoToAsync("CareerPage");
 
-    private async void OnLeagueClicked(object? sender, TappedEventArgs e)
-        => await Shell.Current.GoToAsync("LeaguePage");
-
-    private async void OnSeasonRankingClicked(object? sender, TappedEventArgs e)
-        => await Shell.Current.GoToAsync("SeasonRankingPage");
-
-    private async void OnTournamentsClicked(object? sender, EventArgs e)
-        => await Shell.Current.GoToAsync("TournamentLobbyPage");
-
-    private async void OnHistoryClicked(object? sender, EventArgs e)
-        => await Shell.Current.GoToAsync("TournamentHistoryPage");
+    // Liga/Casual — COMENTADO: aguardando base de jogadores
+    // private async void OnLeagueClicked(object? sender, TappedEventArgs e)
+    //     => await Shell.Current.GoToAsync("LeaguePage");
+    // private async void OnSeasonRankingClicked(object? sender, TappedEventArgs e)
+    //     => await Shell.Current.GoToAsync("SeasonRankingPage");
+    // private async void OnTournamentsClicked(object? sender, EventArgs e)
+    //     => await Shell.Current.GoToAsync("TournamentLobbyPage");
+    // private async void OnHistoryClicked(object? sender, EventArgs e)
+    //     => await Shell.Current.GoToAsync("TournamentHistoryPage");
 
     private async void OnRankingClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync("RankingPage");

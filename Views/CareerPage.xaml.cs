@@ -37,14 +37,14 @@ public partial class CareerPage : ContentPage
     {
         var prog = Svc.Progress;
 
-        if (prog.IsCareerCompleted) { ShowCareerCompleted(); return; }
-        if (prog.ActiveTournament == null) { ShowWelcome();  return; }
+        if (prog.IsCareerCompleted) { ShowCareerCompleted(prog); return; }
+        if (prog.ActiveTournament == null) { ShowWelcome();      return; }
 
         var t = prog.ActiveTournament;
 
         TournamentNameLabel.Text = t.LevelName;
-        LevelLabel.Text          = $"Nível {(int)t.Level + 1} de 7  ·  {t.LevelName}";
-        LevelSubLabel.Text       = t.LevelSubtitle;
+        LevelLabel.Text          = $"Ciclo {prog.EffectiveCycleYear}  ·  Nível {(int)t.Level + 1}/7";
+        LevelSubLabel.Text       = t.LevelSubtitle + TitlesTag(prog);
 
         if (!t.IsCompleted)
             ShowInProgress(t);
@@ -54,8 +54,12 @@ public partial class CareerPage : ContentPage
 
     // ── Welcome ───────────────────────────────────────────────────────────────
 
+    private static string TitlesTag(CareerProgress prog) =>
+        prog.TitlesWon > 0 ? $"  ·  {prog.TitlesWon}× Campeão" : "";
+
     private void ShowWelcome()
     {
+        var prog = Svc.Progress;
         TournamentNameLabel.Text = "Modo Carreira";
         RoundInfoLabel.Text      = "Do Torneio Local ao Campeonato Mundial";
         LevelLabel.Text          = "7 níveis · Circuito FIDE";
@@ -247,12 +251,16 @@ public partial class CareerPage : ContentPage
         NextBtn.IsVisible        = true;
     }
 
-    private void ShowCareerCompleted()
+    private void ShowCareerCompleted(CareerProgress prog)
     {
-        TournamentNameLabel.Text   = "Carreira Concluída";
-        RoundInfoLabel.Text        = "🏆 Campeão Mundial de Xadrez";
-        LevelLabel.Text            = "Todos os 7 níveis completados";
-        LevelSubLabel.Text         = "";
+        int nextYear = prog.EffectiveCycleYear + 2;
+        int titles   = prog.TitlesWon + 1; // +1 porque ainda não chamou StartNewCycle
+
+        TournamentNameLabel.Text   = $"Campeão Mundial — Ciclo {prog.EffectiveCycleYear}";
+        RoundInfoLabel.Text        = titles == 1 ? "Primeiro título conquistado!"
+                                   : $"{titles}× Campeão Mundial";
+        LevelLabel.Text            = "Ciclo FIDE concluído";
+        LevelSubLabel.Text         = titles > 1 ? $"Você é um lendário {titles}× campeão" : "";
         WelcomeSection.IsVisible   = false;
         StandingsSection.IsVisible = false;
         CopaSection.IsVisible      = false;
@@ -262,10 +270,12 @@ public partial class CareerPage : ContentPage
         ResultSection.IsVisible    = true;
         ResultIcon.Text            = "🏆";
         ResultTitle.Text           = "Campeão Mundial!";
-        ResultDetail.Text          = "Você chegou ao topo e se tornou Campeão Mundial de Xadrez.";
-        ResultDestination.Text     = "";
+        ResultDetail.Text          = $"Você conquistou o título no Ciclo {prog.EffectiveCycleYear}.";
+        ResultDestination.Text     = $"Próximo ciclo: {nextYear}";
         ResultTitle.TextColor      = Color.FromArgb("#FFD700");
-        NextBtn.IsVisible          = false;
+        NextBtn.Text               = $"Defender o Título — Ciclo {nextYear}";
+        NextBtn.BackgroundColor    = Color.FromArgb("#4A3800");
+        NextBtn.IsVisible          = true;
     }
 
     // ── Swiss Standings ───────────────────────────────────────────────────────
@@ -499,7 +509,10 @@ public partial class CareerPage : ContentPage
     private void OnNextActionClicked(object? sender, EventArgs e)
     {
         var prog = Svc.Progress;
-        Svc.ApplyStageResult(prog);
+        if (prog.IsCareerCompleted)
+            Svc.StartNewCycle(prog);
+        else
+            Svc.ApplyStageResult(prog);
         RefreshUI();
     }
 
