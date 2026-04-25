@@ -17,87 +17,56 @@
                    HorizontalTextAlignment="Center" Margin="0,4,0,32"/>
 
             <!-- ══ Seção 1: Escolha de Tempo ══ -->
-            <VerticalStackLayout x:Name="SelectionSection" Spacing="12">
+            <VerticalStackLayout x:Name="SelectionSection" Spacing="0">
 
-                <Label Text="Controle de Tempo"
+                <Label Text="Tempo por jogador"
                        TextColor="#9ABCDE" FontSize="14" FontAttributes="Bold"
-                       Margin="0,0,0,2"/>
+                       HorizontalTextAlignment="Center" Margin="0,0,0,16"/>
 
-                <!-- Linha 1: Bullet 1' | Blitz 3' | Blitz 5' -->
-                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
-                    <Border x:Name="TcBullet"
-                            BackgroundColor="#0E1828" Stroke="#1A2840" StrokeThickness="2"
-                            StrokeShape="RoundRectangle 10" Padding="6,12">
-                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                            <Label Text="1'" TextColor="White" FontSize="22" FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center"/>
-                            <Label Text="Bullet" TextColor="#607890" FontSize="11"
-                                   HorizontalTextAlignment="Center"/>
-                        </VerticalStackLayout>
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnTimeSelected" CommandParameter="1"/>
-                        </Border.GestureRecognizers>
-                    </Border>
+                <!-- Stepper: − | valor | + -->
+                <Grid ColumnDefinitions="60,*,60"
+                      VerticalOptions="Center" Margin="0,0,0,6">
 
-                    <Border Grid.Column="1" x:Name="TcBlitz3"
-                            BackgroundColor="#0E1828" Stroke="#1A2840" StrokeThickness="2"
-                            StrokeShape="RoundRectangle 10" Padding="6,12">
-                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                            <Label Text="3'" TextColor="White" FontSize="22" FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center"/>
-                            <Label Text="Blitz" TextColor="#607890" FontSize="11"
-                                   HorizontalTextAlignment="Center"/>
-                        </VerticalStackLayout>
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnTimeSelected" CommandParameter="3"/>
-                        </Border.GestureRecognizers>
-                    </Border>
+                    <Button Text="−"
+                            x:Name="BtnDecrease"
+                            Clicked="OnDecrease"
+                            BackgroundColor="#1A2840" TextColor="White"
+                            FontSize="28" FontAttributes="Bold"
+                            CornerRadius="30"
+                            WidthRequest="54" HeightRequest="54"
+                            HorizontalOptions="Center" VerticalOptions="Center"/>
 
-                    <Border Grid.Column="2" x:Name="TcBlitz5"
-                            BackgroundColor="#0A1828" Stroke="#2A5090" StrokeThickness="2"
-                            StrokeShape="RoundRectangle 10" Padding="6,12">
-                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                            <Label Text="5'" TextColor="White" FontSize="22" FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center"/>
-                            <Label Text="Blitz" TextColor="#4A8AC0" FontSize="11"
-                                   HorizontalTextAlignment="Center"/>
-                        </VerticalStackLayout>
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnTimeSelected" CommandParameter="5"/>
-                        </Border.GestureRecognizers>
-                    </Border>
+                    <VerticalStackLayout Grid.Column="1"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center"
+                                        Spacing="2">
+                        <Label x:Name="TimeValueLabel" Text="5"
+                               TextColor="White" FontSize="64" FontAttributes="Bold"
+                               HorizontalTextAlignment="Center"
+                               LineHeight="1"/>
+                        <Label Text="minuto(s)"
+                               TextColor="#4A6888" FontSize="13"
+                               HorizontalTextAlignment="Center"/>
+                        <Label x:Name="TimeCategoryLabel" Text="Blitz"
+                               TextColor="#4A8AC0" FontSize="14" FontAttributes="Bold"
+                               HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+
+                    <Button Grid.Column="2" Text="+"
+                            x:Name="BtnIncrease"
+                            Clicked="OnIncrease"
+                            BackgroundColor="#1A2840" TextColor="White"
+                            FontSize="28" FontAttributes="Bold"
+                            CornerRadius="30"
+                            WidthRequest="54" HeightRequest="54"
+                            HorizontalOptions="Center" VerticalOptions="Center"/>
                 </Grid>
 
-                <!-- Linha 2: Rápido 10' | Rápido 15' -->
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,0,0,20">
-                    <Border x:Name="TcRapid10"
-                            BackgroundColor="#0E1828" Stroke="#1A2840" StrokeThickness="2"
-                            StrokeShape="RoundRectangle 10" Padding="6,12">
-                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                            <Label Text="10'" TextColor="White" FontSize="22" FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center"/>
-                            <Label Text="Rápido" TextColor="#607890" FontSize="11"
-                                   HorizontalTextAlignment="Center"/>
-                        </VerticalStackLayout>
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnTimeSelected" CommandParameter="10"/>
-                        </Border.GestureRecognizers>
-                    </Border>
-
-                    <Border Grid.Column="1" x:Name="TcRapid15"
-                            BackgroundColor="#0E1828" Stroke="#1A2840" StrokeThickness="2"
-                            StrokeShape="RoundRectangle 10" Padding="6,12">
-                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                            <Label Text="15'" TextColor="White" FontSize="22" FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center"/>
-                            <Label Text="Rápido" TextColor="#607890" FontSize="11"
-                                   HorizontalTextAlignment="Center"/>
-                        </VerticalStackLayout>
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnTimeSelected" CommandParameter="15"/>
-                        </Border.GestureRecognizers>
-                    </Border>
-                </Grid>
+                <!-- Faixa de referência -->
+                <Label x:Name="TimeRangeLabel"
+                       Text="1' Bullet  ·  2-9' Blitz  ·  10-20' Rápido"
+                       TextColor="#2A4060" FontSize="11"
+                       HorizontalTextAlignment="Center" Margin="0,0,0,28"/>
 
                 <Button Text="Buscar Oponente"
                         Clicked="OnSearchClicked"
@@ -120,8 +89,7 @@
                        TextColor="White" FontSize="18" FontAttributes="Bold"
                        HorizontalTextAlignment="Center"/>
 
-                <Label x:Name="SearchSubLabel"
-                       Text="5' Blitz · Qualquer rating"
+                <Label x:Name="SearchSubLabel" Text=""
                        TextColor="#4A6888" FontSize="13"
                        HorizontalTextAlignment="Center"/>
 
@@ -141,7 +109,6 @@
                        TextColor="#4CAF50" FontSize="21" FontAttributes="Bold"
                        HorizontalTextAlignment="Center"/>
 
-                <!-- Card do oponente -->
                 <Border BackgroundColor="#0E1828" Stroke="#2A4A6A" StrokeThickness="1.5"
                         StrokeShape="RoundRectangle 12" Padding="16,14" Margin="0,4,0,4">
                     <Grid ColumnDefinitions="Auto,*,Auto">
@@ -159,15 +126,20 @@
                     </Grid>
                 </Border>
 
-                <Label x:Name="ConfirmedDetailsLabel"
-                       Text="5' Blitz  ·  Você joga com as Brancas ♙"
+                <Label x:Name="ConfirmedDetailsLabel" Text=""
                        TextColor="White" FontSize="15"
                        HorizontalTextAlignment="Center"/>
 
-                <Label x:Name="CountdownLabel"
-                       Text="Iniciando em 3..."
+                <Label x:Name="CountdownLabel" Text="Iniciando em 3..."
                        TextColor="#9ABCDE" FontSize="17" FontAttributes="Bold"
                        HorizontalTextAlignment="Center" Margin="0,6,0,0"/>
+
+                <Button Text="Cancelar"
+                        Clicked="OnCountdownCancelled"
+                        BackgroundColor="Transparent" TextColor="#607890"
+                        BorderColor="#2A3A50" BorderWidth="1"
+                        FontSize="13" CornerRadius="10" HeightRequest="36"
+                        Margin="40,8,40,0"/>
 
             </VerticalStackLayout>
 

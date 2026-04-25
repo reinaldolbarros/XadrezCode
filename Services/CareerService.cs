@@ -121,15 +121,18 @@ public class CareerService
     {
         if (t.Format == CareerFormat.Elimination)
         {
-            // Current opponent is the non-human player with Points >= 0
-            return t.Players.First(p => !p.IsHuman && p.Points >= 0);
+            return t.Players.FirstOrDefault(p => !p.IsHuman && p.Points >= 0)
+                ?? t.Players.FirstOrDefault(p => !p.IsHuman)
+                ?? new CareerPlayer { Name = "Oponente", Difficulty = 3 };
         }
         if (t.Format == CareerFormat.BestOfN)
-            return t.Players.First(p => !p.IsHuman);
+            return t.Players.FirstOrDefault(p => !p.IsHuman)
+                ?? new CareerPlayer { Name = "Magnus", Difficulty = 5 };
 
         double pts    = t.Human.Points;
         var    faced  = t.Rounds.Select(r => r.Opponent).ToHashSet();
-        var    ai     = t.Players.Where(p => !p.IsHuman);
+        var    ai     = t.Players.Where(p => !p.IsHuman).ToList();
+        if (ai.Count == 0) return new CareerPlayer { Name = "Oponente", Difficulty = 2 };
         var    unused = ai.Where(p => !faced.Contains(p.Name))
                          .OrderBy(p => Math.Abs(p.Points - pts))
                          .ThenByDescending(p => p.Points)
@@ -137,6 +140,28 @@ public class CareerService
         return unused.Count > 0
             ? unused[0]
             : ai.OrderBy(p => Math.Abs(p.Points - pts)).First();
+    }
+
+    // ── Grava resultado e retorna próximo oponente (null = torneio encerrado) ──
+
+    public (bool hasNext, CareerPlayer? nextOpponent) ProcessRoundResult(
+        bool humanWon, bool isDraw, string opponentName)
+    {
+        var prog = Progress;
+        if (prog.ActiveTournament == null) return (false, null);
+
+        var result = humanWon ? CareerRoundResult.Win
+                   : isDraw   ? CareerRoundResult.Draw
+                   : CareerRoundResult.Loss;
+
+        RecordRound(prog.ActiveTournament, opponentName, result);
+        Save(prog);
+
+        var fresh = Progress;
+        var t     = fresh.ActiveTournament;
+        if (t == null || t.IsCompleted) return (false, null);
+
+        return (true, GetNextOpponent(t));
     }
 
     public static int GetAIDepth(int diff)     => diff switch { 1 or 2 => 1, 3 or 4 => 3, _ => 5 };
@@ -162,7 +187,8 @@ public class CareerService
 
     private static void RecordSwissRound(CareerTournamentState t, string opponentName, CareerRoundResult result)
     {
-        var opp = t.Players.First(p => p.Name == opponentName);
+        var opp = t.Players.FirstOrDefault(p => p.Name == opponentName)
+               ?? new CareerPlayer { Name = opponentName, Difficulty = 2 };
 
         double h = result == CareerRoundResult.Win  ? 1.0
                  : result == CareerRoundResult.Draw ? 0.5 : 0.0;
@@ -230,7 +256,8 @@ public class CareerService
 
     private static void RecordBestOfNRound(CareerTournamentState t, CareerRoundResult result)
     {
-        var opp = t.Players.First(p => !p.IsHuman);
+        var opp = t.Players.FirstOrDefault(p => !p.IsHuman)
+               ?? new CareerPlayer { Name = "Magnus", Difficulty = 5 };
 
         if (result == CareerRoundResult.Win)       t.HumanWins++;
         else if (result == CareerRoundResult.Loss) t.HumanLosses++;

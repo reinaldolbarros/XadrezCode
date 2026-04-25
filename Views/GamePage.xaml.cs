@@ -132,12 +132,25 @@ public partial class GamePage : ContentPage
         var state = AppState.Current;
         state.Daily.RecordGamePlayed();
 
+        bool isDraw = _vm.StatusMessage.Contains("Empate") || _vm.StatusMessage.Contains("Afogamento");
+        int  eloDelta = 0;
+
         if (state.IsCareerGame)
         {
-            bool isDraw = _vm.StatusMessage.Contains("Empate") || _vm.StatusMessage.Contains("Afogamento");
             state.LastMatchHumanWon = humanWon;
             state.LastMatchWasDraw  = isDraw;
             state.MatchResultReady  = true;
+            int oppElo = ProfileService.EloRatingForAI(state.CareerAIDepth);
+            eloDelta   = state.Profile.UpdateElo(oppElo, humanWon, isDraw);
+            if (humanWon)      state.Profile.RecordWin();
+            else if (!isDraw)  state.Profile.RecordLoss();
+        }
+        else if (state.IsOnlineGame)
+        {
+            int oppElo = state.OnlineMatch.State.OpponentRating;
+            eloDelta   = state.Profile.UpdateElo(oppElo, humanWon, isDraw);
+            if (humanWon)      state.Profile.RecordWin();
+            else if (!isDraw)  state.Profile.RecordLoss();
         }
 
         bool   hasNextRound = false;
@@ -150,7 +163,6 @@ public partial class GamePage : ContentPage
             if (t != null)
             {
                 nextRoundNum = t.CurrentRound + 1;
-                bool isDraw  = state.LastMatchWasDraw;
                 hasNextRound = t.Format switch
                 {
                     CareerFormat.Swiss => t.CurrentRound < t.TotalRounds,
@@ -174,12 +186,12 @@ public partial class GamePage : ContentPage
 
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            bool isDraw = state.LastMatchWasDraw;
             ResultTitle.Text      = humanWon ? "Vitória!" : isDraw ? "Empate" : "Derrota";
             ResultTitle.TextColor = humanWon ? Color.FromArgb("#4CAF50")
                                  : isDraw    ? Color.FromArgb("#FFD700")
                                  : Color.FromArgb("#FF5252");
-            ResultDetail.Text     = _vm.StatusMessage;
+            string eloSign2 = eloDelta >= 0 ? "+" : "";
+            ResultDetail.Text = $"{_vm.StatusMessage}\n\nRating: {eloSign2}{eloDelta}  →  {state.Profile.Points}";
             if (state.IsCareerGame)
             {
                 ResultActionBtn.IsVisible      = hasNextRound;
@@ -237,9 +249,14 @@ public partial class GamePage : ContentPage
         {
             var state = AppState.Current;
 
-            // Registra W/L para estatísticas do perfil (sem recompensa em fichas)
-            if (humanWon) state.Profile.RecordWin();
-            else          state.Profile.RecordLoss();
+            // Registra W/L e atualiza Elo
+            bool isDraw2 = _vm.StatusMessage.Contains("Empate") || _vm.StatusMessage.Contains("Afogamento");
+            if (humanWon)     state.Profile.RecordWin();
+            else if (!isDraw2) state.Profile.RecordLoss();
+
+            int aiDepth   = DiffDepths[_selectedDiff];
+            int oppElo    = ProfileService.EloRatingForAI(aiDepth);
+            int eloChange = state.Profile.UpdateElo(oppElo, humanWon, isDraw2);
 
             // Missão 1 — jogar 3 partidas (dá fichas por engajamento, não por vencer)
             bool m1Done = state.Daily.RecordGamePlayed();
@@ -255,12 +272,13 @@ public partial class GamePage : ContentPage
                 await state.Ads.SimulateInterstitialAsync(this);
 
             // Painel de resultado
-            bool isDraw = _vm.StatusMessage.Contains("Empate") || _vm.StatusMessage.Contains("Afogamento");
+            bool isDraw = isDraw2;
             ResultTitle.Text      = humanWon ? "Vitória!" : isDraw ? "Empate" : "Derrota";
             ResultTitle.TextColor = humanWon
                 ? Color.FromArgb("#4CAF50")
                 : isDraw ? Color.FromArgb("#FFD700") : Color.FromArgb("#FF5252");
-            ResultDetail.Text              = _vm.StatusMessage;
+            string eloSign = eloChange >= 0 ? "+" : "";
+            ResultDetail.Text              = $"{_vm.StatusMessage}\n\nRating: {eloSign}{eloChange}  →  {state.Profile.Points}";
             ResultActionBtn.Text           = "Novo Jogo";
             ResultSecondaryLabel.IsVisible = true;
             ResultSecondaryLabel.Text      = "← Voltar ao lobby";
@@ -369,29 +387,24 @@ public partial class GamePage : ContentPage
 
         if (state.IsCareerGame)
         {
-            // Grava resultado e inicia próxima rodada sem sair da página
-            var prog = state.Career.Progress;
-            if (prog.ActiveTournament != null && state.MatchResultReady)
+            if (!state.MatchResultReady)
             {
-                var result = state.LastMatchHumanWon ? CareerRoundResult.Win
-                           : state.LastMatchWasDraw  ? CareerRoundResult.Draw
-                           : CareerRoundResult.Loss;
-                state.Career.RecordRound(prog.ActiveTournament, state.CareerOpponentName, result);
-                state.Career.Save(prog);
-                state.MatchResultReady = false;
-            }
-
-            var prog2 = state.Career.Progress;
-            var t     = prog2.ActiveTournament;
-            if (t == null || t.IsCompleted)
-            {
-                // Botão não deveria ser visível aqui, mas navega por segurança
                 ResultPanel.IsVisible = false;
                 await Shell.Current.GoToAsync("..");
                 return;
             }
 
-            var opp = state.Career.GetNextOpponent(t);
+            state.MatchResultReady = false;
+            var (hasNext, opp) = state.Career.ProcessRoundResult(
+                state.LastMatchHumanWon, state.LastMatchWasDraw, state.CareerOpponentName);
+
+            if (!hasNext || opp == null)
+            {
+                ResultPanel.IsVisible = false;
+                await Shell.Current.GoToAsync("..");
+                return;
+            }
+
             state.CareerOpponentName = opp.Name;
             state.CareerAIDepth      = CareerService.GetAIDepth(opp.Difficulty);
             state.CareerTimeMinutes  = CareerService.GetTimeMinutes(opp.Difficulty);

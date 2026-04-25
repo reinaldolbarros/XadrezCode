@@ -19,8 +19,8 @@ public partial class PointsExtractPage : ContentPage
         var profile = AppState.Current.Profile;
         var all     = profile.GetPointTransactions();
 
-        TotalLabel.Text    = $"{profile.Points:N0} pts";
-        WeekLabel.Text     = $"{profile.WeekPoints:N0} pts";
+        TotalLabel.Text    = $"{profile.Points:N0}";
+        WeekLabel.Text     = $"{profile.WeekPoints:N0}";
         TourneysLabel.Text = $"{profile.TournamentsWon}";
 
         ExtractList.Children.Clear();
@@ -79,7 +79,7 @@ public partial class PointsExtractPage : ContentPage
 
                 var pts = new Label
                 {
-                    Text              = isGain ? $"+ {(int)tx.Amount} pts" : $"− {(int)Math.Abs(tx.Amount)} pts",
+                    Text              = isGain ? $"+{(int)tx.Amount}" : $"−{(int)Math.Abs(tx.Amount)}",
                     TextColor         = isGain ? Color.FromArgb("#FFD700") : Color.FromArgb("#FF5252"),
                     FontSize          = 13,
                     FontAttributes    = FontAttributes.Bold,

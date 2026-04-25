@@ -46,10 +46,11 @@ public partial class BracketPage : ContentPage
             return;
         }
 
+        int oppEloTourney = ProfileService.EloRatingForAI(state.TournamentAIDepth);
         if (humanWon)
         {
             prof.RecordWin();
-            prof.AddPoints(15, "Vitória – partida no torneio", "⚔");
+            prof.UpdateElo(oppEloTourney, true, false);
 
             // Bounty: credita recompensa por eliminação
             if (t.Type == TournamentType.Bounty && t.BountyPerPlayer > 0)
@@ -58,6 +59,7 @@ public partial class BracketPage : ContentPage
         else
         {
             prof.RecordLoss();
+            prof.UpdateElo(oppEloTourney, false, false);
         }
 
         if (!humanWon)
@@ -80,7 +82,6 @@ public partial class BracketPage : ContentPage
                 Position = position
             });
 
-            if (prize > 0) prof.AddPoints(25, $"Premiado – {t.RoundName} ({t.Size} jogadores)", "🏅");
 
             // Pontos de temporada (Liga) ou prioridade casual (Arena Casual)
             string extraMsg = AwardCompetitivePoints(t, position);
@@ -111,10 +112,6 @@ public partial class BracketPage : ContentPage
         if ((t.IsHeadsUp || svc.CheckCompletion(t)) && t.Status == TournamentStatus.HumanWon)
         {
             prof.TournamentsWon++;
-
-            // Pontos por vencer o torneio (proporcional ao tamanho)
-            int tournPts = t.Size switch { 128 => 800, 64 => 400, 32 => 200, 16 => 100, 8 => 50, 2 => 20, _ => 50 };
-            prof.AddPoints(tournPts, $"🏆 Campeão – Torneio {t.Size} jogadores", "🏆");
 
             // Missão m3: Top 3 (campeão conta)
             bool m3WinDone = state.Daily.RecordTournamentElimination();

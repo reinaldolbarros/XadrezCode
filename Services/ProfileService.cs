@@ -74,9 +74,22 @@ public class ProfileService
         set => Preferences.Default.Set(KeyState, value);
     }
 
+    private const string KeyEloVersion = "profile_elo_v2";
+
     public int Points
     {
-        get => Preferences.Default.Get(KeyPoints, 0);
+        get
+        {
+            // Migração única: na primeira leitura com o novo sistema Elo, reseta para 1200
+            if (!Preferences.Default.Get(KeyEloVersion, false))
+            {
+                Preferences.Default.Set(KeyPoints,     1200);
+                Preferences.Default.Set(KeyWeekPts,    0);
+                Preferences.Default.Set(KeyEloVersion, true);
+                return 1200;
+            }
+            return Preferences.Default.Get(KeyPoints, 1200);
+        }
         set => Preferences.Default.Set(KeyPoints, value);
     }
 
@@ -106,7 +119,41 @@ public class ProfileService
     {
         Points     += pts;
         WeekPoints += pts;
-        if (pts > 0) AddPointTransaction(pts, description, icon);
+        if (pts != 0) AddPointTransaction(pts, description, icon);
+    }
+
+    // ── Elo rating ───────────────────────────────────────────────────────────
+    private const int EloFloor   = 100;
+    private int EloK => (Wins + Losses) < 30 ? 40 : 20;
+
+    /// <summary>Rating simulado dos oponentes IA por nível de dificuldade (depth).</summary>
+    public static int EloRatingForAI(int depth) => depth switch
+    {
+        1 => 800,
+        2 => 1000,
+        3 => 1200,
+        4 => 1500,
+        _ => 1800
+    };
+
+    /// <summary>
+    /// Aplica a fórmula Elo após uma partida.
+    /// Retorna o delta (positivo = ganhou rating, negativo = perdeu).
+    /// </summary>
+    public int UpdateElo(int opponentRating, bool won, bool isDraw)
+    {
+        double expected = 1.0 / (1.0 + Math.Pow(10.0, (opponentRating - Points) / 400.0));
+        double score    = isDraw ? 0.5 : (won ? 1.0 : 0.0);
+        int    delta    = (int)Math.Round(EloK * (score - expected));
+        int    newRating = Math.Max(EloFloor, Points + delta);
+        delta   = newRating - Points;
+        Points  = newRating;
+        WeekPoints += delta;
+        string result = won ? "vitória" : isDraw ? "empate" : "derrota";
+        string sign   = delta >= 0 ? "+" : "";
+        string icon   = delta >= 0 ? "📈" : "📉";
+        AddPointTransaction(delta, $"Elo {sign}{delta}  ·  {result} vs {opponentRating}", icon);
+        return delta;
     }
 
     // ── Extrato de pontos ────────────────────────────────────────────────────
@@ -180,17 +227,6 @@ public class ProfileService
             if (decimal.TryParse(kv.Key, out decimal d)) result[d] = kv.Value;
         return result;
     }
-
-    // Faixa baseada em pontos totais
-    public static (string Icon, string Name, int Min, int Max) GetTier(int points) => points switch
-    {
-        >= 5000 => ("♚", "Rei",       5000, int.MaxValue),
-        >= 1000 => ("♞", "Cavaleiro", 1000, 4999),
-        _       => ("♟", "Peão",         0,  999),
-    };
-
-    public string TierIcon => GetTier(Points).Icon;
-    public string TierName => GetTier(Points).Name;
 
     public bool IsNew => string.IsNullOrWhiteSpace(Name);
 

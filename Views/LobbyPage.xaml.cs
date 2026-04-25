@@ -15,32 +15,31 @@ public partial class LobbyPage : ContentPage
 
         var profile = AppState.Current.Profile;
 
-        // Visitantes pulam o cadastro de perfil
         if (profile.IsNew && !AppState.Current.Auth.IsAnonymous)
         {
             await Shell.Current.GoToAsync("ProfilePage");
             return;
         }
 
-        RefreshUI();
+        await RefreshUI();
     }
 
-    private void RefreshUI()
+    private async Task RefreshUI()
     {
         var p     = AppState.Current.Profile;
         var daily = AppState.Current.Daily;
 
-        // Perfil — avatar (foto ou emoji)
-        bool hasPhoto = !string.IsNullOrEmpty(p.AvatarPath) && File.Exists(p.AvatarPath);
+        // File.Exists em background para não bloquear a thread de UI
+        bool hasPhoto = !string.IsNullOrEmpty(p.AvatarPath)
+            && await Task.Run(() => File.Exists(p.AvatarPath));
+
         AvatarImage.IsVisible = hasPhoto;
         AvatarLabel.IsVisible = !hasPhoto;
         if (hasPhoto) AvatarImage.Source = ImageSource.FromFile(p.AvatarPath);
         else          AvatarLabel.Text   = p.Avatar;
 
-        NameLabel.Text      = p.Name;
-        TierLabel.Text      = p.TierIcon;
-        TierName.Text       = p.TierName;
-        BalanceLabel.Text   = $"$ {p.Balance:N0}";
+        NameLabel.Text    = p.Name;
+        BalanceLabel.Text = $"$ {p.Balance:N0}";
 
         // Localização inline com o nome
         string loc = p.Country.Length > 0 && p.State.Length > 0 ? $"{p.Country} · {p.State}"
@@ -86,7 +85,7 @@ public partial class LobbyPage : ContentPage
             SubBtn.Text          = "Ver planos";
         }
 
-        RatingLabel.Text = $"{p.Points:N0} pts{ticketStr}";
+        RatingLabel.Text = $"Rating: {p.Points:N0}{ticketStr}";
 
         // Casual / Liga — COMENTADO: aguardando base de jogadores
         // var casual = AppState.Current.CasualRanking;
@@ -107,8 +106,8 @@ public partial class LobbyPage : ContentPage
         //     : "Jogue para garantir vaga prioritária na Liga";
         // CasualStatusLabel.TextColor = hasPrio ? Color.FromArgb("#4CAF50") : Color.FromArgb("#4A6888");
 
-        // Modo Carreira — subtítulo dinâmico
-        var career = AppState.Current.Career.Progress;
+        // Career.Progress faz JSON deserialization — executa em background
+        var career = await Task.Run(() => AppState.Current.Career.Progress);
         string cycleTag = career.TitlesWon > 0 ? $"  ·  {career.TitlesWon}× 🏆" : "";
         CareerSubLabel.Text = career.IsCareerCompleted
             ? $"🏆 Campeão do Ciclo {career.EffectiveCycleYear}{cycleTag}"
@@ -166,7 +165,7 @@ public partial class LobbyPage : ContentPage
         await DisplayAlert("Bônus Diário",
             $"+{fichas} fichas{extra}\n\nSequência: {streak} dia{(streak != 1 ? "s" : "")}\nPróximo prêmio: {next}", "OK");
 
-        RefreshUI();
+        await RefreshUI();
     }
 
     // -----------------------------------------------------------------------
@@ -308,11 +307,21 @@ public partial class LobbyPage : ContentPage
     private async void OnSubscriptionBannerTapped(object? sender, TappedEventArgs e)
         => await Shell.Current.GoToAsync("SubscriptionPage");
 
-    private async void OnRandomMatchClicked(object? sender, TappedEventArgs e)
+    private async void OnRandomMatchClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync("RandomMatchPage");
 
     private async void OnCareerClicked(object? sender, TappedEventArgs e)
         => await Shell.Current.GoToAsync("CareerPage");
+
+    private async void OnFriendGameTapped(object? sender, TappedEventArgs e)
+        => await Shell.Current.GoToAsync("FriendInvitePage");
+
+    private async void OnQuickPlayTapped(object? sender, TappedEventArgs e)
+    {
+        AppState.Current.PendingTournamentGame = false;
+        AppState.Current.PendingFriendGame     = false;
+        await Shell.Current.GoToAsync("GamePage");
+    }
 
     // Liga/Casual — COMENTADO: aguardando base de jogadores
     // private async void OnLeagueClicked(object? sender, TappedEventArgs e)

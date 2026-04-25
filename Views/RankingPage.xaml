@@ -5,18 +5,10 @@
              Title="Ranking"
              BackgroundColor="#1A1A2E">
 
-    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto">
-
-        <!-- ══ Faixas de classificação ══ -->
-        <Border Grid.Row="0" BackgroundColor="#16213E"
-                StrokeThickness="0" Padding="12,10">
-            <ScrollView Orientation="Horizontal">
-                <HorizontalStackLayout Spacing="8" x:Name="TierBar"/>
-            </ScrollView>
-        </Border>
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
 
         <!-- ══ Abas Global / Semanal ══ -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,*" BackgroundColor="#0F3460">
+        <Grid Grid.Row="0" ColumnDefinitions="*,*" BackgroundColor="#0F3460">
             <Button x:Name="GlobalTab" Text="🌍  Global"  Clicked="OnGlobalTab"
                     BackgroundColor="#1A5276" TextColor="White" CornerRadius="0"
                     FontAttributes="Bold" HeightRequest="42"/>
@@ -26,38 +18,36 @@
         </Grid>
 
         <!-- ══ Cabeçalho da tabela ══ -->
-        <Grid Grid.Row="2" x:Name="TableHeader" ColumnDefinitions="44,Auto,*,80"
+        <Grid Grid.Row="1" x:Name="TableHeader" ColumnDefinitions="44,*,80"
               BackgroundColor="#0A1628" Padding="10,5">
-            <Label Text="#"       TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-            <Label x:Name="FaixaHeader" Grid.Column="1" Text="Faixa" TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" Margin="8,0" HorizontalTextAlignment="Center"/>
-            <Label Grid.Column="2" Text="Jogador" TextColor="#AAAACC" FontSize="11" FontAttributes="Bold"/>
-            <Label Grid.Column="3" Text="Pontos"  TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+            <Label Text="#"         TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+            <Label Grid.Column="1" Text="Jogador" TextColor="#AAAACC" FontSize="11" FontAttributes="Bold"/>
+            <Label Grid.Column="2" Text="Rating"  TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
         </Grid>
 
         <!-- ══ Lista de ranking ══ -->
-        <ScrollView Grid.Row="3">
+        <ScrollView Grid.Row="2">
             <VerticalStackLayout x:Name="RankList" Spacing="1"/>
         </ScrollView>
 
         <!-- ══ Botão extrato de pontos ══ -->
-        <Button Grid.Row="4"
-                Text="📋  extrato de pontos"
+        <Button Grid.Row="3"
+                Text="📋  extrato de rating"
                 Clicked="OnExtractClicked"
                 BackgroundColor="#12172A" TextColor="#555577"
                 FontSize="11" CornerRadius="0" HeightRequest="30" Padding="0"/>
 
         <!-- ══ Sua posição (fixada no rodapé) ══ -->
-        <Border Grid.Row="5" x:Name="MyPositionFrame"
+        <Border Grid.Row="4" x:Name="MyPositionFrame"
                 BackgroundColor="#1C2A1C" Stroke="#FFD700" StrokeThickness="1"
                 Padding="10,8">
-            <Grid ColumnDefinitions="44,Auto,*,80">
-                <Label x:Name="MyPosLabel"   TextColor="#FFD700" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-                <Label x:Name="MyTierLabel"  Grid.Column="1" FontSize="16" Margin="8,0" HorizontalTextAlignment="Center"/>
-                <StackLayout Grid.Column="2" Orientation="Horizontal" Spacing="6">
+            <Grid ColumnDefinitions="44,*,80">
+                <Label x:Name="MyPosLabel" TextColor="#FFD700" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                <StackLayout Grid.Column="1" Orientation="Horizontal" Spacing="6">
                     <Label x:Name="MyAvatarLabel" FontSize="16" VerticalOptions="Center"/>
                     <Label x:Name="MyNameLabel"   TextColor="#FFD700" FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
                 </StackLayout>
-                <Label x:Name="MyPointsLabel" Grid.Column="3" TextColor="#4CAF50" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                <Label x:Name="MyPointsLabel" Grid.Column="2" TextColor="#4CAF50" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
             </Grid>
         </Border>
 

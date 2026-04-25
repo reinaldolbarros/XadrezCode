@@ -62,19 +62,21 @@
         </member>
         <member name="T:ChessMAUI.Services.OnlineMatchService">
             <summary>
-            Matchmaking 1v1 aleatório.
-            O tempo é definido por quem inicia a busca; o oponente aceita e entra.
+            Matchmaking 1v1 aleatório. Tempo definido por quem busca (1–20 min).
             Phase 1: mock local. Phase 2: substituir por Firebase/SignalR.
             </summary>
         </member>
-        <member name="E:ChessMAUI.Services.OnlineMatchService.MatchReady">
-            <summary>Oponente encontrado; partida pronta para iniciar.</summary>
-        </member>
-        <member name="E:ChessMAUI.Services.OnlineMatchService.SearchCancelled">
-            <summary>Busca cancelada.</summary>
-        </member>
         <member name="T:ChessMAUI.Services.ProfileService">
             <summary>Perfil do jogador persistido via Preferences.</summary>
+        </member>
+        <member name="M:ChessMAUI.Services.ProfileService.EloRatingForAI(System.Int32)">
+            <summary>Rating simulado dos oponentes IA por nível de dificuldade (depth).</summary>
+        </member>
+        <member name="M:ChessMAUI.Services.ProfileService.UpdateElo(System.Int32,System.Boolean,System.Boolean)">
+            <summary>
+            Aplica a fórmula Elo após uma partida.
+            Retorna o delta (positivo = ganhou rating, negativo = perdeu).
+            </summary>
         </member>
         <member name="M:ChessMAUI.Services.ProfileService.GetAllTickets">
             <summary>Retorna todos os tickets disponíveis: buy-in → quantidade.</summary>

@@ -8,17 +8,20 @@ public class AppState
 {
     public static AppState Current { get; } = new();
 
-    public AuthService              Auth        { get; } = new();
-    public ProfileService           Profile     { get; } = new();
-    public TournamentService        TournSvc    { get; } = new();
-    public MatchmakingService       Matchmaking { get; } = new();
-    public RoomLobbyService         RoomLobby   { get; } = new();
-    public TournamentHistoryService History     { get; } = new();
-    public RankingService           Ranking     { get; } = new();
-    public DailyService             Daily        { get; } = new();
-    public AdminService             Admin        { get; } = new();
-    public SubscriptionService      Subscription { get; } = new();
-    public AdService                Ads          { get; } = new();
+    public AuthService         Auth         { get; } = new();
+    public ProfileService      Profile      { get; } = new();
+    public DailyService        Daily        { get; } = new();
+    public AdminService        Admin        { get; } = new();
+    public SubscriptionService Subscription { get; } = new();
+    public AdService           Ads          { get; } = new();
+    public RankingService      Ranking      { get; } = new();
+
+    // Liga/Casual — páginas sem rota ativa, aguardando base de jogadores.
+    // Mantidos para compilação; remover junto com as páginas quando forem deletadas.
+    public TournamentService        TournSvc      { get; } = new();
+    public MatchmakingService       Matchmaking   { get; } = new();
+    public RoomLobbyService         RoomLobby     { get; } = new();
+    public TournamentHistoryService History       { get; } = new();
     public TitleService             Titles        { get; } = new();
     public SeasonService            Season        { get; } = new();
     public LeagueService            League        { get; } = new();

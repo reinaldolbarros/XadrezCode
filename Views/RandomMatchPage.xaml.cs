@@ -1,12 +1,16 @@
-using ChessMAUI.Models;
 using ChessMAUI.Services;
 
 namespace ChessMAUI.Views;
 
 public partial class RandomMatchPage : ContentPage
 {
-    private readonly OnlineMatchService _svc;
-    private TimeControlOption _selectedTime = TimeControlOption.Blitz5;
+    private const string PrefKey = "online_time_minutes";
+    private const int MinTime    = 1;
+    private const int MaxTime    = 20;
+
+    private readonly OnlineMatchService    _svc;
+    private CancellationTokenSource?      _countdownCts;
+    private int _minutes;
 
     public RandomMatchPage()
     {
@@ -17,12 +21,14 @@ public partial class RandomMatchPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        _svc.MatchReady     += OnMatchReady;
+        _svc.MatchReady      += OnMatchReady;
         _svc.SearchCancelled += OnSearchCancelled;
 
         _svc.Reset();
         ShowSection("selection");
-        SelectTime(TimeControlOption.Blitz5);
+
+        int saved = Preferences.Default.Get(PrefKey, 5);
+        SetTime(Math.Clamp(saved, MinTime, MaxTime));
     }
 
     protected override void OnDisappearing()
@@ -30,34 +36,29 @@ public partial class RandomMatchPage : ContentPage
         base.OnDisappearing();
         _svc.MatchReady      -= OnMatchReady;
         _svc.SearchCancelled -= OnSearchCancelled;
+        _countdownCts?.Cancel();
     }
 
-    // ── Seleção de controle de tempo ─────────────────────────────────────────
+    // ── Stepper ──────────────────────────────────────────────────────────────
 
-    private void OnTimeSelected(object? sender, TappedEventArgs e)
-    {
-        if (e.Parameter is string s && int.TryParse(s, out int min))
-            SelectTime((TimeControlOption)min);
-    }
+    private void OnDecrease(object? sender, EventArgs e) => SetTime(_minutes - 1);
+    private void OnIncrease(object? sender, EventArgs e) => SetTime(_minutes + 1);
 
-    private void SelectTime(TimeControlOption tc)
+    private void SetTime(int value)
     {
-        _selectedTime = tc;
-        var cards = new (Border border, TimeControlOption opt)[]
-        {
-            (TcBullet,  TimeControlOption.Bullet1),
-            (TcBlitz3,  TimeControlOption.Blitz3),
-            (TcBlitz5,  TimeControlOption.Blitz5),
-            (TcRapid10, TimeControlOption.Rapid10),
-            (TcRapid15, TimeControlOption.Rapid15)
-        };
-        foreach (var (border, opt) in cards)
-        {
-            bool sel = opt == tc;
-            border.BackgroundColor = sel ? Color.FromArgb("#0A2040") : Color.FromArgb("#0E1828");
-            border.Stroke          = new SolidColorBrush(sel
-                ? Color.FromArgb("#4A8AC0") : Color.FromArgb("#1A2840"));
-        }
+        _minutes = Math.Clamp(value, MinTime, MaxTime);
+        Preferences.Default.Set(PrefKey, _minutes);
+
+        TimeValueLabel.Text    = _minutes.ToString();
+        TimeCategoryLabel.Text = CategoryName(_minutes);
+        TimeCategoryLabel.TextColor = _minutes == 1
+            ? Color.FromArgb("#FF8C42")   // Bullet laranja
+            : _minutes <= 9
+                ? Color.FromArgb("#4A8AC0") // Blitz azul
+                : Color.FromArgb("#4CAF50"); // Rápido verde
+
+        BtnDecrease.IsEnabled = _minutes > MinTime;
+        BtnIncrease.IsEnabled = _minutes < MaxTime;
     }
 
     // ── Busca ────────────────────────────────────────────────────────────────
@@ -65,8 +66,8 @@ public partial class RandomMatchPage : ContentPage
     private async void OnSearchClicked(object? sender, EventArgs e)
     {
         ShowSection("searching");
-        SearchSubLabel.Text = $"{TimeLabel(_selectedTime)}  ·  Qualquer rating";
-        await _svc.StartSearchingAsync(_selectedTime);
+        SearchSubLabel.Text = $"{_minutes} min · {CategoryName(_minutes)}  ·  Qualquer rating";
+        await _svc.StartSearchingAsync(_minutes);
     }
 
     private void OnCancelClicked(object? sender, EventArgs e) => _svc.Cancel();
@@ -78,28 +79,45 @@ public partial class RandomMatchPage : ContentPage
         MainThread.BeginInvokeOnMainThread(async () =>
         {
             var s = _svc.State;
-            OppNameLabel.Text          = s.OpponentName;
+            OppNameLabel.Text          = string.IsNullOrEmpty(s.OpponentName) ? "Oponente" : s.OpponentName;
             OppRatingLabel.Text        = $"Rating: {s.OpponentRating}";
             ConfirmedDetailsLabel.Text =
-                $"{TimeLabel(s.AgreedTime)}  ·  " +
+                $"{s.AgreedMinutes} min · {CategoryName(s.AgreedMinutes)}  ·  " +
                 (s.PlayerIsWhite ? "Você joga com as Brancas ♙" : "Você joga com as Pretas ♟");
             ShowSection("confirmed");
 
-            for (int i = 3; i >= 1; i--)
+            _countdownCts?.Cancel();
+            _countdownCts = new CancellationTokenSource();
+
+            try
             {
-                CountdownLabel.Text = $"Iniciando em {i}...";
-                await Task.Delay(1000);
+                for (int i = 3; i >= 1; i--)
+                {
+                    CountdownLabel.Text = $"Iniciando em {i}...";
+                    await Task.Delay(1000, _countdownCts.Token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                ShowSection("selection");
+                return;
             }
 
             var app = AppState.Current;
             app.PendingOnlineGame   = true;
             app.IsOnlineGame        = true;
             app.OnlineOpponentName  = s.OpponentName;
-            app.OnlineTimeMinutes   = (int)s.AgreedTime;
+            app.OnlineTimeMinutes   = s.AgreedMinutes;
             app.OnlinePlayerIsWhite = s.PlayerIsWhite;
 
             await Shell.Current.GoToAsync("GamePage");
         });
+    }
+
+    private void OnCountdownCancelled(object? sender, EventArgs e)
+    {
+        _countdownCts?.Cancel();
+        _svc.Reset();
     }
 
     private void OnSearchCancelled()
@@ -117,16 +135,10 @@ public partial class RandomMatchPage : ContentPage
         if (section == "searching") SearchSpinner.IsRunning = true;
     }
 
-    private static string TimeLabel(TimeControlOption tc) =>
-        $"{(int)tc}' {TypeName(tc)}";
-
-    private static string TypeName(TimeControlOption tc) => tc switch
+    private static string CategoryName(int min) => min switch
     {
-        TimeControlOption.Bullet1  => "Bullet",
-        TimeControlOption.Blitz3   => "Blitz",
-        TimeControlOption.Blitz5   => "Blitz",
-        TimeControlOption.Rapid10  => "Rápido",
-        TimeControlOption.Rapid15  => "Rápido",
-        _                          => ""
+        1      => "Bullet",
+        <= 9   => "Blitz",
+        _      => "Rápido"
     };
 }

@@ -272,11 +272,8 @@ public partial class WaitingRoomPage : ContentPage
             FontSize       = 14,
             FontAttributes = player.IsHuman ? FontAttributes.Bold : FontAttributes.None
         });
-        var (tierIcon, tierName, _, _) = ProfileService.GetTier(
-            player.IsHuman ? AppState.Current.Profile.Points : player.Strength * 200);
-        string sub = player.IsHuman
-            ? $"Você  {tierIcon} {tierName}"
-            : $"{tierIcon} {tierName}";
+        int    playerRating = player.IsHuman ? AppState.Current.Profile.Points : ProfileService.EloRatingForAI(player.Strength);
+        string sub          = player.IsHuman ? $"Você  ·  Rating {playerRating}" : $"Rating {playerRating}";
         nameStack.Add(new Label
         {
             Text      = sub,

@@ -120,6 +120,8 @@ public class GameViewModel : INotifyPropertyChanged
     private ChessMove?        _pendingPromotion;
 
     // --- Temporizador ---
+    private static readonly TimeSpan OneSecond = OneSecond;
+
     private IDispatcherTimer? _clock;
     private TimeSpan          _whiteTime;
     private TimeSpan          _blackTime;
@@ -158,13 +160,13 @@ public class GameViewModel : INotifyPropertyChanged
     public bool GameOver
     {
         get => _gameOver;
-        private set { _gameOver = value; OnPC(); OnPC(nameof(ShowReturnButton)); OnPC(nameof(ShowMoveTimer)); OnPC(nameof(ShowResignButton)); OnPC(nameof(CanOfferDraw)); }
+        private set { _gameOver = value; OnPC(); OnPC(nameof(ShowReturnButton)); OnPC(nameof(ShowMoveTimer)); OnPC(nameof(ShowResignButton)); OnPC(nameof(CanOfferDraw)); OfferDrawCommand?.ChangeCanExecute(); }
     }
 
     public bool IsAIThinking
     {
         get => _isAIThinking;
-        private set { _isAIThinking = value; OnPC(); }
+        private set { _isAIThinking = value; OnPC(); OnPC(nameof(CanOfferDraw)); OfferDrawCommand?.ChangeCanExecute(); }
     }
 
     public bool AwaitingPromotion
@@ -211,10 +213,10 @@ public class GameViewModel : INotifyPropertyChanged
     public ICommand SquareTappedCommand { get; }
     public ICommand PromoteCommand      { get; }
     public ICommand ResignCommand       { get; }
-    public ICommand OfferDrawCommand    { get; }
+    public Command  OfferDrawCommand    { get; }
 
     public bool ShowResignButton => !_gameOver && !IsFriendMode;
-    public bool CanOfferDraw    => !IsTournamentMode && !IsFriendMode && !_gameOver && !_isAIThinking;
+    public bool CanOfferDraw    => !IsFriendMode && !_gameOver && !_isAIThinking;
 
     // Peças capturadas e vantagem de material
     public string WhiteCapturesDisplay { get; private set; } = "";
@@ -248,7 +250,7 @@ public class GameViewModel : INotifyPropertyChanged
         SquareTappedCommand = new Command<SquareViewModel>(OnSquareTapped);
         PromoteCommand      = new Command<string>(OnPromote);
         ResignCommand       = new Command(async () => await OnResign());
-        OfferDrawCommand    = new Command(async () => await OnOfferDraw());
+        OfferDrawCommand    = new Command(async () => await OnOfferDraw(), () => CanOfferDraw);
         _chat.MessageReceived += msg => ChatMessageReceived?.Invoke(msg);
 
         RefreshBoard();
@@ -309,6 +311,8 @@ public class GameViewModel : INotifyPropertyChanged
         OnPC(nameof(TournamentOpponent));
         OnPC(nameof(ShowNewGameButton));
         OnPC(nameof(ShowReturnButton));
+        OnPC(nameof(CanOfferDraw));
+        OfferDrawCommand.ChangeCanExecute();
 
         // Configura temporizador
         _timerEnabled = minutes > 0;
@@ -350,7 +354,7 @@ public class GameViewModel : INotifyPropertyChanged
     {
         StopClock();
         _clock          = Application.Current!.Dispatcher.CreateTimer();
-        _clock.Interval = TimeSpan.FromSeconds(1);
+        _clock.Interval = OneSecond;
         _clock.Tick    += OnClockTick;
         _clock.Start();
     }
@@ -366,7 +370,7 @@ public class GameViewModel : INotifyPropertyChanged
         // Contador por jogada — só corre na vez do jogador (brancas)
         if (_moveTimerActive && (IsFriendMode || _board.CurrentTurn == PieceColor.White))
         {
-            _moveTime -= TimeSpan.FromSeconds(1);
+            _moveTime -= OneSecond;
             OnPC(nameof(MoveTimeDisplay));
             OnPC(nameof(IsMoveTimeLow));
             if (_moveTime <= TimeSpan.Zero)
@@ -383,7 +387,7 @@ public class GameViewModel : INotifyPropertyChanged
         // Contador total de jogo
         if (_board.CurrentTurn == PieceColor.White)
         {
-            _whiteTime -= TimeSpan.FromSeconds(1);
+            _whiteTime -= OneSecond;
             if (_whiteTime <= TimeSpan.Zero)
             {
                 _whiteTime = TimeSpan.Zero;
@@ -396,7 +400,7 @@ public class GameViewModel : INotifyPropertyChanged
         }
         else
         {
-            _blackTime -= TimeSpan.FromSeconds(1);
+            _blackTime -= OneSecond;
             if (_blackTime <= TimeSpan.Zero)
             {
                 _blackTime = TimeSpan.Zero;
@@ -739,7 +743,7 @@ public class GameViewModel : INotifyPropertyChanged
     // ----------------------------------------------------------------
     private async Task OnOfferDraw()
     {
-        if (_gameOver || IsTournamentMode || DrawOfferRequested == null) return;
+        if (_gameOver || DrawOfferRequested == null) return;
         if (_isAIThinking) return;
 
         // IA aceita empate com ~30% de chance (mais provável se estiver em desvantagem)
@@ -748,6 +752,7 @@ public class GameViewModel : INotifyPropertyChanged
 
         StopClock();
         StatusMessage = "Empate acordado!";
+        if (IsTournamentMode) SetTournamentResult(false);
         GameOver = true;
         _sound.PlayGameOver();
     }

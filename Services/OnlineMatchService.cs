@@ -3,8 +3,7 @@ using ChessMAUI.Models;
 namespace ChessMAUI.Services;
 
 /// <summary>
-/// Matchmaking 1v1 aleatório.
-/// O tempo é definido por quem inicia a busca; o oponente aceita e entra.
+/// Matchmaking 1v1 aleatório. Tempo definido por quem busca (1–20 min).
 /// Phase 1: mock local. Phase 2: substituir por Firebase/SignalR.
 /// </summary>
 public class OnlineMatchService
@@ -18,29 +17,22 @@ public class OnlineMatchService
 
     public OnlineMatchState State { get; } = new();
 
-    /// <summary>Oponente encontrado; partida pronta para iniciar.</summary>
     public event Action? MatchReady;
-    /// <summary>Busca cancelada.</summary>
     public event Action? SearchCancelled;
 
     private CancellationTokenSource? _cts;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Inicia busca — tempo proposto é o tempo da partida
-    // ─────────────────────────────────────────────────────────────────────────
-    public async Task StartSearchingAsync(TimeControlOption myTime)
+    public async Task StartSearchingAsync(int minutes)
     {
         _cts?.Cancel();
         _cts = new CancellationTokenSource();
 
-        State.Phase       = OnlineMatchPhase.Searching;
-        State.MyProposal  = myTime;
-        State.AgreedTime  = myTime;
-        State.MatchId     = Guid.NewGuid().ToString()[..8];
+        State.Phase         = OnlineMatchPhase.Searching;
+        State.AgreedMinutes = minutes;
+        State.MatchId       = Guid.NewGuid().ToString()[..8];
 
         try
         {
-            // Simula latência de busca (2–6 s)
             await Task.Delay(Random.Shared.Next(2000, 6000), _cts.Token);
 
             State.OpponentName   = MockNames[Random.Shared.Next(MockNames.Length)];

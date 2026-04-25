@@ -10,16 +10,16 @@ public class RankingService
 {
     private static readonly (string Avatar, string Name, int Points)[] BotSeeds =
     [
-        ("🦁","Magnus AI",    18500), ("🐉","Kasparov Bot",  15200),
-        ("👑","Fischer AI",   12800), ("⚡","Tal Bot",        10400),
-        ("🎯","Karpov AI",    9100),  ("🔥","Anand Bot",      7800),
-        ("💎","Carlsen X",    6500),  ("🌟","Capablanca AI",  5200),
-        ("🎭","Morphy Bot",   4100),  ("🛡️","Polgar AI",      3500),
-        ("♛","Lasker Bot",   2800),  ("♜","Alekhine AI",    2100),
-        ("♝","Petrosian X",  1600),  ("♞","Spassky Bot",    1200),
-        ("🦊","Bronstein AI",  900),  ("🐺","Smyslov Bot",    700),
-        ("🦅","Euwe AI",       500),  ("🐯","Botvinnik X",    350),
-        ("🌊","Lputian Bot",   200),  ("🏔","Morozevich X",   100),
+        ("🦁","Magnus AI",    2800), ("🐉","Kasparov Bot",  2700),
+        ("👑","Fischer AI",   2650), ("⚡","Tal Bot",        2580),
+        ("🎯","Karpov AI",    2500), ("🔥","Anand Bot",      2440),
+        ("💎","Carlsen X",    2380), ("🌟","Capablanca AI",  2300),
+        ("🎭","Morphy Bot",   2200), ("🛡️","Polgar AI",      2100),
+        ("♛","Lasker Bot",   2000), ("♜","Alekhine AI",    1900),
+        ("♝","Petrosian X",  1800), ("♞","Spassky Bot",    1650),
+        ("🦊","Bronstein AI", 1500), ("🐺","Smyslov Bot",   1400),
+        ("🦅","Euwe AI",      1350), ("🐯","Botvinnik X",   1280),
+        ("🌊","Lputian Bot",  1230), ("🏔","Morozevich X",  1210),
     ];
 
     private readonly List<RankingEntry> _bots;
@@ -29,20 +29,13 @@ public class RankingService
 
     public RankingService()
     {
-        _bots = BotSeeds.Select(b =>
+        _bots = BotSeeds.Select(b => new RankingEntry
         {
-            var (icon, name) = (b.Avatar, b.Name);
-            var tier = ProfileService.GetTier(b.Points);
-            return new RankingEntry
-            {
-                Avatar     = icon,
-                Name       = name,
-                Points     = b.Points,
-                WeekPoints = _rng.Next(0, b.Points / 10),
-                TierIcon   = tier.Icon,
-                TierName   = tier.Name,
-                IsHuman    = false
-            };
+            Avatar     = b.Avatar,
+            Name       = b.Name,
+            Points     = b.Points,
+            WeekPoints = _rng.Next(0, Math.Max(1, b.Points / 100)),
+            IsHuman    = false
         }).ToList();
 
         _ = SimulateActivityAsync();
@@ -80,20 +73,14 @@ public class RankingService
         return all;
     }
 
-    private static RankingEntry HumanEntry(ProfileService p)
+    private static RankingEntry HumanEntry(ProfileService p) => new()
     {
-        var tier = ProfileService.GetTier(p.Points);
-        return new RankingEntry
-        {
-            Avatar     = p.Avatar,
-            Name       = p.Name,
-            Points     = p.Points,
-            WeekPoints = p.WeekPoints,
-            TierIcon   = tier.Icon,
-            TierName   = tier.Name,
-            IsHuman    = true
-        };
-    }
+        Avatar     = p.Avatar,
+        Name       = p.Name,
+        Points     = p.Points,
+        WeekPoints = p.WeekPoints,
+        IsHuman    = true
+    };
 
     // -----------------------------------------------------------------------
     // Simula pequenas variações de pontos nos bots ao longo do tempo
@@ -104,12 +91,9 @@ public class RankingService
         {
             await Task.Delay(_rng.Next(8000, 20000));
             var bot = _bots[_rng.Next(_bots.Count)];
-            int delta = _rng.Next(5, 50);
+            int delta = _rng.Next(1, 8);
             bot.Points     += delta;
             bot.WeekPoints += delta;
-            var tier = ProfileService.GetTier(bot.Points);
-            bot.TierIcon = tier.Icon;
-            bot.TierName = tier.Name;
             MainThread.BeginInvokeOnMainThread(() => RankingUpdated?.Invoke());
         }
     }
