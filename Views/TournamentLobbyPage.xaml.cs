@@ -34,7 +34,7 @@ public partial class TournamentLobbyPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        BalanceLabel.Text = $"$ {AppState.Current.Profile.Balance:N0}";
+        BalanceLabel.Text = $"Rating: {AppState.Current.Profile.Points}";
         var svc = AppState.Current.RoomLobby;
         svc.RoomsUpdated -= OnRoomsUpdated;
         svc.RoomsUpdated += OnRoomsUpdated;
@@ -245,7 +245,7 @@ public partial class TournamentLobbyPage : ContentPage
     private Grid BuildRow(TournamentRoom room, bool alt)
     {
         var profile    = AppState.Current.Profile;
-        bool hasTicket = profile.HasTicket(room.BuyIn);
+        bool hasTicket = false;
 
         // Fundo especial para alto valor
         Color bg = room.IsHighStakes
@@ -606,8 +606,7 @@ public partial class TournamentLobbyPage : ContentPage
             $"{_customSize} jogadores  ·  {time}\n" +
             $"Buy-in: $ {_customBuyIn:N0}  →  Prêmio total: $ {pool:N0}";
 
-        bool canAfford = AppState.Current.Profile.Balance >= _customBuyIn ||
-                         AppState.Current.Profile.HasTicket(_customBuyIn);
+        bool canAfford = true;
         _createBtn.BackgroundColor = canAfford
             ? Color.FromArgb("#7B68EE")
             : Color.FromArgb("#555555");
@@ -617,22 +616,6 @@ public partial class TournamentLobbyPage : ContentPage
     {
         var profile = AppState.Current.Profile;
         var lobby   = AppState.Current.RoomLobby;
-
-        bool usedTicket = profile.UseTicket(_customBuyIn);
-        if (!usedTicket)
-        {
-            if (!profile.TryDebit(_customBuyIn, $"Buy-in – Torneio Personalizado ({_customSize} jog.)", "🎮"))
-            {
-                await DisplayAlert("Saldo insuficiente",
-                    $"Você precisa de $ {_customBuyIn:N0}.\nSaldo: $ {profile.Balance:N0}", "OK");
-                return;
-            }
-        }
-        else
-        {
-            await DisplayAlert("🎟 Ticket Utilizado!",
-                $"Vaga gratuita no torneio de $ {_customBuyIn:N0} ativada!", "Ótimo!");
-        }
 
         // Gera código para sala privada; públicas também têm código interno
         string code = RoomLobbyService.GenerateAccessCode();
@@ -703,30 +686,6 @@ public partial class TournamentLobbyPage : ContentPage
                     "O código informado não confere com esta sala.", "OK");
                 return;
             }
-        }
-
-        // Tenta usar ticket primeiro; senão debita fichas
-        bool usedTicket = profile.UseTicket(room.BuyIn);
-        if (!usedTicket)
-        {
-            if (!profile.TryDebit(room.BuyIn, $"Buy-in – {room.TypeLabel} ({room.Size} jogadores)", "🎮"))
-            {
-                // Verifica se tem satélite para sugerir
-                bool hasSatellite = AppState.Current.RoomLobby.Rooms
-                    .Any(r => r.Type == TournamentType.Satellite && r.SatelliteTarget == room.BuyIn && r.CanJoin);
-
-                string tip = hasSatellite
-                    ? "\n\n💡 Jogue um Passaporte para ganhar uma vaga gratuita!"
-                    : "";
-                await DisplayAlert("Saldo insuficiente",
-                    $"Você precisa de $ {room.BuyIn:N0}.\nSaldo: $ {profile.Balance:N0}{tip}", "OK");
-                return;
-            }
-        }
-        else
-        {
-            await DisplayAlert("🎟 Ticket Utilizado!",
-                $"Vaga gratuita no torneio de $ {room.BuyIn:N0} ativada!", "Ótimo!");
         }
 
         AppState.Current.RoomLobby.JoinRoom(room);

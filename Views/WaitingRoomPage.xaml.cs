@@ -194,7 +194,6 @@ public partial class WaitingRoomPage : ContentPage
     private async void OnCancelClicked(object? sender, EventArgs e)
     {
         _cts?.Cancel();
-        AppState.Current.Profile.Credit(AppState.Current.Matchmaking.BuyIn, "Reembolso – Cancelamento", "↩️");
         // Fecha sala no lobby se era criada pelo jogador
         var mm = AppState.Current.Matchmaking;
         if (mm.IsPrivate) AppState.Current.RoomLobby.ClosePlayerRoom(mm.AccessCode);

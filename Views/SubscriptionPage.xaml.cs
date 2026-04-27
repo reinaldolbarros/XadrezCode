@@ -58,10 +58,6 @@ public partial class SubscriptionPage : ContentPage
 
         Sub.Subscribe(tier);
 
-        // Missão bônus Ouro: credita imediatamente se acabou de assinar
-        if (tier == SubscriptionTier.Ouro && Sub.ClaimOuroBonusMission())
-            AppState.Current.Profile.Credit(30, "Missão bônus Ouro", "◆");
-
         await DisplayAlert("Pronto!", $"Plano {label} ativo até {Sub.ExpiresAt:dd/MM/yyyy}.", "OK");
         RefreshUI();
     }

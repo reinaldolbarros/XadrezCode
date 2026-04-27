@@ -39,7 +39,6 @@ public partial class LobbyPage : ContentPage
         else          AvatarLabel.Text   = p.Avatar;
 
         NameLabel.Text    = p.Name;
-        BalanceLabel.Text = $"$ {p.Balance:N0}";
 
         // Localização inline com o nome
         string loc = p.Country.Length > 0 && p.State.Length > 0 ? $"{p.Country} · {p.State}"
@@ -49,12 +48,6 @@ public partial class LobbyPage : ContentPage
         WinsLabel.Text      = p.Wins.ToString();
         LossesLabel.Text    = p.Losses.ToString();
         TournWinsLabel.Text = p.TournamentsWon.ToString();
-
-        // Tickets de satélite
-        var tickets = p.GetAllTickets();
-        string ticketStr = tickets.Count > 0
-            ? "  ·  " + string.Join("  ", tickets.Select(kv => $"${kv.Key:N0}×{kv.Value}"))
-            : "";
 
         // Bônus diário
         bool claimed = daily.BonusClaimedToday;
@@ -67,25 +60,7 @@ public partial class LobbyPage : ContentPage
         // Botão admin (visível apenas em modo admin)
         AdminBtn.IsVisible = AppState.Current.IsAdminMode;
 
-        // Banner de assinatura
-        var sub = AppState.Current.Subscription;
-        if (sub.IsActive)
-        {
-            SubTitleLabel.Text   = $"{sub.BadgeIcon} Plano {sub.BadgeLabel}";
-            SubDetailLabel.Text  = $"Ativo até {sub.ExpiresAt:dd/MM/yyyy} · Sem anúncios";
-            SubBanner.Stroke     = new SolidColorBrush(sub.ActiveTier == SubscriptionTier.Ouro
-                ? Color.FromArgb("#B8860B") : Color.FromArgb("#2A5090"));
-            SubBtn.Text          = "Gerenciar";
-        }
-        else
-        {
-            SubTitleLabel.Text   = "Plano Gratuito";
-            SubDetailLabel.Text  = "Assine e jogue sem anúncios";
-            SubBanner.Stroke     = new SolidColorBrush(Color.FromArgb("#1A2840"));
-            SubBtn.Text          = "Ver planos";
-        }
-
-        RatingLabel.Text = $"Rating: {p.Points:N0}{ticketStr}";
+        RatingLabel.Text = $"Rating: {p.Points:N0}";
 
         // Casual / Liga — COMENTADO: aguardando base de jogadores
         // var casual = AppState.Current.CasualRanking;
@@ -147,23 +122,13 @@ public partial class LobbyPage : ContentPage
     private async void OnBonusClicked(object? sender, EventArgs e)
     {
         var state = AppState.Current;
-        var sub   = state.Subscription;
-        int fichas = state.Daily.ClaimDailyBonus(sub.BonusMultiplier, sub.FlatDailyBonus);
-        state.Profile.Credit(fichas, "Bônus Diário", "♟");
+        state.Daily.ClaimDailyBonus(1, 0);
         state.Profile.AddPoints(5, "Bônus de login diário", "♟");
 
-        // Missão bônus Ouro: crédito automático diário
-        if (sub.ActiveTier == SubscriptionTier.Ouro && sub.ClaimOuroBonusMission())
-        {
-            state.Profile.Credit(30, "Missão bônus Ouro", "◆");
-            fichas += 30;
-        }
-
         int streak = state.Daily.LoginStreak;
-        string extra = sub.IsActive ? $"\n{sub.BadgeIcon} Bônus {sub.BadgeLabel} incluído" : "";
-        string next = streak switch { >= 7 => "Máximo!", >= 5 => "7 dias = 150 fichas", >= 3 => "5 dias = 100 fichas", >= 2 => "3 dias = 75 fichas", _ => "2 dias = 50 fichas" };
+        string next = streak switch { >= 7 => "Máximo!", >= 5 => "7 dias = +15 pts", >= 3 => "5 dias = +10 pts", >= 2 => "3 dias = +8 pts", _ => "2 dias = +6 pts" };
         await DisplayAlert("Bônus Diário",
-            $"+{fichas} fichas{extra}\n\nSequência: {streak} dia{(streak != 1 ? "s" : "")}\nPróximo prêmio: {next}", "OK");
+            $"+5 pts de rating\n\nSequência: {streak} dia{(streak != 1 ? "s" : "")}\nPróximo prêmio: {next}", "OK");
 
         await RefreshUI();
     }
@@ -192,10 +157,6 @@ public partial class LobbyPage : ContentPage
             info.Add(new Label { Text = $"{m.Progress}/{m.Target}", TextColor = Color.FromArgb("#607890"), FontSize = 10 });
             row.Add(info);
 
-            var reward = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.End, Spacing = 1 };
-            reward.Add(new Label { Text = $"+{m.BalanceReward}", TextColor = Color.FromArgb("#4CAF50"), FontSize = 10, HorizontalTextAlignment = TextAlignment.End });
-            Grid.SetColumn(reward, 1);
-            row.Add(reward);
 
             MissionContainer.Children.Add(row);
 
@@ -265,9 +226,6 @@ public partial class LobbyPage : ContentPage
     private int      _adminTapCount = 0;
     private DateTime _lastAdminTap  = DateTime.MinValue;
 
-    private async void OnExtractClicked(object? sender, EventArgs e)
-        => await Shell.Current.GoToAsync("ExtractPage");
-
     private async void OnAdminActivate(object? sender, TappedEventArgs e)
     {
         var now = DateTime.UtcNow;
@@ -301,12 +259,6 @@ public partial class LobbyPage : ContentPage
     // -----------------------------------------------------------------------
     // Navegação
     // -----------------------------------------------------------------------
-    private async void OnSubscriptionClicked(object? sender, EventArgs e)
-        => await Shell.Current.GoToAsync("SubscriptionPage");
-
-    private async void OnSubscriptionBannerTapped(object? sender, TappedEventArgs e)
-        => await Shell.Current.GoToAsync("SubscriptionPage");
-
     private async void OnRandomMatchClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync("RandomMatchPage");
 

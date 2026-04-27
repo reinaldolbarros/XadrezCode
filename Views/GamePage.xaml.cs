@@ -258,18 +258,7 @@ public partial class GamePage : ContentPage
             int oppElo    = ProfileService.EloRatingForAI(aiDepth);
             int eloChange = state.Profile.UpdateElo(oppElo, humanWon, isDraw2);
 
-            // Missão 1 — jogar 3 partidas (dá fichas por engajamento, não por vencer)
-            bool m1Done = state.Daily.RecordGamePlayed();
-            if (m1Done)
-            {
-                var m = state.Daily.GetMissions()[0];
-                state.Profile.Credit(m.BalanceReward, "Missão – 3 partidas jogadas", "♟");
-                await DisplayAlert("Missão Completa", $"+{m.BalanceReward} fichas por jogar 3 partidas!", "OK");
-            }
-
-            // Anúncio intersticial (apenas usuários gratuitos, máx 2/dia)
-            if (state.Ads.ShouldShowAd(state.Subscription))
-                await state.Ads.SimulateInterstitialAsync(this);
+            state.Daily.RecordGamePlayed();
 
             // Painel de resultado
             bool isDraw = isDraw2;

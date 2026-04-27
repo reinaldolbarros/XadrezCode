@@ -4,7 +4,7 @@ namespace ChessMAUI.Views;
 
 public partial class ExtractPage : ContentPage
 {
-    private enum Filter { All, Credits, Debits }
+    private enum Filter { All, Gains, Losses }
     private Filter _filter = Filter.All;
 
     public ExtractPage()
@@ -19,9 +19,6 @@ public partial class ExtractPage : ContentPage
         RefreshList();
     }
 
-    // -----------------------------------------------------------------------
-    // Filtros
-    // -----------------------------------------------------------------------
     private void BuildFilterBar()
     {
         FilterBar.Children.Clear();
@@ -29,8 +26,8 @@ public partial class ExtractPage : ContentPage
         (string Label, Filter Value)[] options =
         [
             ("Todos",    Filter.All),
-            ("Entradas", Filter.Credits),
-            ("Saídas",   Filter.Debits),
+            ("Ganhos",   Filter.Gains),
+            ("Perdas",   Filter.Losses),
         ];
 
         foreach (var (label, value) in options)
@@ -53,28 +50,23 @@ public partial class ExtractPage : ContentPage
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Lista
-    // -----------------------------------------------------------------------
     private void RefreshList()
     {
         var profile = AppState.Current.Profile;
-        var all     = profile.GetTransactions();
+        var all     = profile.GetPointTransactions();
 
-        // Totais sempre sobre tudo
-        decimal totalIn  = all.Where(t => t.Amount > 0).Sum(t => t.Amount);
-        decimal totalOut = all.Where(t => t.Amount < 0).Sum(t => t.Amount);
+        int totalGain = all.Where(t => t.Amount > 0).Sum(t => (int)t.Amount);
+        int totalLoss = all.Where(t => t.Amount < 0).Sum(t => (int)Math.Abs(t.Amount));
 
-        BalanceLabel.Text   = $"$ {profile.Balance:N0}";
-        TotalInLabel.Text   = $"$ {totalIn:N0}";
-        TotalOutLabel.Text  = $"$ {Math.Abs(totalOut):N0}";
+        BalanceLabel.Text   = $"{profile.Points:N0}";
+        TotalInLabel.Text   = $"+{totalGain}";
+        TotalOutLabel.Text  = $"-{totalLoss}";
 
-        // Aplica filtro
         var filtered = _filter switch
         {
-            Filter.Credits => all.Where(t => t.Amount > 0).ToList(),
-            Filter.Debits  => all.Where(t => t.Amount < 0).ToList(),
-            _              => all
+            Filter.Gains  => all.Where(t => t.Amount > 0).ToList(),
+            Filter.Losses => all.Where(t => t.Amount < 0).ToList(),
+            _             => all
         };
 
         TransactionList.Children.Clear();
@@ -83,7 +75,7 @@ public partial class ExtractPage : ContentPage
         {
             TransactionList.Children.Add(new Label
             {
-                Text              = "Nenhuma transação encontrada.",
+                Text              = "Nenhuma movimentação encontrada.",
                 TextColor         = Color.FromArgb("#555577"),
                 FontSize          = 14,
                 HorizontalOptions = LayoutOptions.Center,
@@ -92,7 +84,6 @@ public partial class ExtractPage : ContentPage
             return;
         }
 
-        // Agrupa por data
         var groups = filtered
             .GroupBy(t => t.Date.Date)
             .OrderByDescending(g => g.Key);
@@ -100,7 +91,6 @@ public partial class ExtractPage : ContentPage
         bool alt = false;
         foreach (var group in groups)
         {
-            // Cabeçalho do dia
             TransactionList.Children.Add(new Frame
             {
                 BackgroundColor = Color.FromArgb("#12172A"),
@@ -125,50 +115,34 @@ public partial class ExtractPage : ContentPage
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Linha de transação
-    // -----------------------------------------------------------------------
     private static Grid BuildRow(TransactionEntry tx, bool alt)
     {
-        bool isCredit = tx.Amount >= 0;
-        var  row      = new Grid
+        bool isGain = tx.Amount >= 0;
+        var  row    = new Grid
         {
             ColumnDefinitions = { new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto) },
             BackgroundColor   = alt ? Color.FromArgb("#16213E") : Color.FromArgb("#12192E"),
             Padding           = new Thickness(16, 10)
         };
 
-        // Ícone
         row.Add(new Label
         {
-            Text            = string.IsNullOrEmpty(tx.Icon) ? (isCredit ? "💰" : "💸") : tx.Icon,
+            Text            = string.IsNullOrEmpty(tx.Icon) ? (isGain ? "📈" : "📉") : tx.Icon,
             FontSize        = 20,
             VerticalOptions = LayoutOptions.Center,
             Margin          = new Thickness(0, 0, 12, 0)
         });
 
-        // Descrição + hora
         var info = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, Spacing = 2 };
-        info.Add(new Label
-        {
-            Text      = tx.Description,
-            TextColor = Colors.White,
-            FontSize  = 13
-        });
-        info.Add(new Label
-        {
-            Text      = tx.Date.ToString("HH:mm"),
-            TextColor = Color.FromArgb("#666688"),
-            FontSize  = 10
-        });
+        info.Add(new Label { Text = tx.Description, TextColor = Colors.White, FontSize = 13 });
+        info.Add(new Label { Text = tx.Date.ToString("HH:mm"), TextColor = Color.FromArgb("#666688"), FontSize = 10 });
         Grid.SetColumn(info, 1);
         row.Add(info);
 
-        // Valor
         var amountLbl = new Label
         {
-            Text              = isCredit ? $"+ $ {tx.Amount:N0}" : $"− $ {Math.Abs(tx.Amount):N0}",
-            TextColor         = isCredit ? Color.FromArgb("#4CAF50") : Color.FromArgb("#FF5252"),
+            Text              = isGain ? $"+{(int)tx.Amount}" : $"−{(int)Math.Abs(tx.Amount)}",
+            TextColor         = isGain ? Color.FromArgb("#4CAF50") : Color.FromArgb("#FF5252"),
             FontSize          = 14,
             FontAttributes    = FontAttributes.Bold,
             VerticalOptions   = LayoutOptions.Center,
@@ -182,7 +156,7 @@ public partial class ExtractPage : ContentPage
 
     private static string FormatDate(DateTime date)
     {
-        if (date == DateTime.Today)           return "Hoje";
+        if (date == DateTime.Today)             return "Hoje";
         if (date == DateTime.Today.AddDays(-1)) return "Ontem";
         return date.ToString("dd/MM/yyyy");
     }

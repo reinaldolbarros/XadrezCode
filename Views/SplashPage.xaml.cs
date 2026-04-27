@@ -10,7 +10,8 @@ public partial class SplashPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await Task.Delay(2200);
+
+        await Task.Delay(3000);
 
         var auth = AppState.Current.Auth;
         Page next = (auth.IsAuthenticated && !auth.IsAnonymous)

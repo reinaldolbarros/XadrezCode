@@ -43,29 +43,14 @@
                            TextColor="#4A8AC0" FontSize="13" VerticalOptions="Center"/>
                 </VerticalStackLayout>
 
-                <!-- Saldo -->
-                <VerticalStackLayout Grid.Column="2" VerticalOptions="Center"
-                                     HorizontalOptions="End" Spacing="4">
-                    <Border BackgroundColor="#111D32" Stroke="#1C2D4A" StrokeThickness="1"
-                            StrokeShape="RoundRectangle 10" Padding="10,6">
-                        <VerticalStackLayout HorizontalOptions="Center">
-                            <Label Text="SALDO" TextColor="#607890" FontSize="11"
-                                   HorizontalTextAlignment="Center"/>
-                            <Label x:Name="BalanceLabel" Text="$ 0"
-                                   TextColor="#4CAF50" FontSize="19" FontAttributes="Bold"
-                                   HorizontalTextAlignment="Center"/>
-                        </VerticalStackLayout>
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnAdminActivate"/>
-                        </Border.GestureRecognizers>
-                    </Border>
-                    <Label Text="extrato →" TextColor="#4A6888" FontSize="12"
-                           HorizontalTextAlignment="Center">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnExtractClicked"/>
-                        </Label.GestureRecognizers>
-                    </Label>
-                </VerticalStackLayout>
+                <!-- Admin tap area (hidden activator) -->
+                <BoxView Grid.Column="2" BackgroundColor="Transparent"
+                         WidthRequest="50" HeightRequest="50"
+                         VerticalOptions="Center">
+                    <BoxView.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAdminActivate"/>
+                    </BoxView.GestureRecognizers>
+                </BoxView>
             </Grid>
 
             <!-- Sair · Alterar Senha · Admin -->
@@ -340,28 +325,6 @@
                 </Grid>
             </Border>
 
-            <!-- ══ Assinatura ══ -->
-            <Border x:Name="SubBanner"
-                    BackgroundColor="#0D1828" Stroke="#1A2840" StrokeThickness="1"
-                    StrokeShape="RoundRectangle 12" Padding="16,14" Margin="0,0,0,10">
-                <Grid ColumnDefinitions="*,Auto">
-                    <VerticalStackLayout VerticalOptions="Center" Spacing="2">
-                        <Label x:Name="SubTitleLabel"
-                               Text="Plano Gratuito"
-                               TextColor="White" FontSize="15" FontAttributes="Bold"/>
-                        <Label x:Name="SubDetailLabel"
-                               Text="Assine e jogue sem anúncios"
-                               TextColor="#607890" FontSize="13"/>
-                    </VerticalStackLayout>
-                    <Button x:Name="SubBtn"
-                            Grid.Column="1"
-                            Text="Ver planos"
-                            Clicked="OnSubscriptionClicked"
-                            BackgroundColor="#1A3A65" TextColor="#4A8AC0"
-                            FontAttributes="Bold" FontSize="13"
-                            CornerRadius="8" HeightRequest="34" WidthRequest="90"/>
-                </Grid>
-            </Border>
 
         </VerticalStackLayout>
     </ScrollView>

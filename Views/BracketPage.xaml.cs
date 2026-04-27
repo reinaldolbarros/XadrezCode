@@ -52,9 +52,6 @@ public partial class BracketPage : ContentPage
             prof.RecordWin();
             prof.UpdateElo(oppEloTourney, true, false);
 
-            // Bounty: credita recompensa por eliminação
-            if (t.Type == TournamentType.Bounty && t.BountyPerPlayer > 0)
-                prof.Credit(t.BountyPerPlayer, $"🎯 Bounty – eliminação em torneio", "🎯");
         }
         else
         {
@@ -64,33 +61,25 @@ public partial class BracketPage : ContentPage
 
         if (!humanWon)
         {
-            decimal prize    = svc.GetHumanPrize(t);
-            int     position = t.HumanPlayer?.FinalPosition ?? t.Size;
-            if (prize > 0) prof.Credit(prize, $"Prêmio – {t.RoundName} ({t.Size} jogadores)", "🏅");
+            int position = t.HumanPlayer?.FinalPosition ?? t.Size;
 
             // Missão m3: chegar ao Top 3
             if (position <= 3)
-            {
-                bool m3Done = state.Daily.RecordTournamentElimination();
-                if (m3Done) { var m3 = state.Daily.GetMissions()[2]; prof.Credit(m3.BalanceReward, "Missão – Top 3 em torneio", "✅"); }
-            }
+                state.Daily.RecordTournamentElimination();
 
             // Registra histórico
             state.History.Add(new TournamentRecord
             {
-                Size = t.Size, BuyIn = t.BuyIn, Prize = prize,
+                Size = t.Size, BuyIn = t.BuyIn, Prize = 0,
                 Position = position
             });
-
 
             // Pontos de temporada (Liga) ou prioridade casual (Arena Casual)
             string extraMsg = AwardCompetitivePoints(t, position);
 
             string msg = t.IsHeadsUp
                 ? $"Adversário venceu a série 2–{t.HumanSeriesWins}.\nMelhor sorte da próxima vez!"
-                : prize > 0
-                    ? $"Você foi eliminado na {t.RoundName}.\nPrêmio: $ {prize:N0} creditado!{extraMsg}"
-                    : $"Você foi eliminado na {t.RoundName}.\nMelhor sorte da próxima vez!{extraMsg}";
+                : $"Você foi eliminado na {t.RoundName}.\nMelhor sorte da próxima vez!{extraMsg}";
 
             await DisplayAlert("Eliminado!", msg, "OK");
             state.ActiveTournament = null;
@@ -113,39 +102,15 @@ public partial class BracketPage : ContentPage
         {
             prof.TournamentsWon++;
 
-            // Missão m3: Top 3 (campeão conta)
-            bool m3WinDone = state.Daily.RecordTournamentElimination();
-            if (m3WinDone) { var m3w = state.Daily.GetMissions()[2]; prof.Credit(m3w.BalanceReward, "Missão – Top 3 em torneio", "✅"); }
+            state.Daily.RecordTournamentElimination();
 
-            string winMsg;
-            decimal prize = 0;
-
-            if (t.Type == TournamentType.Satellite && t.SatelliteTarget > 0)
+            string extraMsg2 = AwardCompetitivePoints(t, 1);
+            state.History.Add(new TournamentRecord
             {
-                // Satélite: prêmio é um ticket para o torneio alvo
-                prof.AddTicket(t.SatelliteTarget);
-                state.History.Add(new TournamentRecord
-                {
-                    Size = t.Size, BuyIn = t.BuyIn, Prize = 0, Position = 1
-                });
-                winMsg = $"Parabéns! Você ganhou uma VAGA no torneio de $ {t.SatelliteTarget:N0}!\n\n" +
-                         $"🎟 Ticket adicionado à sua conta.\nUse-o no torneio correspondente!";
-                await DisplayAlert("🎟 VAGA CONQUISTADA!", winMsg, "Incrível!");
-            }
-            else
-            {
-                prize = svc.GetHumanPrize(t);
-                prof.Credit(prize, $"🏆 Campeão – Torneio {t.Size} jogadores", "🏆");
-                state.History.Add(new TournamentRecord
-                {
-                    Size = t.Size, BuyIn = t.BuyIn, Prize = prize, Position = 1
-                });
-
-                string extraMsg = AwardCompetitivePoints(t, 1);
-                winMsg = $"Parabéns! Você venceu o torneio de {t.Size} jogadores!\n\n" +
-                         $"Prêmio: $ {prize:N0} creditado!{extraMsg}";
-                await DisplayAlert("🏆 CAMPEÃO!", winMsg, "Incrível!");
-            }
+                Size = t.Size, BuyIn = t.BuyIn, Prize = 0, Position = 1
+            });
+            string winMsg = $"Parabéns! Você venceu o torneio de {t.Size} jogadores!{extraMsg2}";
+            await DisplayAlert("🏆 CAMPEÃO!", winMsg, "Incrível!");
 
             state.ActiveTournament = null;
             await Shell.Current.GoToAsync("//LobbyPage");

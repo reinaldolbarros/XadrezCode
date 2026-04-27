@@ -4,7 +4,7 @@ namespace ChessMAUI.Views;
 
 public partial class TournamentHistoryPage : ContentPage
 {
-    private enum TxFilter { All, Credits, Debits }
+    private enum TxFilter { All, Gains, Losses }
     private TxFilter _filter = TxFilter.All;
 
     public TournamentHistoryPage()
@@ -21,22 +21,21 @@ public partial class TournamentHistoryPage : ContentPage
     private void Refresh()
     {
         var profile = AppState.Current.Profile;
-        var all     = profile.GetTransactions();
+        var all     = profile.GetPointTransactions();
 
-        decimal totalCredits = all.Where(t => t.Amount > 0).Sum(t => t.Amount);
-        decimal totalDebits  = all.Where(t => t.Amount < 0).Sum(t => Math.Abs(t.Amount));
+        int totalGains  = all.Where(t => t.Amount > 0).Sum(t => (int)t.Amount);
+        int totalLosses = all.Where(t => t.Amount < 0).Sum(t => (int)Math.Abs(t.Amount));
 
-        BalanceLabel.Text  = $"$ {profile.Balance:N0}";
-        CreditsLabel.Text  = $"$ {totalCredits:N0}";
-        DebitsLabel.Text   = $"$ {totalDebits:N0}";
+        BalanceLabel.Text  = $"{profile.Points:N0}";
+        CreditsLabel.Text  = $"+{totalGains}";
+        DebitsLabel.Text   = $"-{totalLosses}";
 
-        // Filtros
         FilterBar.Children.Clear();
         (string Label, TxFilter Value)[] filters =
         [
-            ("Todos",    TxFilter.All),
-            ("Entradas", TxFilter.Credits),
-            ("Saídas",   TxFilter.Debits),
+            ("Todos",  TxFilter.All),
+            ("Ganhos", TxFilter.Gains),
+            ("Perdas", TxFilter.Losses),
         ];
         foreach (var (label, value) in filters)
         {
@@ -59,9 +58,9 @@ public partial class TournamentHistoryPage : ContentPage
 
         var filtered = _filter switch
         {
-            TxFilter.Credits => all.Where(t => t.Amount > 0).ToList(),
-            TxFilter.Debits  => all.Where(t => t.Amount < 0).ToList(),
-            _                => all
+            TxFilter.Gains  => all.Where(t => t.Amount > 0).ToList(),
+            TxFilter.Losses => all.Where(t => t.Amount < 0).ToList(),
+            _               => all
         };
 
         TransactionList.Children.Clear();
@@ -84,7 +83,7 @@ public partial class TournamentHistoryPage : ContentPage
         {
             TransactionList.Children.Add(new Label
             {
-                Text = group.Key == DateTime.Today       ? "Hoje"
+                Text = group.Key == DateTime.Today             ? "Hoje"
                      : group.Key == DateTime.Today.AddDays(-1) ? "Ontem"
                      : group.Key.ToString("dd/MM/yyyy"),
                 TextColor       = Color.FromArgb("#444466"),
@@ -96,7 +95,7 @@ public partial class TournamentHistoryPage : ContentPage
 
             foreach (var tx in group.OrderByDescending(t => t.Date))
             {
-                bool isCredit = tx.Amount >= 0;
+                bool isGain = tx.Amount >= 0;
                 var row = new Grid
                 {
                     ColumnDefinitions = { new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto) },
@@ -106,7 +105,7 @@ public partial class TournamentHistoryPage : ContentPage
 
                 row.Add(new Label
                 {
-                    Text             = string.IsNullOrEmpty(tx.Icon) ? (isCredit ? "💰" : "💸") : tx.Icon,
+                    Text             = string.IsNullOrEmpty(tx.Icon) ? (isGain ? "📈" : "📉") : tx.Icon,
                     FontSize         = 18,
                     VerticalOptions  = LayoutOptions.Center,
                     Margin           = new Thickness(0, 0, 12, 0)
@@ -120,13 +119,11 @@ public partial class TournamentHistoryPage : ContentPage
 
                 var amt = new Label
                 {
-                    Text            = isCredit
-                        ? $"+ $ {(int)tx.Amount}"
-                        : $"− $ {(int)Math.Abs(tx.Amount)}",
-                    TextColor       = isCredit ? Color.FromArgb("#4CAF50") : Color.FromArgb("#FF5252"),
-                    FontSize        = 13,
-                    FontAttributes  = FontAttributes.Bold,
-                    VerticalOptions = LayoutOptions.Center,
+                    Text              = isGain ? $"+{(int)tx.Amount}" : $"−{(int)Math.Abs(tx.Amount)}",
+                    TextColor         = isGain ? Color.FromArgb("#4CAF50") : Color.FromArgb("#FF5252"),
+                    FontSize          = 13,
+                    FontAttributes    = FontAttributes.Bold,
+                    VerticalOptions   = LayoutOptions.Center,
                     HorizontalOptions = LayoutOptions.End
                 };
                 Grid.SetColumn(amt, 2);

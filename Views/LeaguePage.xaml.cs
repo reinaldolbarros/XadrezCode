@@ -328,13 +328,6 @@ public partial class LeaguePage : ContentPage
         var state = AppState.Current;
         decimal cost = state.League.GetEffectiveBuyIn(evt, state.Subscription);
 
-        if (state.Profile.Balance < cost)
-        {
-            await DisplayAlert("Saldo insuficiente",
-                $"Você precisa de $ {cost:N0} para entrar. Seu saldo: $ {state.Profile.Balance:N0}", "OK");
-            return;
-        }
-
         var prizes = LeagueService.BuildPrizes(evt);
         prizes.TryGetValue(1, out decimal firstPrize);
         string priorityNote = state.CasualRanking.HasLigaPriority
@@ -351,21 +344,10 @@ public partial class LeaguePage : ContentPage
 
         if (!confirm) return;
 
-        // Debita fichas
-        state.Profile.TryDebit(cost, $"Buy-in – {evt.Name}", "♛");
-
         // Registra participação (título + season)
         state.Titles.RecordLeagueParticipation();
         state.Season.AddPoints(evt.ParticipationPoints);
-
-        // Marca missão 2 (participar de 1 torneio da Liga)
-        bool m2Done = state.Daily.RecordWin();
-        if (m2Done)
-        {
-            var m = state.Daily.GetMissions()[1];
-            state.Profile.Credit(m.BalanceReward, "Missão – Torneio da Liga", "♛");
-            await DisplayAlert("Missão Completa", $"+{m.BalanceReward} fichas por participar da Liga!", "OK");
-        }
+        state.Daily.RecordWin();
 
         // Inscreve
         state.League.Register(evt);
