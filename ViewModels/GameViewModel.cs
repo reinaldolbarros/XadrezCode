@@ -116,6 +116,7 @@ public class GameViewModel : INotifyPropertyChanged
     private string            _statusMessage = "Toque em 'Novo Jogo' para começar";
     private bool              _gameOver      = true;
     private bool              _isAIThinking;
+    private bool              _drawRefusedThisTurn;
     private bool              _awaitingPromotion;
     private ChessMove?        _pendingPromotion;
 
@@ -216,7 +217,7 @@ public class GameViewModel : INotifyPropertyChanged
     public Command  OfferDrawCommand    { get; }
 
     public bool ShowResignButton => !_gameOver && !IsFriendMode;
-    public bool CanOfferDraw    => !IsFriendMode && !_gameOver && !_isAIThinking;
+    public bool CanOfferDraw    => !IsFriendMode && !_gameOver && !_isAIThinking && !_drawRefusedThisTurn;
 
     // Peças capturadas e vantagem de material
     public string WhiteCapturesDisplay { get; private set; } = "";
@@ -300,9 +301,10 @@ public class GameViewModel : INotifyPropertyChanged
         _moves.Clear();
         UpdateCapturesDisplay();
         UpdateMoveList();
-        AwaitingPromotion = false;
-        IsAIThinking      = false;
-        GameOver          = false;
+        AwaitingPromotion    = false;
+        IsAIThinking         = false;
+        _drawRefusedThisTurn = false;
+        GameOver             = false;
         HumanWon          = null;
         IsTournamentMode  = isTournament;
         IsFriendMode      = friendMode;
@@ -521,6 +523,10 @@ public class GameViewModel : INotifyPropertyChanged
 
     private void ExecutePlayerMove(ChessMove move)
     {
+        _drawRefusedThisTurn = false;
+        OnPC(nameof(CanOfferDraw));
+        OfferDrawCommand.ChangeCanExecute();
+
         var movingPiece   = _board.GetPiece(move.FromRow, move.FromCol)!;
         var movingColor   = movingPiece.Color;
         var capturedPiece = move.IsEnPassant
@@ -748,7 +754,13 @@ public class GameViewModel : INotifyPropertyChanged
 
         // IA aceita empate com ~30% de chance (mais provável se estiver em desvantagem)
         bool aiAccepts = await DrawOfferRequested.Invoke();
-        if (!aiAccepts) return;
+        if (!aiAccepts)
+        {
+            _drawRefusedThisTurn = true;
+            OnPC(nameof(CanOfferDraw));
+            OfferDrawCommand.ChangeCanExecute();
+            return;
+        }
 
         StopClock();
         StatusMessage = "Empate acordado!";

@@ -111,7 +111,7 @@ public partial class WaitingRoomPage : ContentPage
                 if (mm.Players.Count < mm.TotalSlots)
                 {
                     StatusLabel.Text      = "Aguardando jogadores...";
-                    StatusLabel.TextColor = Color.FromArgb("#AAAACC");
+                    StatusLabel.TextColor = Color.FromArgb("#E0E0F4");
                 }
             }
         });
@@ -237,23 +237,13 @@ public partial class WaitingRoomPage : ContentPage
     // -----------------------------------------------------------------------
     // Card de jogador ocupado
     // -----------------------------------------------------------------------
-    private static Frame BuildPlayerCard(RoomPlayer player)
+    private static Border BuildPlayerCard(RoomPlayer player)
     {
-        var frame = new Frame
-        {
-            BackgroundColor = player.IsHuman ? Color.FromArgb("#1C2A1C") : Color.FromArgb("#16213E"),
-            BorderColor     = player.IsHuman ? Color.FromArgb("#4CAF50") : Color.FromArgb("#0F3460"),
-            CornerRadius    = 8,
-            Padding         = new Thickness(12, 8),
-            HasShadow       = false
-        };
-
         var grid = new Grid
         {
             ColumnDefinitions = { new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto) }
         };
 
-        // Avatar
         grid.Add(new Label
         {
             Text            = player.Avatar,
@@ -262,7 +252,6 @@ public partial class WaitingRoomPage : ContentPage
             Margin          = new Thickness(0, 0, 10, 0)
         });
 
-        // Nome + rating
         var nameStack = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, Spacing = 1 };
         nameStack.Add(new Label
         {
@@ -276,13 +265,12 @@ public partial class WaitingRoomPage : ContentPage
         nameStack.Add(new Label
         {
             Text      = sub,
-            TextColor = player.IsHuman ? Color.FromArgb("#4CAF50") : Color.FromArgb("#AAAACC"),
-            FontSize  = 11
+            TextColor = player.IsHuman ? Color.FromArgb("#4CAF50") : Color.FromArgb("#E0E0F4"),
+            FontSize  = 15
         });
         Grid.SetColumn(nameStack, 1);
         grid.Add(nameStack);
 
-        // Status
         var statusLbl = new Label
         {
             Text              = "✓ Pronto",
@@ -295,25 +283,22 @@ public partial class WaitingRoomPage : ContentPage
         Grid.SetColumn(statusLbl, 2);
         grid.Add(statusLbl);
 
-        frame.Content = grid;
-        return frame;
+        return new Border
+        {
+            BackgroundColor = player.IsHuman ? Color.FromArgb("#1C2A1C") : Color.FromArgb("#16213E"),
+            Stroke          = new SolidColorBrush(player.IsHuman ? Color.FromArgb("#4CAF50") : Color.FromArgb("#0F3460")),
+            StrokeThickness = 1,
+            StrokeShape     = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 8 },
+            Padding         = new Thickness(12, 8),
+            Content         = grid
+        };
     }
 
     // -----------------------------------------------------------------------
     // Slot vazio
     // -----------------------------------------------------------------------
-    private static Frame BuildEmptySlot()
+    private static Border BuildEmptySlot()
     {
-        var frame = new Frame
-        {
-            StyleId         = "empty",
-            BackgroundColor = Color.FromArgb("#12172A"),
-            BorderColor     = Color.FromArgb("#252B45"),
-            CornerRadius    = 8,
-            Padding         = new Thickness(14, 10),
-            HasShadow       = false
-        };
-
         var grid = new Grid
         {
             ColumnDefinitions = { new(GridLength.Auto), new(GridLength.Star) }
@@ -330,15 +315,23 @@ public partial class WaitingRoomPage : ContentPage
         var nameLbl = new Label
         {
             Text            = "Aguardando...",
-            TextColor       = Color.FromArgb("#444466"),
+            TextColor       = Color.FromArgb("#6A6A99"),
             FontSize        = 14,
             VerticalOptions = LayoutOptions.Center
         };
         Grid.SetColumn(nameLbl, 1);
         grid.Add(nameLbl);
 
-        frame.Content = grid;
-        return frame;
+        return new Border
+        {
+            StyleId         = "empty",
+            BackgroundColor = Color.FromArgb("#12172A"),
+            Stroke          = new SolidColorBrush(Color.FromArgb("#252B45")),
+            StrokeThickness = 1,
+            StrokeShape     = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 8 },
+            Padding         = new Thickness(14, 10),
+            Content         = grid
+        };
     }
 
     // -----------------------------------------------------------------------

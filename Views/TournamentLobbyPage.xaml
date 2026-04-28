@@ -12,7 +12,7 @@
               ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
             <VerticalStackLayout VerticalOptions="Center" Spacing="1">
                 <Label Text="Arena Casual" TextColor="White" FontSize="15" FontAttributes="Bold"/>
-                <Label Text="Ranking →" TextColor="#5A8AD0" FontSize="10">
+                <Label Text="Ranking →" TextColor="#9ACAFF" FontSize="14">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnRankingClicked"/>
                     </Label.GestureRecognizers>
@@ -48,11 +48,11 @@
               ColumnDefinitions="*,72,72,72,60"
               BackgroundColor="#0F3460"
               Padding="14,5">
-            <Label Text="Mesa"     TextColor="#AAAACC" FontSize="11" FontAttributes="Bold"/>
-            <Label Grid.Column="1" Text="Jogadores" TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-            <Label Grid.Column="2" Text="Buy-in"    TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-            <Label Grid.Column="3" Text="Prêmio"    TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
-            <Label Grid.Column="4" Text="Tempo"     TextColor="#AAAACC" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+            <Label Text="Mesa"     TextColor="#E0E0F4" FontSize="15" FontAttributes="Bold"/>
+            <Label Grid.Column="1" Text="Jogadores" TextColor="#E0E0F4" FontSize="15" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+            <Label Grid.Column="2" Text="Buy-in"    TextColor="#E0E0F4" FontSize="15" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+            <Label Grid.Column="3" Text="Prêmio"    TextColor="#E0E0F4" FontSize="15" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+            <Label Grid.Column="4" Text="Tempo"     TextColor="#E0E0F4" FontSize="15" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
         </Grid>
 
         <!-- ══ Lista de salas ══ -->

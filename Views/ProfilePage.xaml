@@ -41,7 +41,7 @@
                 </HorizontalStackLayout>
 
                 <Label x:Name="AvatarHint" Text="Avatar opcional"
-                       TextColor="#4A6070" FontSize="10"
+                       TextColor="#7A90A8" FontSize="12"
                        HorizontalTextAlignment="Center"/>
             </VerticalStackLayout>
 

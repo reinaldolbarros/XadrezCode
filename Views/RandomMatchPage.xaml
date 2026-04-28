@@ -13,14 +13,14 @@
                    TextColor="White" FontSize="23" FontAttributes="Bold"
                    HorizontalTextAlignment="Center"/>
             <Label Text="Escolha o tempo e conecte com um jogador agora"
-                   TextColor="#4A6888" FontSize="13"
+                   TextColor="#9AB8D8" FontSize="15"
                    HorizontalTextAlignment="Center" Margin="0,4,0,32"/>
 
             <!-- ══ Seção 1: Escolha de Tempo ══ -->
             <VerticalStackLayout x:Name="SelectionSection" Spacing="0">
 
                 <Label Text="Tempo por jogador"
-                       TextColor="#9ABCDE" FontSize="14" FontAttributes="Bold"
+                       TextColor="#9ABCDE" FontSize="15" FontAttributes="Bold"
                        HorizontalTextAlignment="Center" Margin="0,0,0,16"/>
 
                 <!-- Stepper: − | valor | + -->
@@ -45,10 +45,10 @@
                                HorizontalTextAlignment="Center"
                                LineHeight="1"/>
                         <Label Text="minuto(s)"
-                               TextColor="#4A6888" FontSize="13"
+                               TextColor="#9AB8D8" FontSize="15"
                                HorizontalTextAlignment="Center"/>
                         <Label x:Name="TimeCategoryLabel" Text="Blitz"
-                               TextColor="#4A8AC0" FontSize="14" FontAttributes="Bold"
+                               TextColor="#4A8AC0" FontSize="15" FontAttributes="Bold"
                                HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
 
@@ -65,7 +65,7 @@
                 <!-- Faixa de referência -->
                 <Label x:Name="TimeRangeLabel"
                        Text="1' Bullet  ·  2-9' Blitz  ·  10-20' Rápido"
-                       TextColor="#2A4060" FontSize="11"
+                       TextColor="#8AAACA" FontSize="15"
                        HorizontalTextAlignment="Center" Margin="0,0,0,28"/>
 
                 <Button Text="Buscar Oponente"
@@ -90,14 +90,14 @@
                        HorizontalTextAlignment="Center"/>
 
                 <Label x:Name="SearchSubLabel" Text=""
-                       TextColor="#4A6888" FontSize="13"
+                       TextColor="#9AB8D8" FontSize="15"
                        HorizontalTextAlignment="Center"/>
 
                 <Button Text="Cancelar"
                         Clicked="OnCancelClicked"
                         BackgroundColor="Transparent" TextColor="#8A9AB0"
                         BorderColor="#2A3A50" BorderWidth="1"
-                        FontSize="14" CornerRadius="10" HeightRequest="42"
+                        FontSize="15" CornerRadius="10" HeightRequest="42"
                         Margin="40,12,40,0"/>
 
             </VerticalStackLayout>
@@ -118,7 +118,7 @@
                             <Label x:Name="OppNameLabel" Text="Oponente"
                                    TextColor="White" FontSize="17" FontAttributes="Bold"/>
                             <Label x:Name="OppRatingLabel" Text="Rating: —"
-                                   TextColor="#607890" FontSize="12"/>
+                                   TextColor="#A0B0C8" FontSize="15"/>
                         </VerticalStackLayout>
                         <Label Grid.Column="2" Text="✓ Online"
                                TextColor="#4CAF50" FontSize="12"
@@ -138,7 +138,7 @@
                         Clicked="OnCountdownCancelled"
                         BackgroundColor="Transparent" TextColor="#607890"
                         BorderColor="#2A3A50" BorderWidth="1"
-                        FontSize="13" CornerRadius="10" HeightRequest="36"
+                        FontSize="15" CornerRadius="10" HeightRequest="36"
                         Margin="40,8,40,0"/>
 
             </VerticalStackLayout>

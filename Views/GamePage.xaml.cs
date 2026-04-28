@@ -130,7 +130,8 @@ public partial class GamePage : ContentPage
     private void OnTournamentGameEnded(bool humanWon)
     {
         var state = AppState.Current;
-        state.Daily.RecordGamePlayed();
+        int starsEarned = 0;
+        starsEarned += state.Daily.RecordGamePlayed();
 
         bool isDraw = _vm.StatusMessage.Contains("Empate") || _vm.StatusMessage.Contains("Afogamento");
         int  eloDelta = 0;
@@ -142,16 +143,18 @@ public partial class GamePage : ContentPage
             state.MatchResultReady  = true;
             int oppElo = ProfileService.EloRatingForAI(state.CareerAIDepth);
             eloDelta   = state.Profile.UpdateElo(oppElo, humanWon, isDraw);
-            if (humanWon)      state.Profile.RecordWin();
-            else if (!isDraw)  state.Profile.RecordLoss();
+            if (humanWon)     { state.Profile.RecordWin(); starsEarned += state.Daily.RecordWin(); }
+            else if (!isDraw)   state.Profile.RecordLoss();
         }
         else if (state.IsOnlineGame)
         {
             int oppElo = state.OnlineMatch.State.OpponentRating;
             eloDelta   = state.Profile.UpdateElo(oppElo, humanWon, isDraw);
-            if (humanWon)      state.Profile.RecordWin();
-            else if (!isDraw)  state.Profile.RecordLoss();
+            if (humanWon)     { state.Profile.RecordWin(); starsEarned += state.Daily.RecordWin(); }
+            else if (!isDraw)   state.Profile.RecordLoss();
         }
+
+        if (starsEarned > 0) state.Stars.Add(starsEarned);
 
         bool   hasNextRound = false;
         int    nextRoundNum = 1;
@@ -251,21 +254,22 @@ public partial class GamePage : ContentPage
 
             // Registra W/L e atualiza Elo
             bool isDraw2 = _vm.StatusMessage.Contains("Empate") || _vm.StatusMessage.Contains("Afogamento");
-            if (humanWon)     state.Profile.RecordWin();
-            else if (!isDraw2) state.Profile.RecordLoss();
+            int  starsNow = 0;
+            starsNow += state.Daily.RecordGamePlayed();
+            if (humanWon)      { state.Profile.RecordWin();  starsNow += state.Daily.RecordWin(); }
+            else if (!isDraw2)   state.Profile.RecordLoss();
+
+            if (starsNow > 0) state.Stars.Add(starsNow);
 
             int aiDepth   = DiffDepths[_selectedDiff];
             int oppElo    = ProfileService.EloRatingForAI(aiDepth);
             int eloChange = state.Profile.UpdateElo(oppElo, humanWon, isDraw2);
 
-            state.Daily.RecordGamePlayed();
-
             // Painel de resultado
-            bool isDraw = isDraw2;
-            ResultTitle.Text      = humanWon ? "Vitória!" : isDraw ? "Empate" : "Derrota";
+            ResultTitle.Text      = humanWon ? "Vitória!" : isDraw2 ? "Empate" : "Derrota";
             ResultTitle.TextColor = humanWon
                 ? Color.FromArgb("#4CAF50")
-                : isDraw ? Color.FromArgb("#FFD700") : Color.FromArgb("#FF5252");
+                : isDraw2 ? Color.FromArgb("#FFD700") : Color.FromArgb("#FF5252");
             string eloSign = eloChange >= 0 ? "+" : "";
             ResultDetail.Text              = $"{_vm.StatusMessage}\n\nRating: {eloSign}{eloChange}  →  {state.Profile.Points}";
             ResultActionBtn.Text           = "Novo Jogo";

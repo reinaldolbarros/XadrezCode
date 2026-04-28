@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ChessMAUI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+e452939048997f499e28eb035da9ecfc14a6ab10")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+bc60fba1b534e21d91646821c9aa3205cdcbaafb")]
 [assembly: System.Reflection.AssemblyProductAttribute("ChessMAUI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ChessMAUI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

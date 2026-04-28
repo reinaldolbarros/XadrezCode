@@ -28,17 +28,28 @@
         <member name="T:ChessMAUI.Services.DailyService">
             <summary>Gerencia bônus diário e missões diárias.</summary>
         </member>
-        <member name="M:ChessMAUI.Services.DailyService.ClaimDailyBonus(System.Single,System.Int32)">
-            <summary>Reivindica o bônus diário e retorna fichas ganhas (já com multiplicador de assinatura).</summary>
+        <member name="M:ChessMAUI.Services.DailyService.ClaimDailyBonus">
+            <summary>
+            Reivindica o bônus diário. Retorna quantas estrelas conceder (sempre 1).
+            </summary>
         </member>
         <member name="M:ChessMAUI.Services.DailyService.RecordGamePlayed">
-            <summary>Registra uma partida jogada. Chame ao fim de qualquer jogo.</summary>
+            <summary>
+            Registra uma partida jogada.
+            Retorna estrelas a conceder (0 se missão já recompensada ou não completou agora).
+            </summary>
         </member>
         <member name="M:ChessMAUI.Services.DailyService.RecordWin">
-            <summary>Registra uma vitória. Chame quando o humano vence.</summary>
+            <summary>
+            Registra uma vitória do jogador.
+            Retorna estrelas a conceder (0 se já recompensado hoje).
+            </summary>
         </member>
-        <member name="M:ChessMAUI.Services.DailyService.RecordTournamentElimination">
-            <summary>Registra eliminação em torneio.</summary>
+        <member name="M:ChessMAUI.Services.DailyService.TryClaimStreakMission">
+            <summary>
+            Verifica se a missão de sequência de 7 dias está completa e ainda não recompensada.
+            Retorna estrelas a conceder (0 se não elegível).
+            </summary>
         </member>
         <member name="M:ChessMAUI.Services.LeagueService.CanEnterWithPriority(ChessMAUI.Models.LeagueEvent,ChessMAUI.Services.CasualRankingService)">
             <summary>
@@ -110,6 +121,18 @@
             Gera tons WAV sintetizados em memória e os reproduz via Plugin.Maui.Audio.
             Não exige arquivos de áudio externos.
             </summary>
+        </member>
+        <member name="T:ChessMAUI.Services.StarService">
+            <summary>Gerencia estrelas de dedicação com decaimento por inatividade.</summary>
+        </member>
+        <member name="M:ChessMAUI.Services.StarService.RecordOpen">
+            <summary>
+            Deve ser chamado uma vez ao abrir o app (OnAppearing do Lobby).
+            Calcula dias ausentes, aplica decaimento e registra a data de hoje.
+            </summary>
+        </member>
+        <member name="M:ChessMAUI.Services.StarService.Add(System.Int32)">
+            <summary>Adiciona estrelas (respeita o teto). Retorna o novo saldo.</summary>
         </member>
         <member name="T:ChessMAUI.Services.TournamentHistoryService">
             <summary>Persiste histórico dos últimos torneios em JSON no AppDataDirectory.</summary>

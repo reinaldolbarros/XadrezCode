@@ -8,7 +8,7 @@
 
     <Image x:Name="SplashImage"
            Source="chessarena_splash.png"
-           Aspect="AspectFit"
+           Aspect="AspectFill"
            HorizontalOptions="Fill"
            VerticalOptions="Fill"
            />

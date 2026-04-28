@@ -16,14 +16,14 @@
                     <Label x:Name="RoundLabel"   Text="Rodada"
                            TextColor="White"     FontSize="18" FontAttributes="Bold"/>
                     <Label x:Name="PlayersLabel" Text="Jogadores restantes"
-                           TextColor="#AAAACC"   FontSize="12"/>
+                           TextColor="#CCCCEE"   FontSize="14"/>
                 </VerticalStackLayout>
 
                 <Border Grid.Column="1" BackgroundColor="#0F3460"
                         StrokeShape="RoundRectangle 8" StrokeThickness="0"
                         Padding="12,6" Margin="0,0,8,0">
                     <VerticalStackLayout HorizontalOptions="Center">
-                        <Label Text="PRÊMIO TOTAL" TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
+                        <Label Text="PRÊMIO TOTAL" TextColor="#DDDDEE" FontSize="15" HorizontalTextAlignment="Center"/>
                         <Label x:Name="PoolLabel" Text="$ 0" TextColor="#FFD700"
                                FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
@@ -32,7 +32,7 @@
                 <Border Grid.Column="2" BackgroundColor="#0F3460"
                         StrokeShape="RoundRectangle 8" StrokeThickness="0" Padding="12,6">
                     <VerticalStackLayout HorizontalOptions="Center">
-                        <Label Text="SEU PRÊMIO"  TextColor="#AAAACC" FontSize="9" HorizontalTextAlignment="Center"/>
+                        <Label Text="SEU PRÊMIO"  TextColor="#DDDDEE" FontSize="15" HorizontalTextAlignment="Center"/>
                         <Label x:Name="YourPrizeLabel" Text="$ 0" TextColor="#4CAF50"
                                FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
@@ -84,7 +84,7 @@
                 <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
 
                     <Label Text="PRÓXIMA PARTIDA"
-                           TextColor="#AAAACC" FontSize="10" FontAttributes="Bold"
+                           TextColor="#CCCCEE" FontSize="14" FontAttributes="Bold"
                            HorizontalTextAlignment="Center" Margin="0,0,0,4"/>
 
                     <Label x:Name="ModalAvatar" Text="🤖" FontSize="52"
@@ -95,21 +95,21 @@
                            HorizontalTextAlignment="Center"/>
 
                     <Label x:Name="ModalVsText" Text=""
-                           TextColor="#AAAACC" FontSize="12"
+                           TextColor="#CCCCEE" FontSize="14"
                            HorizontalTextAlignment="Center"/>
 
                     <Label x:Name="ModalFavoriteLabel" Text=""
-                           FontSize="13" FontAttributes="Bold"
+                           FontSize="15" FontAttributes="Bold"
                            HorizontalTextAlignment="Center" Margin="0,4,0,0"/>
 
                     <!-- Barra Você vs Adversário -->
                     <VerticalStackLayout Spacing="5" Margin="0,4,0,0">
                         <Grid ColumnDefinitions="*,Auto">
                             <Label Text="Sua chance de vitória"
-                                   TextColor="#AAAACC" FontSize="11" VerticalOptions="Center"/>
+                                   TextColor="#CCCCEE" FontSize="15" VerticalOptions="Center"/>
                             <Label x:Name="ModalChanceLabel" Grid.Column="1"
                                    Text="" TextColor="White"
-                                   FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
+                                   FontSize="15" FontAttributes="Bold" VerticalOptions="Center"/>
                         </Grid>
                         <ProgressBar x:Name="ModalChanceBar"
                                      Progress="0.5"
@@ -117,23 +117,23 @@
                                      BackgroundColor="#FF5252"
                                      HeightRequest="10"/>
                         <Grid ColumnDefinitions="*,*">
-                            <Label Text="Você" TextColor="#4CAF50" FontSize="10"
+                            <Label Text="Você" TextColor="#4CAF50" FontSize="14"
                                    HorizontalTextAlignment="Start"/>
                             <Label Grid.Column="1" x:Name="ModalOppLabel" Text=""
-                                   TextColor="#FF5252" FontSize="10"
+                                   TextColor="#FF5252" FontSize="14"
                                    HorizontalTextAlignment="End"/>
                         </Grid>
                     </VerticalStackLayout>
 
                     <Label Text="♙  Você joga com as Brancas"
-                           TextColor="#7B68EE" FontSize="12"
+                           TextColor="#7B68EE" FontSize="14"
                            HorizontalTextAlignment="Center" Margin="0,6,0,0"/>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
                         <Button Text="Cancelar"
                                 Clicked="OnOpponentModalCancel"
                                 BackgroundColor="#2A2A3A"
-                                TextColor="#AAAACC"
+                                TextColor="#CCCCEE"
                                 CornerRadius="10" HeightRequest="44"/>
                         <Button Grid.Column="1"
                                 Text="▶  JOGAR"

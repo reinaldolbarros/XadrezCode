@@ -299,7 +299,7 @@ public partial class CareerPage : ContentPage
             bool isLast = i == standings.Count - 1;
 
             string posColor = pos == 1 ? "#FFD700" : pos == 2 ? "#C0C0D0"
-                            : pos == 3 ? "#CD7F32" : "#607890";
+                            : pos == 3 ? "#CD7F32" : "#A8BCCC";
             string bgHex    = p.IsHuman ? "#1A2A0A" : "#0D1828";
 
             var row = new Grid
@@ -312,7 +312,7 @@ public partial class CareerPage : ContentPage
 
             row.Add(new Label
             {
-                Text = $"{pos}º", FontSize = 12,
+                Text = $"{pos}º", FontSize = 15,
                 TextColor = Color.FromArgb(posColor),
                 HorizontalTextAlignment = TextAlignment.Center,
                 VerticalOptions = LayoutOptions.Center
@@ -322,7 +322,7 @@ public partial class CareerPage : ContentPage
             {
                 Text           = p.IsHuman ? "Você" : p.Name,
                 TextColor      = p.IsHuman ? Color.FromArgb("#4CAF50") : Colors.White,
-                FontSize       = 13,
+                FontSize       = 15,
                 FontAttributes = p.IsHuman ? FontAttributes.Bold : FontAttributes.None,
                 VerticalOptions = LayoutOptions.Center
             };
@@ -333,7 +333,7 @@ public partial class CareerPage : ContentPage
             var zoneLbl = new Label
             {
                 Text = zoneText, TextColor = Color.FromArgb("#4CAF50"),
-                FontSize = 11, VerticalOptions = LayoutOptions.Center,
+                FontSize = 14, VerticalOptions = LayoutOptions.Center,
                 HorizontalTextAlignment = TextAlignment.Center
             };
             Grid.SetColumn(zoneLbl, 2);
@@ -342,8 +342,8 @@ public partial class CareerPage : ContentPage
             var ptsLbl = new Label
             {
                 Text = p.Points.ToString("0.0"),
-                TextColor = Color.FromArgb(p.IsHuman ? "#4CAF50" : "#607890"),
-                FontSize = 12, VerticalOptions = LayoutOptions.Center
+                TextColor = Color.FromArgb(p.IsHuman ? "#4CAF50" : "#A8BCCC"),
+                FontSize = 15, VerticalOptions = LayoutOptions.Center
             };
             Grid.SetColumn(ptsLbl, 3);
             row.Add(ptsLbl);
@@ -386,7 +386,7 @@ public partial class CareerPage : ContentPage
             {
                 CareerRoundResult.Win  => "#4CAF50",
                 CareerRoundResult.Loss or CareerRoundResult.Draw => "#FF5252",
-                _ => isCurrent ? "#FFD700" : "#607890"
+                _ => isCurrent ? "#FFD700" : "#8A9AAA"
             };
 
             string oppName = i < oppNames.Length ? oppNames[i] : "—";
@@ -409,8 +409,8 @@ public partial class CareerPage : ContentPage
 
             var phaseLbl = new Label
             {
-                Text = phaseLabels[i], TextColor = Color.FromArgb("#607890"),
-                FontSize = 11, VerticalOptions = LayoutOptions.Center
+                Text = phaseLabels[i], TextColor = Color.FromArgb("#A8C4E0"),
+                FontSize = 15, VerticalOptions = LayoutOptions.Center
             };
             Grid.SetColumn(phaseLbl, 1);
             row.Add(phaseLbl);
@@ -418,11 +418,11 @@ public partial class CareerPage : ContentPage
             var nameLbl = new Label
             {
                 Text = oppName,
-                TextColor = isFuture ? Color.FromArgb("#3A4A60")
+                TextColor = isFuture ? Color.FromArgb("#8A9AAA")
                           : round?.Result == CareerRoundResult.Win ? Color.FromArgb("#4CAF50")
                           : round?.Result != null ? Color.FromArgb("#FF7070")
                           : Colors.White,
-                FontSize = 13, FontAttributes = isCurrent ? FontAttributes.Bold : FontAttributes.None,
+                FontSize = 15, FontAttributes = isCurrent ? FontAttributes.Bold : FontAttributes.None,
                 VerticalOptions = LayoutOptions.Center
             };
             Grid.SetColumn(nameLbl, 2);
@@ -434,8 +434,8 @@ public partial class CareerPage : ContentPage
                                 : "";
             var diffLbl = new Label
             {
-                Text = diffText, TextColor = Color.FromArgb("#4A6888"),
-                FontSize = 11, VerticalOptions = LayoutOptions.Center
+                Text = diffText, TextColor = Color.FromArgb("#9AB8D8"),
+                FontSize = 15, VerticalOptions = LayoutOptions.Center
             };
             Grid.SetColumn(diffLbl, 3);
             row.Add(diffLbl);

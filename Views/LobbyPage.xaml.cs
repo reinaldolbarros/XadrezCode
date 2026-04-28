@@ -13,6 +13,8 @@ public partial class LobbyPage : ContentPage
     {
         base.OnAppearing();
 
+        AppState.Current.Stars.RecordOpen();
+
         var profile = AppState.Current.Profile;
 
         if (profile.IsNew && !AppState.Current.Auth.IsAnonymous)
@@ -57,10 +59,12 @@ public partial class LobbyPage : ContentPage
         BonusTitle.Text           = claimed ? "Bônus Diário  ·  Resgatado ✓" : "Bônus Diário  ·  Disponível!";
         BonusTitle.TextColor      = claimed ? Color.FromArgb("#666688") : Color.FromArgb("#FFD700");
 
-        // Botão admin (visível apenas em modo admin)
-        AdminBtn.IsVisible = AppState.Current.IsAdminMode;
+        AdminBtn.IsVisible = AppState.Current.IsAdminMode && !AppState.Current.Auth.IsAnonymous;
 
         RatingLabel.Text = $"Rating: {p.Points:N0}";
+
+        var stars = AppState.Current.Stars;
+        StarsLabel.Text = $"⭐ {stars.Balance} · {stars.DedicationTitle}";
 
         // Casual / Liga — COMENTADO: aguardando base de jogadores
         // var casual = AppState.Current.CasualRanking;
@@ -122,13 +126,18 @@ public partial class LobbyPage : ContentPage
     private async void OnBonusClicked(object? sender, EventArgs e)
     {
         var state = AppState.Current;
-        state.Daily.ClaimDailyBonus(1, 0);
-        state.Profile.AddPoints(5, "Bônus de login diário", "♟");
+        int starsBonus = state.Daily.ClaimDailyBonus();
+        int starsStreak = state.Daily.TryClaimStreakMission();
+        int totalStars = starsBonus + starsStreak;
+        if (totalStars > 0) state.Stars.Add(totalStars);
 
         int streak = state.Daily.LoginStreak;
-        string next = streak switch { >= 7 => "Máximo!", >= 5 => "7 dias = +15 pts", >= 3 => "5 dias = +10 pts", >= 2 => "3 dias = +8 pts", _ => "2 dias = +6 pts" };
+        string streakLine = starsStreak > 0
+            ? $"\nMissão de sequência completa! +{starsStreak} ⭐"
+            : streak >= 7 ? "\nSequência máxima mantida!" : "";
+        string next = streak switch { >= 7 => "Máximo!", >= 5 => "7 dias = +5 ⭐", >= 3 => "5 dias", >= 2 => "3 dias", _ => "2 dias" };
         await DisplayAlert("Bônus Diário",
-            $"+5 pts de rating\n\nSequência: {streak} dia{(streak != 1 ? "s" : "")}\nPróximo prêmio: {next}", "OK");
+            $"+{starsBonus} ⭐  Sequência: {streak} dia{(streak != 1 ? "s" : "")}{streakLine}\nPróximo marco: {next}", "OK");
 
         await RefreshUI();
     }
@@ -146,7 +155,7 @@ public partial class LobbyPage : ContentPage
             var row = new Grid { ColumnDefinitions = { new(GridLength.Star), new(GridLength.Auto) }, Margin = new Thickness(0,2) };
 
             var info = new VerticalStackLayout { Spacing = 2, VerticalOptions = LayoutOptions.Center };
-            info.Add(new Label { Text = m.Description, TextColor = m.Completed ? Color.FromArgb("#4CAF50") : Colors.White, FontSize = 12 });
+            info.Add(new Label { Text = m.Description, TextColor = m.Completed ? Color.FromArgb("#4CAF50") : Colors.White, FontSize = 15 });
             var barTrack = new Grid { HeightRequest = 4 };
             barTrack.Add(new BoxView { Color = Color.FromArgb("#1A2840"), CornerRadius = 2, HorizontalOptions = LayoutOptions.Fill });
             double pct = m.Target > 0 ? Math.Min(1.0, (double)m.Progress / m.Target) : 0;
@@ -154,8 +163,23 @@ public partial class LobbyPage : ContentPage
             barTrack.Add(new BoxView { Color = m.Completed ? Color.FromArgb("#4CAF50") : Color.FromArgb("#3A6AB0"),
                 CornerRadius = 2, HorizontalOptions = LayoutOptions.Start, WidthRequest = Math.Max(0, missionBarWidth) });
             info.Add(barTrack);
-            info.Add(new Label { Text = $"{m.Progress}/{m.Target}", TextColor = Color.FromArgb("#607890"), FontSize = 10 });
+            info.Add(new Label { Text = $"{m.Progress}/{m.Target}", TextColor = Color.FromArgb("#A8BCCC"), FontSize = 13 });
             row.Add(info);
+
+            // Badge de recompensa
+            string badgeText  = m.Rewarded ? "✓" : $"+{m.StarReward} ⭐";
+            var badge = new Label
+            {
+                Text              = badgeText,
+                TextColor         = m.Rewarded ? Color.FromArgb("#4CAF50") : Color.FromArgb("#C8A020"),
+                FontSize          = 13,
+                FontAttributes    = FontAttributes.Bold,
+                VerticalOptions   = LayoutOptions.Center,
+                HorizontalOptions = LayoutOptions.End,
+                Margin            = new Thickness(10, 0, 0, 0)
+            };
+            Grid.SetColumn(badge, 1);
+            row.Add(badge);
 
 
             MissionContainer.Children.Add(row);
@@ -242,7 +266,7 @@ public partial class LobbyPage : ContentPage
         AdminBtn.IsVisible = AppState.Current.IsAdminMode;
 
         string msg = AppState.Current.IsAdminMode
-            ? "⚙ MODO ADMIN ATIVADO\nBotão admin disponível. Toque em '⚙ Admin' para ver o extrato financeiro."
+            ? "⚙ MODO ADMIN ATIVADO\nBotão '⚙ Admin' disponível no topo da tela."
             : "Modo admin desativado.";
         await DisplayAlert("Admin", msg, "OK");
     }
@@ -300,7 +324,7 @@ public partial class LobbyPage : ContentPage
         await Shell.Current.GoToAsync("FriendInvitePage");
     }
 
-    private async void OnChangePasswordClicked(object? sender, EventArgs e)
+    private async Task OnChangePasswordAsync()
     {
         var auth = AppState.Current.Auth;
 
@@ -342,7 +366,23 @@ public partial class LobbyPage : ContentPage
         await DisplayAlert("✓ Concluído", "Sua senha foi alterada com sucesso.", "OK");
     }
 
-    private async void OnLogoutClicked(object? sender, EventArgs e)
+    private async void OnMenuClicked(object? sender, EventArgs e)
+    {
+        bool isAnon = AppState.Current.Auth.IsAnonymous;
+
+        string[] options = isAnon
+            ? ["Sair"]
+            : ["Alterar Senha", "Sair"];
+
+        string? result = await DisplayActionSheet(null, "Cancelar", null, options);
+
+        if (result == "Sair")
+            await OnLogoutAsync();
+        else if (result == "Alterar Senha")
+            await OnChangePasswordAsync();
+    }
+
+    private async Task OnLogoutAsync()
     {
         bool confirm = await DisplayAlert("Sair", "Deseja sair da sua conta?", "Sair", "Cancelar");
         if (!confirm) return;

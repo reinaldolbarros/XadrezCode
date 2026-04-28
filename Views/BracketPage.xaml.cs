@@ -63,9 +63,6 @@ public partial class BracketPage : ContentPage
         {
             int position = t.HumanPlayer?.FinalPosition ?? t.Size;
 
-            // Missão m3: chegar ao Top 3
-            if (position <= 3)
-                state.Daily.RecordTournamentElimination();
 
             // Registra histórico
             state.History.Add(new TournamentRecord
@@ -102,7 +99,8 @@ public partial class BracketPage : ContentPage
         {
             prof.TournamentsWon++;
 
-            state.Daily.RecordTournamentElimination();
+            int starsWin = state.Daily.RecordWin();
+            if (starsWin > 0) state.Stars.Add(starsWin);
 
             string extraMsg2 = AwardCompetitivePoints(t, 1);
             state.History.Add(new TournamentRecord

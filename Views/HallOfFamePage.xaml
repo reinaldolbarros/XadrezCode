@@ -12,14 +12,14 @@
                    FontSize="22" FontAttributes="Bold"
                    HorizontalTextAlignment="Center" Margin="0,0,0,4"/>
             <Label Text="Campeões mensais da Liga ChessArena"
-                   TextColor="#607890" FontSize="12"
+                   TextColor="#A8BCCC" FontSize="13"
                    HorizontalTextAlignment="Center" Margin="0,0,0,20"/>
 
             <VerticalStackLayout x:Name="HofContainer" Spacing="10"/>
 
             <Label x:Name="EmptyLabel"
                    Text="Nenhuma temporada encerrada ainda.\nJogue torneios da Liga para aparecer aqui!"
-                   TextColor="#4A6070" FontSize="13"
+                   TextColor="#A0ACBA" FontSize="13"
                    HorizontalTextAlignment="Center"
                    IsVisible="False" Margin="0,40,0,0"/>
 

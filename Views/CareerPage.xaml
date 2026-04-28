@@ -14,12 +14,12 @@
                     <Label x:Name="TournamentNameLabel" Text="Modo Carreira"
                            TextColor="White" FontSize="22" FontAttributes="Bold"/>
                     <Label x:Name="RoundInfoLabel" Text=""
-                           TextColor="#607890" FontSize="13"/>
+                           TextColor="#A8BCCC" FontSize="15"/>
                 </VerticalStackLayout>
                 <Button Grid.Column="1" Text="ℹ Fluxo"
                         Clicked="OnShowFlowClicked"
-                        BackgroundColor="#1A2840" TextColor="#4A8AC0"
-                        FontSize="12" CornerRadius="8"
+                        BackgroundColor="#1A2840" TextColor="#5AAAE0"
+                        FontSize="15" CornerRadius="8"
                         Padding="10,6" VerticalOptions="Center"/>
             </Grid>
 
@@ -28,15 +28,15 @@
                     StrokeShape="RoundRectangle 10" Padding="14,10">
                 <VerticalStackLayout Spacing="3">
                     <Label x:Name="LevelLabel" Text="" TextColor="#8878CC"
-                           FontSize="12" FontAttributes="Bold"/>
-                    <Label x:Name="LevelSubLabel" Text="" TextColor="#607890" FontSize="12"/>
+                           FontSize="15" FontAttributes="Bold"/>
+                    <Label x:Name="LevelSubLabel" Text="" TextColor="#A8BCCC" FontSize="15"/>
                 </VerticalStackLayout>
             </Border>
 
             <!-- Welcome (carreira não iniciada) -->
             <VerticalStackLayout x:Name="WelcomeSection" IsVisible="False" Spacing="14">
                 <Label Text="Suba da base até o topo. Passe por 7 níveis do circuito FIDE e torne-se Campeão Mundial."
-                       TextColor="#8878CC" FontSize="14" HorizontalTextAlignment="Center"/>
+                       TextColor="#8878CC" FontSize="15" HorizontalTextAlignment="Center"/>
                 <Button Text="Iniciar Carreira"
                         Clicked="OnStartCareerClicked"
                         BackgroundColor="#769656" TextColor="White"
@@ -50,10 +50,10 @@
                     StrokeShape="RoundRectangle 10" Padding="0,0,0,4">
                 <VerticalStackLayout>
                     <Grid ColumnDefinitions="*,Auto" Padding="14,10,14,6">
-                        <Label Text="Classificação" TextColor="#607890"
-                               FontSize="12" FontAttributes="Bold"/>
+                        <Label Text="Classificação" TextColor="#A8BCCC"
+                               FontSize="15" FontAttributes="Bold"/>
                         <Label x:Name="ZoneLabel" Grid.Column="1"
-                               Text="" TextColor="#4A8AC0" FontSize="11"/>
+                               Text="" TextColor="#8ABEDE" FontSize="15"/>
                     </Grid>
                     <VerticalStackLayout x:Name="StandingsList" Spacing="0"/>
                 </VerticalStackLayout>
@@ -65,7 +65,7 @@
                     StrokeShape="RoundRectangle 10" Padding="14,12">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="Copa do Mundo FIDE — Eliminação Direta"
-                           TextColor="#607890" FontSize="12" FontAttributes="Bold"/>
+                           TextColor="#A8BCCC" FontSize="15" FontAttributes="Bold"/>
                     <VerticalStackLayout x:Name="CopaBracket" Spacing="6"/>
                 </VerticalStackLayout>
             </Border>
@@ -76,13 +76,13 @@
                     StrokeShape="RoundRectangle 10" Padding="16,14">
                 <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
                     <Label Text="Campeonato Mundial de Xadrez"
-                           TextColor="#607890" FontSize="12" FontAttributes="Bold"
+                           TextColor="#A8BCCC" FontSize="15" FontAttributes="Bold"
                            HorizontalTextAlignment="Center"/>
                     <Label x:Name="MundialScoreLabel" Text="0 × 0"
                            TextColor="White" FontSize="32" FontAttributes="Bold"
                            HorizontalTextAlignment="Center"/>
                     <Label x:Name="MundialSubLabel" Text=""
-                           TextColor="#4A8AC0" FontSize="12"
+                           TextColor="#8ABEDE" FontSize="15"
                            HorizontalTextAlignment="Center"/>
                     <VerticalStackLayout x:Name="MundialHistory" Spacing="4"/>
                 </VerticalStackLayout>
@@ -95,12 +95,12 @@
                 <Grid ColumnDefinitions="*,Auto">
                     <VerticalStackLayout Spacing="2">
                         <Label x:Name="OpponentContextLabel" Text="Próximo adversário"
-                               TextColor="#607890" FontSize="11"/>
+                               TextColor="#A8BCCC" FontSize="15"/>
                         <Label x:Name="OpponentNameLabel" Text="" TextColor="White"
-                               FontSize="14" FontAttributes="Bold"/>
+                               FontSize="15" FontAttributes="Bold"/>
                     </VerticalStackLayout>
                     <Label x:Name="OpponentDiffLabel" Grid.Column="1"
-                           Text="" TextColor="#4A6888" FontSize="12"
+                           Text="" TextColor="#9AB8D8" FontSize="15"
                            VerticalOptions="Center"/>
                 </Grid>
             </Border>
@@ -124,10 +124,10 @@
                            TextColor="White" FontSize="17" FontAttributes="Bold"
                            HorizontalTextAlignment="Center"/>
                     <Label x:Name="ResultDetail" Text=""
-                           TextColor="#607890" FontSize="13"
+                           TextColor="#A8BCCC" FontSize="15"
                            HorizontalTextAlignment="Center"/>
                     <Label x:Name="ResultDestination" Text=""
-                           TextColor="#4A8AC0" FontSize="12" FontAttributes="Bold"
+                           TextColor="#8ABEDE" FontSize="15" FontAttributes="Bold"
                            HorizontalTextAlignment="Center" Margin="0,4,0,0"/>
                 </VerticalStackLayout>
             </Border>

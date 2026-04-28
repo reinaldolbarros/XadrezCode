@@ -2,8 +2,6 @@
 @string/appbar_scrolling_view_behavior;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\159\jl\res\layout\navigationlayout.xml
 adaptive-icon;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\appicon.xml
 adaptive-icon;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\appicon_round.xml
-adaptive-icon;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\icone.xml
-adaptive-icon;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\icone_round.xml
 alpha;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\157\jl\res\anim\enterfromleft.xml
 alpha;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\157\jl\res\anim\exittoleft.xml
 alpha;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\159\jl\res\anim\nav_default_enter_anim.xml
@@ -18,8 +16,6 @@ androidx.fragment.app.FragmentContainerView;C:\Users\reina\Documents\ChessMAUI\o
 attr;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\159\jl\res\values\attr.xml
 background;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\appicon.xml
 background;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\appicon_round.xml
-background;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\icone.xml
-background;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\icone_round.xml
 bitmap;obj\Debug\net9.0-android\res\drawable\splash_background.xml
 cache-path;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\160\jl\res\xml\microsoft_maui_essentials_fileprovider_file_paths.xml
 color;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\159\jl\res\values\colors.xml
@@ -32,8 +28,6 @@ external-cache-path;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\
 external-path;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\160\jl\res\xml\microsoft_maui_essentials_fileprovider_file_paths.xml
 foreground;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\appicon.xml
 foreground;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\appicon_round.xml
-foreground;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\icone.xml
-foreground;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\icone_round.xml
 item;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\158\jl\res\values\values.xml
 item;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\159\jl\res\drawable\maui_splash.xml
 item;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\159\jl\res\values\styles.xml
@@ -47,8 +41,6 @@ layer-list;obj\Debug\net9.0-android\res\drawable\splash_background.xml
 microsoft.maui.controls.platform.compatibility.ShellFlyoutLayout;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\157\jl\res\layout\flyoutcontent.xml
 monochrome;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\appicon.xml
 monochrome;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\appicon_round.xml
-monochrome;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\icone.xml
-monochrome;obj\Debug\net9.0-android\resizetizer\r\mipmap-anydpi-v26\icone_round.xml
 paths;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\160\jl\res\xml\microsoft_maui_essentials_fileprovider_file_paths.xml
 resources;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\157\jl\res\values\strings.xml
 resources;C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\lp\158\jl\res\values\values.xml

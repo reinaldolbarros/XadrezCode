@@ -2,13 +2,13 @@ namespace ChessMAUI.Services;
 
 public class DailyMission
 {
-    public string Id             { get; set; } = "";
-    public string Icon           { get; set; } = "";
-    public string Description    { get; set; } = "";
-    public int    Target         { get; set; }
-    public int    Progress       { get; set; }
-    public bool   Completed      => Progress >= Target;
-    public int    BalanceReward  { get; set; }
+    public string Id         { get; set; } = "";
+    public string Description { get; set; } = "";
+    public int    Target     { get; set; }
+    public int    Progress   { get; set; }
+    public int    StarReward { get; set; }
+    public bool   Completed  => Progress >= Target;
+    public bool   Rewarded   { get; set; }
 }
 
 /// <summary>Gerencia bônus diário e missões diárias.</summary>
@@ -21,6 +21,9 @@ public class DailyService
     private const string KeyM1Progress   = "daily_m1_progress";
     private const string KeyM2Progress   = "daily_m2_progress";
     private const string KeyM3Progress   = "daily_m3_progress";
+    private const string KeyM1Rewarded   = "daily_m1_rewarded";
+    private const string KeyM2Rewarded   = "daily_m2_rewarded";
+    private const string KeyM3Rewarded   = "daily_m3_rewarded";
 
     // ── Streak ───────────────────────────────────────────────────────────────
     public int LoginStreak
@@ -33,15 +36,14 @@ public class DailyService
     public bool BonusClaimedToday
         => Preferences.Default.Get(KeyBonusClaimed, "") == TodayKey;
 
-    /// <summary>Reivindica o bônus diário e retorna fichas ganhas (já com multiplicador de assinatura).</summary>
-    public int ClaimDailyBonus(float multiplier = 1.0f, int flatBonus = 0)
+    /// <summary>
+    /// Reivindica o bônus diário. Retorna quantas estrelas conceder (sempre 1).
+    /// </summary>
+    public int ClaimDailyBonus()
     {
         UpdateStreak();
         Preferences.Default.Set(KeyBonusClaimed, TodayKey);
-
-        int streak = LoginStreak;
-        int baseAmount = streak switch { >= 7 => 150, >= 5 => 100, >= 3 => 75, >= 2 => 50, _ => 30 };
-        return (int)(baseAmount * multiplier) + flatBonus;
+        return 1; // +1 ⭐
     }
 
     private void UpdateStreak()
@@ -65,51 +67,95 @@ public class DailyService
     // ── Missões diárias ───────────────────────────────────────────────────────
     public List<DailyMission> GetMissions()
     {
-        // Reset se mudou o dia
-        if (Preferences.Default.Get(KeyMissionDate, "") != TodayKey)
-        {
-            Preferences.Default.Set(KeyMissionDate, TodayKey);
-            Preferences.Default.Set(KeyM1Progress,  0);
-            Preferences.Default.Set(KeyM2Progress,  0);
-            Preferences.Default.Set(KeyM3Progress,  0);
-        }
+        EnsureTodayReset();
 
         return
         [
-            new DailyMission { Id="m1", Description="Jogar 3 partidas (casual ou Liga)",
-                Target=3, Progress=Preferences.Default.Get(KeyM1Progress,0), BalanceReward=50 },
-            new DailyMission { Id="m2", Description="Participar de 1 torneio da Liga",
-                Target=1, Progress=Preferences.Default.Get(KeyM2Progress,0), BalanceReward=80 },
-            new DailyMission { Id="m3", Description="Manter sequência de login (7 dias)",
-                Target=7, Progress=Math.Min(7, Preferences.Default.Get(KeyStreak,0)), BalanceReward=100 },
+            new DailyMission
+            {
+                Id = "m1", Description = "Jogar 3 partidas (IA ou Casual)",
+                Target = 3, Progress = Preferences.Default.Get(KeyM1Progress, 0),
+                StarReward = 2,
+                Rewarded = Preferences.Default.Get(KeyM1Rewarded, "") == TodayKey
+            },
+            new DailyMission
+            {
+                Id = "m2", Description = "Vencer 1 partida",
+                Target = 1, Progress = Preferences.Default.Get(KeyM2Progress, 0),
+                StarReward = 3,
+                Rewarded = Preferences.Default.Get(KeyM2Rewarded, "") == TodayKey
+            },
+            new DailyMission
+            {
+                Id = "m3", Description = "Manter sequência de login (7 dias)",
+                Target = 7, Progress = Math.Min(7, Preferences.Default.Get(KeyStreak, 0)),
+                StarReward = 5,
+                Rewarded = Preferences.Default.Get(KeyM3Rewarded, "") == TodayKey
+            },
         ];
     }
 
-    /// <summary>Registra uma partida jogada. Chame ao fim de qualquer jogo.</summary>
-    public bool RecordGamePlayed()
+    /// <summary>
+    /// Registra uma partida jogada.
+    /// Retorna estrelas a conceder (0 se missão já recompensada ou não completou agora).
+    /// </summary>
+    public int RecordGamePlayed()
     {
-        var m = GetMissions()[0];
-        if (m.Completed) return false;
-        Preferences.Default.Set(KeyM1Progress, m.Progress + 1);
-        return m.Progress + 1 >= m.Target; // retorna true se recém completou
+        EnsureTodayReset();
+        int progress = Preferences.Default.Get(KeyM1Progress, 0);
+        if (progress >= 3) return 0;
+
+        progress++;
+        Preferences.Default.Set(KeyM1Progress, progress);
+        if (progress < 3) return 0;
+
+        if (Preferences.Default.Get(KeyM1Rewarded, "") == TodayKey) return 0;
+        Preferences.Default.Set(KeyM1Rewarded, TodayKey);
+        return 2; // +2 ⭐
     }
 
-    /// <summary>Registra uma vitória. Chame quando o humano vence.</summary>
-    public bool RecordWin()
+    /// <summary>
+    /// Registra uma vitória do jogador.
+    /// Retorna estrelas a conceder (0 se já recompensado hoje).
+    /// </summary>
+    public int RecordWin()
     {
-        var m = GetMissions()[1];
-        if (m.Completed) return false;
-        Preferences.Default.Set(KeyM2Progress, m.Progress + 1);
-        return m.Progress + 1 >= m.Target;
+        EnsureTodayReset();
+        if (Preferences.Default.Get(KeyM2Progress, 0) >= 1) return 0;
+
+        Preferences.Default.Set(KeyM2Progress, 1);
+
+        if (Preferences.Default.Get(KeyM2Rewarded, "") == TodayKey) return 0;
+        Preferences.Default.Set(KeyM2Rewarded, TodayKey);
+        return 3; // +3 ⭐
     }
 
-    /// <summary>Registra eliminação em torneio.</summary>
-    public bool RecordTournamentElimination()
+    /// <summary>
+    /// Verifica se a missão de sequência de 7 dias está completa e ainda não recompensada.
+    /// Retorna estrelas a conceder (0 se não elegível).
+    /// </summary>
+    public int TryClaimStreakMission()
     {
-        var m = GetMissions()[2];
-        if (m.Completed) return false;
-        Preferences.Default.Set(KeyM3Progress, m.Progress + 1);
-        return m.Progress + 1 >= m.Target;
+        EnsureTodayReset();
+        if (LoginStreak < 7) return 0;
+        if (Preferences.Default.Get(KeyM3Rewarded, "") == TodayKey) return 0;
+
+        Preferences.Default.Set(KeyM3Rewarded, TodayKey);
+        return 5; // +5 ⭐
+    }
+
+    // ── Interno ───────────────────────────────────────────────────────────────
+    private void EnsureTodayReset()
+    {
+        if (Preferences.Default.Get(KeyMissionDate, "") == TodayKey) return;
+
+        Preferences.Default.Set(KeyMissionDate, TodayKey);
+        Preferences.Default.Set(KeyM1Progress,  0);
+        Preferences.Default.Set(KeyM2Progress,  0);
+        Preferences.Default.Set(KeyM3Progress,  0);
+        Preferences.Default.Set(KeyM1Rewarded,  "");
+        Preferences.Default.Set(KeyM2Rewarded,  "");
+        Preferences.Default.Set(KeyM3Rewarded,  "");
     }
 
     private static string TodayKey => DateTime.Today.ToString("yyyy-MM-dd");

@@ -11,6 +11,7 @@ public class AppState
     public AuthService         Auth         { get; } = new();
     public ProfileService      Profile      { get; } = new();
     public DailyService        Daily        { get; } = new();
+    public StarService         Stars        { get; } = new();
     public AdminService        Admin        { get; } = new();
     public SubscriptionService Subscription { get; } = new();
     public AdService           Ads          { get; } = new();
