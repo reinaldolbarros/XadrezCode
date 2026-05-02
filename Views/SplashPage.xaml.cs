@@ -11,12 +11,19 @@ public partial class SplashPage : ContentPage
     {
         base.OnAppearing();
 
-        await Task.Delay(3000);
-
         var auth = AppState.Current.Auth;
-        Page next = (auth.IsAuthenticated && !auth.IsAnonymous)
-            ? new AppShell()
-            : new LoginPage();
+
+        // Cria a próxima página antes do delay para que o MAUI pré-carregue
+        // seus handlers nativos, evitando o flash branco na transição.
+        Page next;
+        if (!auth.IsAuthenticated || auth.IsAnonymous)
+            next = new LoginPage();
+        else if (DailyMissionsPage.ShouldShow())
+            next = new DailyMissionsPage();
+        else
+            next = new AppShell();
+
+        await Task.Delay(2200);
 
         if (Application.Current is not null)
             Application.Current.Windows[0].Page = next;

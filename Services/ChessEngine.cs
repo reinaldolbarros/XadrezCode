@@ -361,7 +361,7 @@ public static class ChessEngine
     // Verifica se uma casa está sob ataque
     // Usa GenerateAttackMoves (sem roque) para evitar recursão infinita.
     // -------------------------------------------------------------------------
-    private static bool IsSquareAttacked(ChessBoard board, int row, int col, PieceColor byColor)
+    public static bool IsSquareAttacked(ChessBoard board, int row, int col, PieceColor byColor)
     {
         for (int r = 0; r < 8; r++)
             for (int c = 0; c < 8; c++)

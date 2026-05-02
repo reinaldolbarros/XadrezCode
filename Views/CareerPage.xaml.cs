@@ -93,17 +93,15 @@ public partial class CareerPage : ContentPage
 
     private void ShowSwissInProgress(CareerTournamentState t)
     {
-        RoundInfoLabel.Text = $"Rodada {t.CurrentRound} de {t.TotalRounds}";
+        RoundInfoLabel.Text      = $"Rodada {t.CurrentRound}/{t.TotalRounds}";
+        RoundProgressBar.Progress = (double)(t.CurrentRound - 1) / t.TotalRounds;
 
         CopaSection.IsVisible    = false;
         MundialSection.IsVisible = false;
         BuildStandings(t);
 
         var opp = Svc.GetNextOpponent(t);
-        OpponentContextLabel.Text = "Próximo adversário";
-        OpponentNameLabel.Text    = opp.Name;
-        OpponentDiffLabel.Text    = Svc.DiffLabel(opp.Difficulty);
-        OpponentSection.IsVisible = true;
+        SetOpponent("Próximo adversário", opp.Name, opp.Difficulty);
 
         PlayBtn.Text      = $"Jogar Rodada {t.CurrentRound}";
         PlayBtn.IsVisible = true;
@@ -111,12 +109,8 @@ public partial class CareerPage : ContentPage
 
     private void ShowCopaInProgress(CareerTournamentState t)
     {
-        RoundInfoLabel.Text = t.CurrentRound switch
-        {
-            1 => "Fase 1 de 3 — Oitavas",
-            2 => "Fase 2 de 3 — Semifinal",
-            _ => "Fase 3 de 3 — Final"
-        };
+        RoundInfoLabel.Text       = t.CurrentRound switch { 1 => "Oitavas", 2 => "Semifinal", _ => "Final" };
+        RoundProgressBar.Progress = (t.CurrentRound - 1) / 3.0;
 
         StandingsSection.IsVisible = false;
         MundialSection.IsVisible   = false;
@@ -124,10 +118,8 @@ public partial class CareerPage : ContentPage
         CopaSection.IsVisible = true;
 
         var opp = Svc.GetNextOpponent(t);
-        OpponentContextLabel.Text = t.CurrentRound == 3 ? "Finalista — adversário" : "Adversário desta fase";
-        OpponentNameLabel.Text    = opp.Name;
-        OpponentDiffLabel.Text    = Svc.DiffLabel(opp.Difficulty);
-        OpponentSection.IsVisible = true;
+        SetOpponent(t.CurrentRound == 3 ? "Finalista — adversário" : "Adversário desta fase",
+                    opp.Name, opp.Difficulty);
 
         PlayBtn.Text      = t.CurrentRound == 3 ? "Jogar a Final" : $"Jogar Fase {t.CurrentRound}";
         PlayBtn.IsVisible = true;
@@ -135,7 +127,8 @@ public partial class CareerPage : ContentPage
 
     private void ShowMundialInProgress(CareerTournamentState t)
     {
-        RoundInfoLabel.Text = $"Partida {t.CurrentRound} · Precisa de {t.WinsNeeded} vitórias";
+        RoundInfoLabel.Text       = $"Partida {t.CurrentRound}  ·  {t.WinsNeeded} vitórias";
+        RoundProgressBar.Progress = 0;
 
         StandingsSection.IsVisible = false;
         CopaSection.IsVisible      = false;
@@ -143,10 +136,7 @@ public partial class CareerPage : ContentPage
         MundialSection.IsVisible  = true;
 
         var opp = Svc.GetNextOpponent(t);
-        OpponentContextLabel.Text = "Adversário — Campeão Mundial";
-        OpponentNameLabel.Text    = opp.Name;
-        OpponentDiffLabel.Text    = Svc.DiffLabel(opp.Difficulty);
-        OpponentSection.IsVisible = true;
+        SetOpponent("Adversário — Campeão Mundial", opp.Name, opp.Difficulty);
 
         PlayBtn.Text      = $"Jogar Partida {t.CurrentRound}";
         PlayBtn.IsVisible = true;
@@ -298,64 +288,116 @@ public partial class CareerPage : ContentPage
             bool isAdv  = pos <= t.AdvancementSpots;
             bool isLast = i == standings.Count - 1;
 
-            string posColor = pos == 1 ? "#FFD700" : pos == 2 ? "#C0C0D0"
-                            : pos == 3 ? "#CD7F32" : "#A8BCCC";
-            string bgHex    = p.IsHuman ? "#1A2A0A" : "#0D1828";
+            // Container com barra lateral colorida para zona de classificação
+            var outer = new Grid
+            {
+                ColumnDefinitions = new ColumnDefinitionCollection(new(4), new(GridLength.Star))
+            };
+            outer.Add(new BoxView
+            {
+                BackgroundColor = isAdv ? Color.FromArgb("#2E8C45") : Colors.Transparent,
+                VerticalOptions = LayoutOptions.Fill
+            });
+
+            Color bgColor = p.IsHuman
+                ? (isAdv ? Color.FromArgb("#0A2A14") : Color.FromArgb("#1C140A"))
+                : (isAdv ? Color.FromArgb("#071A10") : Colors.Transparent);
 
             var row = new Grid
             {
                 ColumnDefinitions = new ColumnDefinitionCollection(
-                    new(28), new(GridLength.Star), new(20), new(GridLength.Auto)),
-                BackgroundColor = Color.FromArgb(bgHex),
-                Padding         = new Thickness(12, 7)
+                    new(28), new(GridLength.Star), new(22), new(GridLength.Auto)),
+                BackgroundColor = bgColor,
+                Padding         = new Thickness(10, 9)
             };
+            Grid.SetColumn(row, 1);
 
             row.Add(new Label
             {
-                Text = $"{pos}º", FontSize = 15,
-                TextColor = Color.FromArgb(posColor),
+                Text                    = $"{pos}º",
+                FontSize                = 14,
+                TextColor               = isAdv ? Color.FromArgb("#4CAF50") : Color.FromArgb("#6A8AAA"),
                 HorizontalTextAlignment = TextAlignment.Center,
-                VerticalOptions = LayoutOptions.Center
+                VerticalOptions         = LayoutOptions.Center
             });
 
             var nameLbl = new Label
             {
                 Text           = p.IsHuman ? "Você" : p.Name,
-                TextColor      = p.IsHuman ? Color.FromArgb("#4CAF50") : Colors.White,
-                FontSize       = 15,
+                TextColor      = p.IsHuman ? Color.FromArgb("#4CAF50")
+                               : isAdv     ? Color.FromArgb("#F2F5F8")
+                               :             Color.FromArgb("#9FB3C8"),
+                FontSize       = 14,
                 FontAttributes = p.IsHuman ? FontAttributes.Bold : FontAttributes.None,
                 VerticalOptions = LayoutOptions.Center
             };
             Grid.SetColumn(nameLbl, 1);
             row.Add(nameLbl);
 
-            string zoneText  = isAdv && !t.IsCompleted ? "↑" : "";
-            var zoneLbl = new Label
+            if (isAdv && !t.IsCompleted)
             {
-                Text = zoneText, TextColor = Color.FromArgb("#4CAF50"),
-                FontSize = 14, VerticalOptions = LayoutOptions.Center,
-                HorizontalTextAlignment = TextAlignment.Center
-            };
-            Grid.SetColumn(zoneLbl, 2);
-            row.Add(zoneLbl);
+                var arrowLbl = new Label
+                {
+                    Text                    = "↑",
+                    TextColor               = Color.FromArgb("#4CAF50"),
+                    FontSize                = 13,
+                    VerticalOptions         = LayoutOptions.Center,
+                    HorizontalTextAlignment = TextAlignment.Center
+                };
+                Grid.SetColumn(arrowLbl, 2);
+                row.Add(arrowLbl);
+            }
 
             var ptsLbl = new Label
             {
-                Text = p.Points.ToString("0.0"),
-                TextColor = Color.FromArgb(p.IsHuman ? "#4CAF50" : "#A8BCCC"),
-                FontSize = 15, VerticalOptions = LayoutOptions.Center
+                Text            = p.Points.ToString("0.0"),
+                TextColor       = p.IsHuman ? Color.FromArgb("#4CAF50")
+                                : isAdv     ? Color.FromArgb("#F2F5F8")
+                                :             Color.FromArgb("#9FB3C8"),
+                FontSize        = 14,
+                FontAttributes  = FontAttributes.Bold,
+                VerticalOptions = LayoutOptions.Center
             };
             Grid.SetColumn(ptsLbl, 3);
             row.Add(ptsLbl);
 
-            StandingsList.Children.Add(row);
+            outer.Add(row);
+            StandingsList.Children.Add(outer);
 
-            if (!isLast)
-                StandingsList.Children.Add(new BoxView
-                {
-                    Color = Color.FromArgb("#1A2840"), HeightRequest = 1
-                });
+            // Linha verde mais espessa separando zona de classificação da eliminação
+            if (pos == t.AdvancementSpots && pos < standings.Count)
+                StandingsList.Children.Add(new BoxView { Color = Color.FromArgb("#2E8C45"), HeightRequest = 1.5 });
+            else if (!isLast)
+                StandingsList.Children.Add(new BoxView { Color = Color.FromArgb("#0E2030"), HeightRequest = 1 });
         }
+    }
+
+    // ── Adversário ────────────────────────────────────────────────────────────
+
+    private static readonly (string Color, string Rating, string Icon)[] DiffStyles =
+    [
+        ("#4CAF50", "~800",  "♙"),
+        ("#4AA3FF", "~1100", "♞"),
+        ("#4AA3FF", "~1400", "♞"),
+        ("#FFD447", "~1700", "♝"),
+        ("#A56CFF", "~2000", "♜"),
+        ("#FF8C42", "~2400", "♛"),
+        ("#FF5B5B", "~2700", "♚"),
+    ];
+
+    private void SetOpponent(string context, string name, int difficulty)
+    {
+        var (color, rating, icon) = difficulty >= 1 && difficulty <= DiffStyles.Length
+            ? DiffStyles[difficulty - 1] : ("#9FB3C8", "—", "♞");
+
+        OpponentContextLabel.Text    = context;
+        OpponentNameLabel.Text       = name;
+        OpponentRatingLabel.Text     = $"Rating estimado: {rating}";
+        OpponentDiffLabel.Text       = Svc.DiffLabel(difficulty);
+        OpponentDiffLabel.TextColor  = Color.FromArgb(color);
+        OppDiffBadge.BackgroundColor = Color.FromArgb(color).WithAlpha(0.12f);
+        OppAvatarLabel.Text          = icon;
+        OpponentSection.IsVisible    = true;
     }
 
     // ── Copa Bracket ──────────────────────────────────────────────────────────

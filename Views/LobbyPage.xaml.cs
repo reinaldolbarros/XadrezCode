@@ -54,17 +54,18 @@ public partial class LobbyPage : ContentPage
         // Bônus diário
         bool claimed = daily.BonusClaimedToday;
         BonusBtn.IsVisible        = !claimed;
+        BonusArrow.IsVisible      = claimed;
         BonusStreakLabel.Text     = $"Sequência: {daily.LoginStreak} dia{(daily.LoginStreak != 1 ? "s" : "")}";
-        BonusFrame.Stroke         = new SolidColorBrush(claimed ? Color.FromArgb("#1A2840") : Color.FromArgb("#FFD700"));
+        BonusFrame.Stroke         = new SolidColorBrush(claimed ? Color.FromArgb("#3A2E68") : Color.FromArgb("#FFD700"));
         BonusTitle.Text           = claimed ? "Bônus Diário  ·  Resgatado ✓" : "Bônus Diário  ·  Disponível!";
-        BonusTitle.TextColor      = claimed ? Color.FromArgb("#666688") : Color.FromArgb("#FFD700");
+        BonusTitle.TextColor      = claimed ? Color.FromArgb("#A56CFF") : Color.FromArgb("#FFD700");
 
         AdminBtn.IsVisible = AppState.Current.IsAdminMode && !AppState.Current.Auth.IsAnonymous;
 
         RatingLabel.Text = $"Rating: {p.Points:N0}";
 
-        var stars = AppState.Current.Stars;
-        StarsLabel.Text = $"⭐ {stars.Balance} · {stars.DedicationTitle}";
+        var starsSvc = AppState.Current.Stars;
+        StarsLabel.Text = $"⭐ {starsSvc.Balance} · {starsSvc.DedicationTitle}";
 
         // Casual / Liga — COMENTADO: aguardando base de jogadores
         // var casual = AppState.Current.CasualRanking;
@@ -85,6 +86,28 @@ public partial class LobbyPage : ContentPage
         //     : "Jogue para garantir vaga prioritária na Liga";
         // CasualStatusLabel.TextColor = hasPrio ? Color.FromArgb("#4CAF50") : Color.FromArgb("#4A6888");
 
+        // Puzzle do Dia
+        var  puzzleSvc  = AppState.Current.PuzzleSvc;
+        bool isSub      = AppState.Current.Subscription.IsActive;
+        int  doneToday  = puzzleSvc.GetDailyCount();
+        bool canPlay    = puzzleSvc.CanPlayMore(isSub);
+        var  nextPuzzle = puzzleSvc.GetCurrentPuzzle();
+        string stars    = new string('★', nextPuzzle.Difficulty) + new string('☆', 3 - nextPuzzle.Difficulty);
+        string countStr = isSub ? $"{doneToday} hoje" : $"{doneToday}/{PuzzleService.FreeLimit} hoje";
+        PuzzleSolvedBadge.IsVisible = !canPlay && !isSub;
+        int poolSize = puzzleSvc.PoolSize;
+        string poolTag = poolSize > 50 ? $"  ·  {poolSize} disponíveis" : "";
+        PuzzleSubLabel.Text = canPlay
+            ? $"{nextPuzzle.Category}  ·  {stars}  ·  {countStr}{poolTag}"
+            : isSub ? $"{nextPuzzle.Category}  ·  {stars}  ·  {countStr}{poolTag}"
+                    : $"Limite diário atingido ({PuzzleService.FreeLimit} puzzles)  ·  🔒 Premium";
+        PuzzleCard.BackgroundColor = canPlay
+            ? Color.FromArgb("#0D1A2A")
+            : Color.FromArgb("#0D1010");
+        PuzzleCard.Stroke = new SolidColorBrush(canPlay
+            ? Color.FromArgb("#1A3A5A")
+            : Color.FromArgb("#3A1A1A"));
+
         // Career.Progress faz JSON deserialization — executa em background
         var career = await Task.Run(() => AppState.Current.Career.Progress);
         string cycleTag = career.TitlesWon > 0 ? $"  ·  {career.TitlesWon}× 🏆" : "";
@@ -98,8 +121,6 @@ public partial class LobbyPage : ContentPage
         // SeasonSubLabel.Text = AppState.Current.Season.CurrentSeasonLabel;
         // BuildChampions(AppState.Current);
 
-        // Missões
-        BuildMissions(daily);
 
         // Liga — COMENTADO: aguardando base de jogadores
         // BuildMiniRanking();
@@ -145,51 +166,6 @@ public partial class LobbyPage : ContentPage
     // -----------------------------------------------------------------------
     // Missões diárias
     // -----------------------------------------------------------------------
-    private void BuildMissions(DailyService daily)
-    {
-        MissionContainer.Children.Clear();
-        var missions = daily.GetMissions();
-        for (int i = 0; i < missions.Count; i++)
-        {
-            var m = missions[i];
-            var row = new Grid { ColumnDefinitions = { new(GridLength.Star), new(GridLength.Auto) }, Margin = new Thickness(0,2) };
-
-            var info = new VerticalStackLayout { Spacing = 2, VerticalOptions = LayoutOptions.Center };
-            info.Add(new Label { Text = m.Description, TextColor = m.Completed ? Color.FromArgb("#4CAF50") : Colors.White, FontSize = 15 });
-            var barTrack = new Grid { HeightRequest = 4 };
-            barTrack.Add(new BoxView { Color = Color.FromArgb("#1A2840"), CornerRadius = 2, HorizontalOptions = LayoutOptions.Fill });
-            double pct = m.Target > 0 ? Math.Min(1.0, (double)m.Progress / m.Target) : 0;
-            double missionBarWidth = (DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density - 100) * pct;
-            barTrack.Add(new BoxView { Color = m.Completed ? Color.FromArgb("#4CAF50") : Color.FromArgb("#3A6AB0"),
-                CornerRadius = 2, HorizontalOptions = LayoutOptions.Start, WidthRequest = Math.Max(0, missionBarWidth) });
-            info.Add(barTrack);
-            info.Add(new Label { Text = $"{m.Progress}/{m.Target}", TextColor = Color.FromArgb("#A8BCCC"), FontSize = 13 });
-            row.Add(info);
-
-            // Badge de recompensa
-            string badgeText  = m.Rewarded ? "✓" : $"+{m.StarReward} ⭐";
-            var badge = new Label
-            {
-                Text              = badgeText,
-                TextColor         = m.Rewarded ? Color.FromArgb("#4CAF50") : Color.FromArgb("#C8A020"),
-                FontSize          = 13,
-                FontAttributes    = FontAttributes.Bold,
-                VerticalOptions   = LayoutOptions.Center,
-                HorizontalOptions = LayoutOptions.End,
-                Margin            = new Thickness(10, 0, 0, 0)
-            };
-            Grid.SetColumn(badge, 1);
-            row.Add(badge);
-
-
-            MissionContainer.Children.Add(row);
-
-            // Separator (except last)
-            if (i < missions.Count - 1)
-                MissionContainer.Children.Add(new BoxView { Color = Color.FromArgb("#1A2840"), HeightRequest = 1, Margin = new Thickness(0,2) });
-        }
-    }
-
     // -----------------------------------------------------------------------
     // Mini ranking da Liga — COMENTADO: aguardando base de jogadores
     // -----------------------------------------------------------------------
@@ -286,7 +262,7 @@ public partial class LobbyPage : ContentPage
     private async void OnRandomMatchClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync("RandomMatchPage");
 
-    private async void OnCareerClicked(object? sender, TappedEventArgs e)
+    private async void OnCareerClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync("CareerPage");
 
     private async void OnFriendGameTapped(object? sender, TappedEventArgs e)
@@ -308,6 +284,25 @@ public partial class LobbyPage : ContentPage
     //     => await Shell.Current.GoToAsync("TournamentLobbyPage");
     // private async void OnHistoryClicked(object? sender, EventArgs e)
     //     => await Shell.Current.GoToAsync("TournamentHistoryPage");
+
+    private async void OnPuzzleTapped(object? sender, TappedEventArgs e)
+    {
+        var  svc   = AppState.Current.PuzzleSvc;
+        bool isSub = AppState.Current.Subscription.IsActive;
+
+        if (!svc.CanPlayMore(isSub))
+        {
+            await DisplayAlert(
+                "🔒 Limite Diário",
+                $"Você já jogou os {PuzzleService.FreeLimit} puzzles gratuitos de hoje.\n\n" +
+                "Assine o plano Premium para puzzles ilimitados e volte amanhã para mais desafios gratuitos!",
+                "OK");
+            return;
+        }
+
+        AppState.Current.PendingPuzzle = true;
+        await Shell.Current.GoToAsync("GamePage");
+    }
 
     private async void OnRankingClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync("RankingPage");
@@ -366,20 +361,31 @@ public partial class LobbyPage : ContentPage
         await DisplayAlert("✓ Concluído", "Sua senha foi alterada com sucesso.", "OK");
     }
 
-    private async void OnMenuClicked(object? sender, EventArgs e)
+    private void OnMenuClicked(object? sender, EventArgs e)
     {
-        bool isAnon = AppState.Current.Auth.IsAnonymous;
+        MenuChangePasswordItem.IsVisible = !AppState.Current.Auth.IsAnonymous;
+        MenuDropdown.IsVisible    = true;
+        MenuDismissOverlay.IsVisible = true;
+    }
 
-        string[] options = isAnon
-            ? ["Sair"]
-            : ["Alterar Senha", "Sair"];
+    private void OnMenuDismiss(object? sender, TappedEventArgs e)
+    {
+        MenuDropdown.IsVisible    = false;
+        MenuDismissOverlay.IsVisible = false;
+    }
 
-        string? result = await DisplayActionSheet(null, "Cancelar", null, options);
+    private async void OnMenuChangePasswordTapped(object? sender, TappedEventArgs e)
+    {
+        MenuDropdown.IsVisible    = false;
+        MenuDismissOverlay.IsVisible = false;
+        await OnChangePasswordAsync();
+    }
 
-        if (result == "Sair")
-            await OnLogoutAsync();
-        else if (result == "Alterar Senha")
-            await OnChangePasswordAsync();
+    private async void OnMenuLogoutTapped(object? sender, TappedEventArgs e)
+    {
+        MenuDropdown.IsVisible    = false;
+        MenuDismissOverlay.IsVisible = false;
+        await OnLogoutAsync();
     }
 
     private async Task OnLogoutAsync()

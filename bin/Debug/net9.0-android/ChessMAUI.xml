@@ -58,6 +58,21 @@
             prioridade via Arena Casual consegue vaga.
             </summary>
         </member>
+        <member name="T:ChessMAUI.Services.LichessPuzzleService">
+            <summary>
+            Busca puzzles reais do banco do Lichess (lichess.org/api/puzzle/next).
+            Mantém cache local e rastreia IDs já vistos para garantir puzzles inéditos.
+            </summary>
+        </member>
+        <member name="M:ChessMAUI.Services.LichessPuzzleService.BeginPrefetch">
+            <summary>Inicia pré-busca em background ao inicializar o app.</summary>
+        </member>
+        <member name="M:ChessMAUI.Services.LichessPuzzleService.GetCurrent">
+            <summary>Retorna o puzzle atual (mesmo em chamadas repetidas). Null se offline e sem cache.</summary>
+        </member>
+        <member name="M:ChessMAUI.Services.LichessPuzzleService.Advance">
+            <summary>Avança para o próximo puzzle inédito. Chamado após IncrementDailyCount.</summary>
+        </member>
         <member name="T:ChessMAUI.Services.MatchmakingService">
             <summary>
             Gerencia a sala de espera (matchmaking).
@@ -73,7 +88,8 @@
         </member>
         <member name="T:ChessMAUI.Services.OnlineMatchService">
             <summary>
-            Matchmaking 1v1 aleatório. Tempo definido por quem busca (1–20 min).
+            Matchmaking 1v1 com margem adaptativa de rating.
+            Começa em ±100, expande +100 a cada 5s até ±400.
             Phase 1: mock local. Phase 2: substituir por Firebase/SignalR.
             </summary>
         </member>
@@ -87,6 +103,14 @@
             <summary>
             Aplica a fórmula Elo após uma partida.
             Retorna o delta (positivo = ganhou rating, negativo = perdeu).
+            </summary>
+        </member>
+        <member name="T:ChessMAUI.Services.PuzzleGenerator">
+            <summary>
+            Gera puzzles proceduralmente usando a engine existente.
+            8 tipos: mate, garfo de cavalo, garfo de rainha, espeto, captura livre,
+            xeque revelado, defesa, última fileira, promoção.
+            Seed determinística: mesmo dia → mesmos puzzles.
             </summary>
         </member>
         <member name="T:ChessMAUI.Services.RankingService">

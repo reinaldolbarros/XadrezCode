@@ -5,7 +5,8 @@ namespace ChessMAUI.Views;
 
 public class BoardDrawable : IDrawable
 {
-    public SquareViewModel[,]? Squares { get; set; }
+    public SquareViewModel[,]? Squares  { get; set; }
+    public bool                IsFlipped { get; set; }
 
     private static readonly Color WhitePiece    = Colors.White;
     private static readonly Color BlackPiece    = Color.FromArgb("#1A1209");
@@ -34,8 +35,10 @@ public class BoardDrawable : IDrawable
         for (int c = 0; c < 8; c++)
         {
             var   sq = Squares[r, c];
-            float x  = c * cw;
-            float y  = r * ch;
+            int   vr = IsFlipped ? 7 - r : r;   // visual row
+            int   vc = IsFlipped ? 7 - c : c;   // visual col
+            float x  = vc * cw;
+            float y  = vr * ch;
 
             // ── Fundo base ────────────────────────────────────────────
             canvas.FillColor = sq.BackgroundColor;
@@ -52,11 +55,11 @@ public class BoardDrawable : IDrawable
             float cs = MathF.Max(7f, cw * 0.17f);
             canvas.FontSize  = cs;
             canvas.FontColor = sq.IsLight ? coordLight : coordDark;
-            if (c == 0)
+            if (vc == 0)  // coluna visual mais à esquerda
                 canvas.DrawString(((char)('8' - r)).ToString(),
                     x + 2, y + 1, cw * 0.3f, ch * 0.3f,
                     HorizontalAlignment.Left, VerticalAlignment.Top);
-            if (r == 7)
+            if (vr == 7)  // linha visual mais abaixo
                 canvas.DrawString(((char)('a' + c)).ToString(),
                     x, y + ch - cs * 1.4f, cw - 2, cs * 1.4f,
                     HorizontalAlignment.Right, VerticalAlignment.Bottom);

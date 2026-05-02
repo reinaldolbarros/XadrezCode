@@ -235,4 +235,60 @@ public class AIService
             score += Material[(int)m.PromotionPiece.Value];
         return score;
     }
+
+    // -------------------------------------------------------------------------
+    // Post-game analysis: compare player's move against engine best at depth 1
+    // Returns (bestMove, centipawn loss from the player's perspective)
+    // -------------------------------------------------------------------------
+    public static (ChessMove? BestMove, int CpLoss) AnalyzeMove(ChessBoard boardBefore, ChessMove playerMove)
+    {
+        var moves = ChessEngine.GetAllLegalMoves(boardBefore, boardBefore.CurrentTurn);
+        if (moves.Count == 0) return (null, 0);
+
+        ChessMove? bestMove        = null;
+        int        bestScore       = int.MinValue;
+        int        playerMoveScore = int.MinValue;
+        string     playerUci       = MoveUci(playerMove);
+
+        foreach (var m in moves)
+        {
+            var clone = boardBefore.Clone();
+            ChessEngine.ApplyMove(clone, m);
+            int score = -EvaluateStatic(clone); // from mover's perspective (negated after move)
+            if (score > bestScore) { bestScore = score; bestMove = m; }
+            if (MoveUci(m) == playerUci) playerMoveScore = score;
+        }
+
+        int cpLoss = playerMoveScore == int.MinValue ? 0 : Math.Max(0, bestScore - playerMoveScore);
+        return (bestMove, cpLoss);
+    }
+
+    private static string MoveUci(ChessMove m) =>
+        $"{(char)('a' + m.FromCol)}{8 - m.FromRow}{(char)('a' + m.ToCol)}{8 - m.ToRow}";
+
+    private static int EvaluateStatic(ChessBoard board)
+    {
+        int score    = 0;
+        int whiteMob = 0;
+        int blackMob = 0;
+
+        for (int r = 0; r < 8; r++)
+            for (int c = 0; c < 8; c++)
+            {
+                var p = board.GetPiece(r, c);
+                if (p == null) continue;
+                int val = Material[(int)p.Type] + PstBonus(p, r, c);
+                score += p.Color == board.CurrentTurn ? val : -val;
+
+                int mob = ChessEngine.GetLegalMoves(board, r, c).Count;
+                if (p.Color == PieceColor.White) whiteMob += mob;
+                else                             blackMob += mob;
+            }
+
+        int mobBonus = board.CurrentTurn == PieceColor.White
+            ? (whiteMob - blackMob) * 2
+            : (blackMob - whiteMob) * 2;
+
+        return score + mobBonus;
+    }
 }

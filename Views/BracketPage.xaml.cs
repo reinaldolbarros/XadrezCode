@@ -209,13 +209,17 @@ public partial class BracketPage : ContentPage
         foreach (var (pos, prize) in t.PrizeTable.OrderBy(p => p.Key))
         {
             string suffix = pos switch { 1 => "º 🥇", 2 => "º 🥈", 3 => "º 🥉", _ => "º" };
-            var card = new Frame
+            Color bg = pos == 1 ? Color.FromArgb("#FFD700")
+                     : pos == 2 ? Color.FromArgb("#C0C0C0")
+                     : pos == 3 ? Color.FromArgb("#CD7F32")
+                     : Color.FromArgb("#0F3460");
+            var card = new Border
             {
-                BackgroundColor = pos == 1 ? Color.FromArgb("#FFD700")
-                                : pos == 2 ? Color.FromArgb("#C0C0C0")
-                                : pos == 3 ? Color.FromArgb("#CD7F32")
-                                : Color.FromArgb("#0F3460"),
-                CornerRadius = 8, Padding = new Thickness(12, 6), HasShadow = false
+                BackgroundColor = bg,
+                Stroke          = new SolidColorBrush(bg),
+                StrokeThickness = 0,
+                StrokeShape     = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 8 },
+                Padding         = new Thickness(12, 6)
             };
             var stack = new VerticalStackLayout { HorizontalOptions = LayoutOptions.Center };
             stack.Add(new Label { Text = $"{pos}{suffix}", FontSize = 11,
@@ -242,18 +246,20 @@ public partial class BracketPage : ContentPage
             MatchContainer.Children.Add(BuildMatchCard(m, isHuman: false));
     }
 
-    private static Frame BuildMatchCard(TournamentMatch m, bool isHuman)
+    private static Border BuildMatchCard(TournamentMatch m, bool isHuman)
     {
         bool completed  = m.Status == MatchStatus.Completed;
         Color borderCol = isHuman   ? Color.FromArgb("#FFD700")
                         : completed ? Color.FromArgb("#333355")
                         : Color.FromArgb("#0F3460");
 
-        var card = new Frame
+        var card = new Border
         {
             BackgroundColor = isHuman ? Color.FromArgb("#1C2240") : Color.FromArgb("#16213E"),
-            BorderColor = borderCol, CornerRadius = 10,
-            Padding = new Thickness(12, 10), HasShadow = false
+            Stroke          = new SolidColorBrush(borderCol),
+            StrokeThickness = 1,
+            StrokeShape     = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
+            Padding         = new Thickness(12, 10)
         };
 
         var grid = new Grid { ColumnDefinitions = { new(GridLength.Star), new(GridLength.Auto) } };

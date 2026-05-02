@@ -52,6 +52,7 @@ public class AppState
     public string FriendPlayer1Name  { get; set; } = "";
     public string FriendOpponentName { get; set; } = "";
     public int    FriendTimeMinutes  { get; set; }
+    public int    FriendGameCount    { get; set; } // par = jogador1 com brancas, ímpar = invertido
 
     // Modo administrador para testes
     public bool IsAdminMode { get; set; } = false;
@@ -66,6 +67,17 @@ public class AppState
     public int    CareerAIDepth      { get; set; } = 1;
     public int    CareerTimeMinutes  { get; set; } = 10;
     public bool   LastMatchWasDraw   { get; set; }
+
+    // Puzzle do Dia
+    public PuzzleService PuzzleSvc     { get; } = CreatePuzzleService();
+    public bool          PendingPuzzle { get; set; }
+
+    private static PuzzleService CreatePuzzleService()
+    {
+        var svc = new PuzzleService();
+        svc.BeginBackgroundGeneration();
+        return svc;
+    }
 
     // Jogo aleatório online
     public OnlineMatchService OnlineMatch       { get; } = new();

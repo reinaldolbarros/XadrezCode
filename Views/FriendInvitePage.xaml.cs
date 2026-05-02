@@ -2,12 +2,28 @@ namespace ChessMAUI.Views;
 
 public partial class FriendInvitePage : ContentPage
 {
-    private int _selectedMinutes = 0;
+    // ── Constantes ────────────────────────────────────────────────────────────
+    private const string PrefKeyTime   = "friend_time_minutes";
+    private const int    MaxTime       = 20;
+    private const int    CodeExpiryMin = 10;
 
-    public FriendInvitePage()
-    {
-        InitializeComponent();
-    }
+    // ── Desafios pendentes (compartilhados na mesma instância do app) ─────────
+    private static readonly Dictionary<string, PendingChallenge> _pending = [];
+    private static readonly char[] CodeAlphabet =
+        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".ToCharArray(); // sem I, O, 0, 1
+
+    private record PendingChallenge(string ChallengerName, int TimeMinutes, DateTime ExpiresAt);
+
+    // ── Estado da tela ────────────────────────────────────────────────────────
+    private enum FriendMode { SameDevice, OnlineCreate, OnlineJoin }
+
+    private FriendMode _mode           = FriendMode.SameDevice;
+    private int        _selectedMinutes;
+    private bool       _codeMade;
+    private string?    _myCode;
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    public FriendInvitePage() => InitializeComponent();
 
     protected override void OnAppearing()
     {
@@ -15,45 +31,191 @@ public partial class FriendInvitePage : ContentPage
 
         var profile = AppState.Current.Profile;
         if (!AppState.Current.Auth.IsAnonymous && !string.IsNullOrWhiteSpace(profile.Name))
-            Player1Entry.Text = profile.Name;
-
-        SelectTime(0);
-    }
-
-    private void OnTimeSelected(object? sender, TappedEventArgs e)
-    {
-        if (e.Parameter is string s && int.TryParse(s, out int m))
-            SelectTime(m);
-    }
-
-    private void SelectTime(int minutes)
-    {
-        _selectedMinutes = minutes;
-
-        int[]    vals = [0, 1, 3, 5, 10];
-        Border[] btns = [TimeBtn0, TimeBtn1, TimeBtn3, TimeBtn5, TimeBtn10];
-
-        for (int i = 0; i < btns.Length; i++)
         {
-            bool sel = vals[i] == minutes;
-            btns[i].BackgroundColor = Color.FromArgb(sel ? "#1A3A65" : "#111D32");
-            btns[i].Stroke          = new SolidColorBrush(Color.FromArgb(sel ? "#2A5090" : "#1A2840"));
-            btns[i].StrokeThickness = sel ? 1.5 : 1;
+            Player1Entry.Text      = profile.Name;
+            ChallengerNameEntry.Text = profile.Name;
+        }
 
-            if (btns[i].Content is Label lbl)
-            {
-                lbl.TextColor      = sel ? Colors.White : Color.FromArgb("#607890");
-                lbl.FontAttributes = sel ? FontAttributes.Bold : FontAttributes.None;
-            }
+        SetTime(Preferences.Default.Get(PrefKeyTime, 0));
+        SetMode(FriendMode.SameDevice);
+        UpdateColorInfo();
+        PurgeStaleCodes();
+    }
+
+    // ── Troca de modo principal ───────────────────────────────────────────────
+
+    private void OnTabSameTelaTapped(object? sender, TappedEventArgs e) =>
+        SetMode(FriendMode.SameDevice);
+
+    private void OnTabOnlineTapped(object? sender, TappedEventArgs e) =>
+        SetMode(FriendMode.OnlineCreate);
+
+    private void OnSubTabCriarTapped(object? sender, TappedEventArgs e) =>
+        SetSubMode(FriendMode.OnlineCreate);
+
+    private void OnSubTabEntrarTapped(object? sender, TappedEventArgs e) =>
+        SetSubMode(FriendMode.OnlineJoin);
+
+    private void SetMode(FriendMode mode)
+    {
+        bool isSame = mode == FriendMode.SameDevice;
+        ApplyTabStyle(TabSameTelaCard, TabSameTelaLabel, isSame);
+        ApplyTabStyle(TabOnlineCard,   TabOnlineLabel,  !isSame);
+
+        SameDeviceSection.IsVisible = isSame;
+        OnlineSection.IsVisible     = !isSame;
+
+        if (isSame)
+        {
+            _mode              = FriendMode.SameDevice;
+            _codeMade          = false;
+            TimeCard.IsVisible = true;
+            UpdateActionBtn();
+        }
+        else
+        {
+            SetSubMode(FriendMode.OnlineCreate);
         }
     }
 
-    private async void OnStartClicked(object? sender, EventArgs e)
+    private void SetSubMode(FriendMode sub)
     {
-        string p1 = string.IsNullOrWhiteSpace(Player1Entry.Text) ? "Jogador 1" : Player1Entry.Text.Trim();
-        string p2 = string.IsNullOrWhiteSpace(Player2Entry.Text) ? "Jogador 2" : Player2Entry.Text.Trim();
+        bool isCriar = sub == FriendMode.OnlineCreate;
+        _mode = sub;
 
-        var state = AppState.Current;
+        ApplyTabStyle(SubTabCriarCard,  SubTabCriarLabel,  isCriar);
+        ApplyTabStyle(SubTabEntrarCard, SubTabEntrarLabel, !isCriar);
+
+        CriarSection.IsVisible  = isCriar;
+        EntrarSection.IsVisible = !isCriar;
+        TimeCard.IsVisible      = isCriar; // tempo irrelevante para quem entra
+
+        if (isCriar)
+        {
+            CodeDisplayCard.IsVisible = false;
+            _codeMade = false;
+            _myCode   = null;
+        }
+        else
+        {
+            ChallengeFoundCard.IsVisible    = false;
+            ChallengeNotFoundCard.IsVisible = false;
+            CodeEntry.Text = "";
+        }
+
+        UpdateActionBtn();
+    }
+
+    private static void ApplyTabStyle(Border card, Label label, bool active)
+    {
+        card.BackgroundColor = active ? Color.FromArgb("#071F3C") : Color.FromArgb("#040F1A");
+        card.Stroke          = new SolidColorBrush(
+            active ? Color.FromArgb("#2E7DDB") : Color.FromArgb("#1E3A5A"));
+        card.StrokeThickness = active ? 1.5 : 1.0;
+        label.TextColor      = active ? Color.FromArgb("#4AA3FF") : Color.FromArgb("#6A8AAA");
+    }
+
+    private void UpdateActionBtn()
+    {
+        (ActionBtn.Text, ActionBtn.BackgroundColor, ActionBtn.IsEnabled) = _mode switch
+        {
+            FriendMode.SameDevice =>
+                ("▶  Iniciar Partida",    Color.FromArgb("#1F6B36"), true),
+
+            FriendMode.OnlineCreate when !_codeMade =>
+                ("Gerar Código",          Color.FromArgb("#2A67B1"), true),
+
+            FriendMode.OnlineCreate =>
+                ("Aguardando amigo...",   Color.FromArgb("#1A3050"), false),
+
+            FriendMode.OnlineJoin when ChallengeFoundCard.IsVisible =>
+                ("Aceitar e Jogar",       Color.FromArgb("#1F6B36"), true),
+
+            _ =>
+                ("Buscar Desafio",        Color.FromArgb("#2A67B1"), true),
+        };
+    }
+
+    // ── Stepper de tempo ──────────────────────────────────────────────────────
+
+    private void OnDecrease(object? sender, EventArgs e) =>
+        SetTime(_selectedMinutes == 0 ? 0 : _selectedMinutes - 1);
+
+    private void OnIncrease(object? sender, EventArgs e) =>
+        SetTime(_selectedMinutes == 0 ? 1 : _selectedMinutes + 1);
+
+    private void SetTime(int value)
+    {
+        _selectedMinutes = Math.Clamp(value, 0, MaxTime);
+        Preferences.Default.Set(PrefKeyTime, _selectedMinutes);
+
+        bool unlimited = _selectedMinutes == 0;
+        TimeValueLabel.Text = unlimited ? "∞" : _selectedMinutes.ToString();
+        TimeUnitLabel.Text  = unlimited ? "sem limite" : "minuto(s)";
+        TimeBadge.IsVisible = !unlimited;
+
+        if (!unlimited)
+        {
+            TimeCategoryLabel.Text = CategoryName(_selectedMinutes);
+            TimeCategoryLabel.TextColor = _selectedMinutes switch
+            {
+                1    => Color.FromArgb("#FF8C42"),
+                <= 9 => Color.FromArgb("#4A8AC0"),
+                _    => Color.FromArgb("#4CAF50"),
+            };
+            TimeBadge.BackgroundColor = _selectedMinutes switch
+            {
+                1    => Color.FromArgb("#251508"),
+                <= 9 => Color.FromArgb("#081828"),
+                _    => Color.FromArgb("#0A2010"),
+            };
+        }
+
+        BtnDecrease.IsEnabled = _selectedMinutes > 0;
+        BtnIncrease.IsEnabled = _selectedMinutes < MaxTime;
+    }
+
+    private static string CategoryName(int m) => m switch
+    {
+        1    => "Bullet",
+        <= 9 => "Blitz",
+        _    => "Rápido",
+    };
+
+    // ── Info de cores ─────────────────────────────────────────────────────────
+
+    private void OnNamesChanged(object? sender, TextChangedEventArgs e) => UpdateColorInfo();
+
+    private void UpdateColorInfo()
+    {
+        bool   p1White = AppState.Current.FriendGameCount % 2 == 0;
+        string p1      = string.IsNullOrWhiteSpace(Player1Entry.Text) ? "J1" : Player1Entry.Text.Trim();
+        string p2      = string.IsNullOrWhiteSpace(Player2Entry.Text) ? "J2" : Player2Entry.Text.Trim();
+        string white   = p1White ? p1 : p2;
+        string black   = p1White ? p2 : p1;
+        ColorInfoLabel.Text = $"Nesta partida: ♙ {white} (Brancas)  ·  ♟ {black} (Pretas)";
+    }
+
+    // ── Dispatcher do botão de ação ───────────────────────────────────────────
+
+    private void OnActionClicked(object? sender, EventArgs e)
+    {
+        switch (_mode)
+        {
+            case FriendMode.SameDevice:   StartSameDeviceGame(); break;
+            case FriendMode.OnlineCreate: GenerateChallengeCode(); break;
+            case FriendMode.OnlineJoin:   SearchOrAccept();       break;
+        }
+    }
+
+    // ── Fluxo: Mesma Tela ─────────────────────────────────────────────────────
+
+    private async void StartSameDeviceGame()
+    {
+        string p1    = string.IsNullOrWhiteSpace(Player1Entry.Text) ? "Jogador 1" : Player1Entry.Text.Trim();
+        string p2    = string.IsNullOrWhiteSpace(Player2Entry.Text) ? "Jogador 2" : Player2Entry.Text.Trim();
+        var    state = AppState.Current;
+
         state.PendingFriendGame     = true;
         state.PendingTournamentGame = false;
         state.FriendPlayer1Name     = p1;
@@ -61,5 +223,122 @@ public partial class FriendInvitePage : ContentPage
         state.FriendTimeMinutes     = _selectedMinutes;
 
         await Shell.Current.GoToAsync("GamePage");
+    }
+
+    // ── Fluxo: Criar código ───────────────────────────────────────────────────
+
+    private void GenerateChallengeCode()
+    {
+        if (_codeMade) return;
+
+        string challenger = string.IsNullOrWhiteSpace(ChallengerNameEntry.Text)
+            ? (AppState.Current.Profile.Name ?? "Desafiante")
+            : ChallengerNameEntry.Text.Trim();
+
+        _myCode = MakeCode();
+        _pending[_myCode] = new PendingChallenge(
+            challenger, _selectedMinutes,
+            DateTime.UtcNow.AddMinutes(CodeExpiryMin));
+
+        GeneratedCodeLabel.Text   = _myCode;
+        CodeDisplayCard.IsVisible = true;
+        WaitingSpinner.IsRunning  = true;
+        WaitingSpinner.IsVisible  = true;
+        _codeMade = true;
+        UpdateActionBtn();
+    }
+
+    private async void OnCopyCodeClicked(object? sender, EventArgs e)
+    {
+        if (_myCode is null) return;
+        await Clipboard.Default.SetTextAsync(_myCode);
+        CopyCodeBtn.Text = "✓ Copiado!";
+        await Task.Delay(1400);
+        CopyCodeBtn.Text = "Copiar";
+    }
+
+    private async void OnShareCodeClicked(object? sender, EventArgs e)
+    {
+        if (_myCode is null) return;
+        await Share.Default.RequestAsync(new ShareTextRequest
+        {
+            Title = "Desafio de Xadrez",
+            Text  = $"🎯 Vamos jogar xadrez!\n\nCódigo do desafio: {_myCode}\n\n"
+                  + $"Abra o app → Com Amigo → Código Online → Entrar com Código",
+        });
+    }
+
+    // ── Fluxo: Entrar com código ──────────────────────────────────────────────
+
+    private void OnCodeEntryChanged(object? sender, TextChangedEventArgs e)
+    {
+        string upper = e.NewTextValue.ToUpperInvariant();
+        if (upper != e.NewTextValue) { CodeEntry.Text = upper; return; }
+
+        ChallengeFoundCard.IsVisible    = false;
+        ChallengeNotFoundCard.IsVisible = false;
+        UpdateActionBtn();
+    }
+
+    private async void SearchOrAccept()
+    {
+        if (ChallengeFoundCard.IsVisible) { await AcceptChallenge(); return; }
+
+        string code = (CodeEntry.Text ?? "").Trim().ToUpperInvariant();
+        if (code.Length < 6)
+        {
+            await DisplayAlert("Código inválido", "O código tem 6 caracteres.", "OK");
+            return;
+        }
+
+        PurgeStaleCodes();
+
+        if (_pending.TryGetValue(code, out var ch))
+        {
+            ChallengeInfoLabel.Text         = $"De: {ch.ChallengerName}";
+            ChallengeTimeLabel.Text         = ch.TimeMinutes == 0
+                ? "Sem limite de tempo"
+                : $"{ch.TimeMinutes} min · {CategoryName(ch.TimeMinutes)}";
+            ChallengeFoundCard.IsVisible    = true;
+            ChallengeNotFoundCard.IsVisible = false;
+        }
+        else
+        {
+            ChallengeFoundCard.IsVisible    = false;
+            ChallengeNotFoundCard.IsVisible = true;
+        }
+
+        UpdateActionBtn();
+    }
+
+    private async Task AcceptChallenge()
+    {
+        string code = (CodeEntry.Text ?? "").Trim().ToUpperInvariant();
+        if (!_pending.TryGetValue(code, out var ch)) return;
+
+        _pending.Remove(code);
+
+        var state = AppState.Current;
+        state.PendingFriendGame     = true;
+        state.PendingTournamentGame = false;
+        state.FriendPlayer1Name     = ch.ChallengerName;
+        state.FriendOpponentName    = state.Profile.Name ?? "Amigo";
+        state.FriendTimeMinutes     = ch.TimeMinutes;
+
+        await Shell.Current.GoToAsync("GamePage");
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private static string MakeCode() =>
+        new(Enumerable.Range(0, 6)
+            .Select(_ => CodeAlphabet[Random.Shared.Next(CodeAlphabet.Length)])
+            .ToArray());
+
+    private static void PurgeStaleCodes()
+    {
+        var now     = DateTime.UtcNow;
+        var expired = _pending.Keys.Where(k => _pending[k].ExpiresAt < now).ToList();
+        foreach (var k in expired) _pending.Remove(k);
     }
 }

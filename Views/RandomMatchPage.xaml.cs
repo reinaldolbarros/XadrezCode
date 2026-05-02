@@ -23,6 +23,7 @@ public partial class RandomMatchPage : ContentPage
         base.OnAppearing();
         _svc.MatchReady      += OnMatchReady;
         _svc.SearchCancelled += OnSearchCancelled;
+        _svc.MarginChanged   += OnMarginChanged;
 
         _svc.Reset();
         ShowSection("selection");
@@ -36,6 +37,7 @@ public partial class RandomMatchPage : ContentPage
         base.OnDisappearing();
         _svc.MatchReady      -= OnMatchReady;
         _svc.SearchCancelled -= OnSearchCancelled;
+        _svc.MarginChanged   -= OnMarginChanged;
         _countdownCts?.Cancel();
     }
 
@@ -66,8 +68,9 @@ public partial class RandomMatchPage : ContentPage
     private async void OnSearchClicked(object? sender, EventArgs e)
     {
         ShowSection("searching");
-        SearchSubLabel.Text = $"{_minutes} min · {CategoryName(_minutes)}  ·  Qualquer rating";
-        await _svc.StartSearchingAsync(_minutes);
+        int playerRating    = AppState.Current.Profile.Points;
+        SearchSubLabel.Text = $"{_minutes} min · {CategoryName(_minutes)}  ·  Rating ±100";
+        await _svc.StartSearchingAsync(_minutes, playerRating);
     }
 
     private void OnCancelClicked(object? sender, EventArgs e) => _svc.Cancel();
@@ -118,6 +121,12 @@ public partial class RandomMatchPage : ContentPage
     {
         _countdownCts?.Cancel();
         _svc.Reset();
+    }
+
+    private void OnMarginChanged(int margin)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+            SearchSubLabel.Text = $"{_minutes} min · {CategoryName(_minutes)}  ·  Rating ±{margin}");
     }
 
     private void OnSearchCancelled()

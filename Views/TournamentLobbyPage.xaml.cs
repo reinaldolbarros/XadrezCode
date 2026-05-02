@@ -223,13 +223,13 @@ public partial class TournamentLobbyPage : ContentPage
             >= 1000 => "Buy-in $ 1.000  ·  Pool até $ 16.000",
             _       => "Buy-in $ 500  ·  Pool até $ 8.000"
         };
-        return new Frame
+        return new Border
         {
             BackgroundColor = Color.FromArgb("#2A1D00"),
-            BorderColor     = Color.FromArgb("#FFD700"),
-            CornerRadius    = 0,
+            Stroke          = new SolidColorBrush(Color.FromArgb("#FFD700")),
+            StrokeThickness = 1,
+            StrokeShape     = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 0 },
             Padding         = new Thickness(14, 8),
-            HasShadow       = false,
             Content         = new VerticalStackLayout
             {
                 Children =
@@ -477,13 +477,13 @@ public partial class TournamentLobbyPage : ContentPage
         };
         _createBtn.Clicked += async (_, _) => await OnCreateCustomTournament();
 
-        var summaryFrame = new Frame
+        var summaryFrame = new Border
         {
             BackgroundColor = Color.FromArgb("#16213E"),
-            BorderColor     = Color.FromArgb("#7B68EE"),
-            CornerRadius    = 12,
+            Stroke          = new SolidColorBrush(Color.FromArgb("#7B68EE")),
+            StrokeThickness = 1,
+            StrokeShape     = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 12 },
             Padding         = new Thickness(16, 14),
-            HasShadow       = false,
             Content         = new VerticalStackLayout
             {
                 Spacing  = 12,

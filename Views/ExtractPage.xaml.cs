@@ -91,18 +91,18 @@ public partial class ExtractPage : ContentPage
         bool alt = false;
         foreach (var group in groups)
         {
-            TransactionList.Children.Add(new Frame
+            TransactionList.Children.Add(new Border
             {
                 BackgroundColor = Color.FromArgb("#12172A"),
-                BorderColor     = Color.FromArgb("#1E2A4A"),
-                CornerRadius    = 0,
+                Stroke          = new SolidColorBrush(Color.FromArgb("#1E2A4A")),
+                StrokeThickness = 1,
+                StrokeShape     = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 0 },
                 Padding         = new Thickness(16, 6),
-                HasShadow       = false,
                 Content         = new Label
                 {
-                    Text      = FormatDate(group.Key),
-                    TextColor = Color.FromArgb("#7788AA"),
-                    FontSize  = 11,
+                    Text           = FormatDate(group.Key),
+                    TextColor      = Color.FromArgb("#7788AA"),
+                    FontSize       = 11,
                     FontAttributes = FontAttributes.Bold
                 }
             });

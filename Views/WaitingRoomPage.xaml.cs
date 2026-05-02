@@ -87,7 +87,7 @@ public partial class WaitingRoomPage : ContentPage
 
             // Remove o primeiro slot vazio e insere o card
             var emptySlot = SlotsContainer.Children
-                .OfType<Frame>().FirstOrDefault(f => f.StyleId == "empty");
+                .OfType<Border>().FirstOrDefault(f => f.StyleId == "empty");
             if (emptySlot != null)
                 SlotsContainer.Children.Remove(emptySlot);
 
@@ -223,7 +223,7 @@ public partial class WaitingRoomPage : ContentPage
     private void AddSlotCard(RoomPlayer player)
     {
         var emptySlot = SlotsContainer.Children
-            .OfType<Frame>().FirstOrDefault(f => f.StyleId == "empty");
+            .OfType<Border>().FirstOrDefault(f => f.StyleId == "empty");
         if (emptySlot != null)
             SlotsContainer.Children.Remove(emptySlot);
 
@@ -232,7 +232,7 @@ public partial class WaitingRoomPage : ContentPage
     }
 
     private int CountEmptySlots() =>
-        SlotsContainer.Children.OfType<Frame>().Count(f => f.StyleId == "empty");
+        SlotsContainer.Children.OfType<Border>().Count(f => f.StyleId == "empty");
 
     // -----------------------------------------------------------------------
     // Card de jogador ocupado
