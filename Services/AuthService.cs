@@ -4,21 +4,16 @@ namespace ChessMAUI.Services;
 
 public class AuthService
 {
+    private const string KeyAnon = "auth_is_anonymous";
+
     private Supabase.Client Db => SupabaseService.Instance.Client;
 
     // ── Propriedades síncronas (lidas da sessão em cache) ─────────────────────
-    public bool IsAuthenticated => Db?.Auth.CurrentUser != null;
+    public bool IsAuthenticated =>
+        Db?.Auth.CurrentUser != null || Preferences.Default.Get(KeyAnon, false);
 
-    public bool IsAnonymous
-    {
-        get
-        {
-            var meta = Db?.Auth.CurrentUser?.AppMetadata;
-            return meta != null
-                && meta.TryGetValue("provider", out var p)
-                && p?.ToString() == "anonymous";
-        }
-    }
+    public bool IsAnonymous =>
+        Preferences.Default.Get(KeyAnon, false) && Db?.Auth.CurrentUser == null;
 
     public string Email  => Db?.Auth.CurrentUser?.Email ?? "";
     public string UserId => Db?.Auth.CurrentUser?.Id    ?? "";
@@ -34,9 +29,20 @@ public class AuthService
         }
     }
 
-    // ── Anônimo ───────────────────────────────────────────────────────────────
-    public Task LoginAnonymousAsync()
-        => Db.Auth.SignIn(Supabase.Gotrue.Constants.SignInType.Anonymous);
+    // ── Anônimo (local — visitante não precisa de conta Supabase) ─────────────
+    public async Task LoginAnonymousAsync()
+    {
+        // Encerra qualquer sessão Supabase ativa antes de entrar como visitante
+        if (Db?.Auth.CurrentUser != null)
+            await Db.Auth.SignOut();
+
+        Preferences.Default.Set(KeyAnon, true);
+
+        // Atribui nome aleatório se o perfil estiver vazio
+        var profile = AppState.Current.Profile;
+        if (string.IsNullOrWhiteSpace(profile.Name))
+            profile.Name = $"Visitante{Random.Shared.Next(1000, 9999)}";
+    }
 
     // ── Login por e-mail + senha ──────────────────────────────────────────────
     public async Task<bool> TryLoginAsync(string email, string password)
@@ -105,5 +111,10 @@ public class AuthService
     }
 
     // ── Logout ────────────────────────────────────────────────────────────────
-    public Task LogoutAsync() => Db.Auth.SignOut();
+    public async Task LogoutAsync()
+    {
+        Preferences.Default.Remove(KeyAnon);
+        if (Db?.Auth.CurrentUser != null)
+            await Db.Auth.SignOut();
+    }
 }

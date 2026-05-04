@@ -70,6 +70,8 @@ public partial class LoginPage : ContentPage
     private void OnRegPasswordCompleted(object? sender, EventArgs e)        => RegConfirmPasswordEntry.Focus();
     private void OnRegConfirmPasswordCompleted(object? sender, EventArgs e) => OnCadastrarClicked(sender, e);
     private void OnResetCredentialCompleted(object? sender, EventArgs e)    => OnResetPasswordClicked(sender, e);
+    private void OnNewPasswordCompleted(object? sender, EventArgs e)        { }
+    private void OnConfirmPasswordCompleted(object? sender, EventArgs e)    => OnResetPasswordClicked(sender, e);
 
     // ── Entrar ───────────────────────────────────────────────────────────────
     private async void OnEntrarClicked(object? sender, EventArgs e)

@@ -105,6 +105,12 @@
             Retorna o delta (positivo = ganhou rating, negativo = perdeu).
             </summary>
         </member>
+        <member name="M:ChessMAUI.Services.ProfileService.SyncToSupabaseAsync">
+            <summary>Envia perfil local para a tabela profiles no Supabase (upsert).</summary>
+        </member>
+        <member name="M:ChessMAUI.Services.ProfileService.LoadFromSupabaseAsync">
+            <summary>Carrega perfil do Supabase e atualiza o cache local.</summary>
+        </member>
         <member name="T:ChessMAUI.Services.PuzzleGenerator">
             <summary>
             Gera puzzles proceduralmente usando a engine existente.

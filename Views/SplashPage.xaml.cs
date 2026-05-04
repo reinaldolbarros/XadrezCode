@@ -24,7 +24,7 @@ public partial class SplashPage : ContentPage
             _ = profile.LoadFromSupabaseAsync();
 
         Page next;
-        if (!auth.IsAuthenticated || auth.IsAnonymous)
+        if (!auth.IsAuthenticated)
             next = new LoginPage();
         else if (DailyMissionsPage.ShouldShow())
             next = new DailyMissionsPage();

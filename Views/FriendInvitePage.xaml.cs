@@ -1,6 +1,6 @@
 using ChessMAUI.Models;
 using ChessMAUI.Services;
-using Supabase.Postgrest.Constants;
+using static Supabase.Postgrest.Constants;
 
 namespace ChessMAUI.Views;
 

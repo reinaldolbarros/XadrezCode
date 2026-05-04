@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 using Supabase.Gotrue;
-using Supabase.Interfaces;
+using Supabase.Gotrue.Interfaces;
 
 namespace ChessMAUI.Services;
 
