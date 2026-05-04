@@ -1,3 +1,5 @@
+using ChessMAUI.Services;
+
 namespace ChessMAUI.Views;
 
 public partial class SplashPage : ContentPage
@@ -11,10 +13,16 @@ public partial class SplashPage : ContentPage
     {
         base.OnAppearing();
 
-        var auth = AppState.Current.Auth;
+        // Inicializa Supabase e restaura sessão salva antes de verificar auth
+        await SupabaseService.Instance.InitializeAsync();
 
-        // Cria a próxima página antes do delay para que o MAUI pré-carregue
-        // seus handlers nativos, evitando o flash branco na transição.
+        var auth    = AppState.Current.Auth;
+        var profile = AppState.Current.Profile;
+
+        // Se usuário autenticado (não anônimo), sincroniza perfil do servidor
+        if (auth.IsAuthenticated && !auth.IsAnonymous)
+            _ = profile.LoadFromSupabaseAsync();
+
         Page next;
         if (!auth.IsAuthenticated || auth.IsAnonymous)
             next = new LoginPage();

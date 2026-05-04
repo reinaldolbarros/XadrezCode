@@ -1,70 +1,109 @@
-using System.Security.Cryptography;
-using System.Text;
+using Supabase.Gotrue;
 
 namespace ChessMAUI.Services;
 
 public class AuthService
 {
-    private const string KeyProvider = "auth_provider";
-    private const string KeyEmail    = "auth_email";
-    private const string KeyUsername = "auth_username";
-    private const string KeyPassHash = "auth_pass_hash";
+    private Supabase.Client Db => SupabaseService.Instance.Client;
 
-    public bool   IsAuthenticated => !string.IsNullOrEmpty(Provider);
-    public string Provider        => Preferences.Default.Get(KeyProvider, "");
-    public string Email           => Preferences.Default.Get(KeyEmail,    "");
-    public string Username        => Preferences.Default.Get(KeyUsername, "");
-    public bool   IsAnonymous     => Provider == "anonymous";
+    // ── Propriedades síncronas (lidas da sessão em cache) ─────────────────────
+    public bool IsAuthenticated => Db?.Auth.CurrentUser != null;
 
-    // ── Anônimo ──────────────────────────────────────────────────────────────
-    public void LoginAnonymous()
-        => Preferences.Default.Set(KeyProvider, "anonymous");
-
-    // ── Verifica se conta existe por login OU e-mail ──────────────────────────
-    public bool AccountExists(string credential)
+    public bool IsAnonymous
     {
-        var c    = credential.Trim().ToLower();
-        var mail = Preferences.Default.Get(KeyEmail,    "");
-        var user = Preferences.Default.Get(KeyUsername, "");
-        bool match = (!string.IsNullOrEmpty(mail) && mail.Equals(c, StringComparison.Ordinal))
-                  || (!string.IsNullOrEmpty(user) && user.Equals(c, StringComparison.Ordinal));
-        return match && !string.IsNullOrEmpty(Preferences.Default.Get(KeyPassHash, ""));
+        get
+        {
+            var meta = Db?.Auth.CurrentUser?.AppMetadata;
+            return meta != null
+                && meta.TryGetValue("provider", out var p)
+                && p?.ToString() == "anonymous";
+        }
     }
 
-    // ── Login por login OU e-mail + senha ─────────────────────────────────────
-    public bool TryLogin(string credential, string password)
+    public string Email  => Db?.Auth.CurrentUser?.Email ?? "";
+    public string UserId => Db?.Auth.CurrentUser?.Id    ?? "";
+
+    public string Username
     {
-        if (!AccountExists(credential)) return false;
-        if (Preferences.Default.Get(KeyPassHash, "") != Hash(password)) return false;
-        Preferences.Default.Set(KeyProvider, "email"); // persiste a sessão
-        return true;
+        get
+        {
+            var meta = Db?.Auth.CurrentUser?.UserMetadata;
+            if (meta != null && meta.TryGetValue("username", out var u))
+                return u?.ToString() ?? "";
+            return "";
+        }
     }
 
-    // ── Cadastro com login + e-mail + senha ────────────────────────────────────
-    public bool TryRegister(string username, string email, string password)
+    // ── Anônimo ───────────────────────────────────────────────────────────────
+    public Task LoginAnonymousAsync()
+        => Db.Auth.SignIn(Supabase.Gotrue.Constants.SignInType.Anonymous);
+
+    // ── Login por e-mail + senha ──────────────────────────────────────────────
+    public async Task<bool> TryLoginAsync(string email, string password)
     {
-        Preferences.Default.Set(KeyUsername, username.Trim().ToLower());
-        Preferences.Default.Set(KeyEmail,    email.Trim().ToLower());
-        Preferences.Default.Set(KeyPassHash, Hash(password));
-        Preferences.Default.Set(KeyProvider, "email");
-        return true;
+        try
+        {
+            var session = await Db.Auth.SignIn(email.Trim().ToLower(), password);
+            return session?.User != null;
+        }
+        catch { return false; }
     }
 
-    // ── Redefinição de senha por login OU e-mail ───────────────────────────────
-    public bool ResetPassword(string credential, string newPassword)
+    // ── Cadastro ──────────────────────────────────────────────────────────────
+    public async Task<(bool Ok, string Error)> TryRegisterAsync(
+        string username, string email, string password)
     {
-        if (!AccountExists(credential)) return false;
-        Preferences.Default.Set(KeyPassHash, Hash(newPassword));
-        return true;
+        try
+        {
+            var opts = new SignUpOptions
+            {
+                Data = new Dictionary<string, object>
+                {
+                    ["username"] = username.Trim(),
+                }
+            };
+            var session = await Db.Auth.SignUp(email.Trim().ToLower(), password, opts);
+            return (session?.User != null, "");
+        }
+        catch (Exception ex)
+        {
+            string msg = ex.Message.Contains("already registered")
+                ? "E-mail já cadastrado."
+                : "Erro ao cadastrar. Tente novamente.";
+            return (false, msg);
+        }
     }
 
-    // ── Logout: encerra sessão, mantém credenciais no dispositivo ─────────────
-    public void Logout()
-        => Preferences.Default.Remove(KeyProvider);
-
-    private static string Hash(string s)
+    // ── Redefinição de senha via link por e-mail ──────────────────────────────
+    public async Task<bool> SendPasswordResetAsync(string email)
     {
-        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(s));
-        return Convert.ToHexString(bytes);
+        try
+        {
+            await Db.Auth.ResetPasswordForEmail(email.Trim().ToLower());
+            return true;
+        }
+        catch { return false; }
     }
+
+    // ── Alterar senha (verifica a senha atual antes de atualizar) ─────────────
+    public async Task<(bool Ok, string Error)> TryUpdatePasswordAsync(
+        string currentPassword, string newPassword)
+    {
+        try
+        {
+            // Reautentica para confirmar a senha atual
+            var email = Email;
+            if (string.IsNullOrEmpty(email)) return (false, "Conta sem e-mail registrado.");
+
+            var session = await Db.Auth.SignIn(email, currentPassword);
+            if (session?.User == null) return (false, "Senha atual incorreta.");
+
+            await Db.Auth.Update(new Supabase.Gotrue.UserAttributes { Password = newPassword });
+            return (true, "");
+        }
+        catch { return (false, "Não foi possível alterar a senha."); }
+    }
+
+    // ── Logout ────────────────────────────────────────────────────────────────
+    public Task LogoutAsync() => Db.Auth.SignOut();
 }

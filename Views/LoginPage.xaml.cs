@@ -4,7 +4,8 @@ namespace ChessMAUI.Views;
 
 public partial class LoginPage : ContentPage
 {
-    private readonly AuthService _auth = AppState.Current.Auth;
+    private readonly AuthService    _auth    = AppState.Current.Auth;
+    private readonly ProfileService _profile = AppState.Current.Profile;
 
     public LoginPage()
     {
@@ -68,31 +69,28 @@ public partial class LoginPage : ContentPage
     private void OnRegEmailCompleted(object? sender, EventArgs e)           => RegPasswordEntry.Focus();
     private void OnRegPasswordCompleted(object? sender, EventArgs e)        => RegConfirmPasswordEntry.Focus();
     private void OnRegConfirmPasswordCompleted(object? sender, EventArgs e) => OnCadastrarClicked(sender, e);
-    private void OnResetCredentialCompleted(object? sender, EventArgs e)    => NewPasswordEntry.Focus();
-    private void OnNewPasswordCompleted(object? sender, EventArgs e)        => ConfirmPasswordEntry.Focus();
-    private void OnConfirmPasswordCompleted(object? sender, EventArgs e)    => OnResetPasswordClicked(sender, e);
+    private void OnResetCredentialCompleted(object? sender, EventArgs e)    => OnResetPasswordClicked(sender, e);
 
     // ── Entrar ───────────────────────────────────────────────────────────────
     private async void OnEntrarClicked(object? sender, EventArgs e)
     {
-        var credential = LoginEntry.Text?.Trim() ?? "";
-        var password   = LoginPasswordEntry.Text ?? "";
+        var email    = LoginEntry.Text?.Trim() ?? "";
+        var password = LoginPasswordEntry.Text ?? "";
 
-        if (string.IsNullOrEmpty(credential))
-            { ShowLoginError("Informe seu login ou e-mail."); return; }
+        if (string.IsNullOrEmpty(email))
+            { ShowLoginError("Informe seu e-mail."); return; }
         if (password.Length < 6)
             { ShowLoginError("Senha deve ter pelo menos 6 caracteres."); return; }
-        if (!_auth.AccountExists(credential))
-            { ShowLoginError("Conta não encontrada. Verifique o login ou e-mail."); return; }
 
-        bool ok = _auth.TryLogin(credential, password);
+        bool ok = await _auth.TryLoginAsync(email, password);
         if (!ok)
-            { ShowLoginError("Senha incorreta."); return; }
+            { ShowLoginError("E-mail ou senha incorretos."); return; }
 
+        _ = _profile.LoadFromSupabaseAsync();
         await GoToShell();
     }
 
-    // ── Cadastrar (com verificação de e-mail) ────────────────────────────────
+    // ── Cadastrar ────────────────────────────────────────────────────────────
     private async void OnCadastrarClicked(object? sender, EventArgs e)
     {
         var login    = RegLoginEntry.Text?.Trim() ?? "";
@@ -101,66 +99,38 @@ public partial class LoginPage : ContentPage
         var confirm  = RegConfirmPasswordEntry.Text ?? "";
 
         if (string.IsNullOrEmpty(login))
-            { ShowRegisterError("Informe um login (nome de usuário)."); return; }
+            { ShowRegisterError("Informe um nome de usuário."); return; }
         if (login.Length < 3)
-            { ShowRegisterError("Login deve ter pelo menos 3 caracteres."); return; }
+            { ShowRegisterError("Nome deve ter pelo menos 3 caracteres."); return; }
         if (string.IsNullOrEmpty(email) || !email.Contains('@') || !email.Contains('.'))
             { ShowRegisterError("Informe um e-mail válido."); return; }
         if (password.Length < 6)
             { ShowRegisterError("Senha deve ter pelo menos 6 caracteres."); return; }
         if (password != confirm)
             { ShowRegisterError("As senhas não conferem."); return; }
-        if (_auth.AccountExists(email) || _auth.AccountExists(login))
-            { ShowRegisterError("Login ou e-mail já cadastrado neste dispositivo."); return; }
 
-        bool verified = await RunEmailVerification(email);
-        if (!verified) return;
+        var (ok, error) = await _auth.TryRegisterAsync(login, email, password);
+        if (!ok)
+            { ShowRegisterError(error); return; }
 
-        _auth.TryRegister(login, email, password);
-        var profile    = AppState.Current.Profile;
-        profile.Name    = login;
-        profile.Country = RegCountryPicker.SelectedItem as string ?? "";
-        profile.State   = GeoData.StateAbbr(RegStatePicker.SelectedItem as string);
+        _profile.Name    = login;
+        _profile.Country = RegCountryPicker.SelectedItem as string ?? "";
+        _profile.State   = GeoData.StateAbbr(RegStatePicker.SelectedItem as string);
+        _ = _profile.SyncToSupabaseAsync();
         await GoToShell();
-    }
-
-    private async Task<bool> RunEmailVerification(string email)
-    {
-        string code        = EmailService.GenerateCode();
-        bool   mailOpened  = await EmailService.SendVerificationCode(email, code);
-
-        string hint = mailOpened
-            ? $"Um e-mail foi composto para {email}.\nConclua o envio e insira o código recebido abaixo."
-            : $"Não foi possível abrir o app de e-mail.\nSeu código de verificação é:\n\n  {code}";
-
-        string? entered = await DisplayPromptAsync(
-            "Verificar e-mail", hint,
-            placeholder: "6 dígitos", maxLength: 6,
-            keyboard: Keyboard.Numeric);
-
-        if (entered == null) return false;
-
-        if (entered.Trim() != code)
-        {
-            ShowRegisterError("Código inválido. Tente novamente.");
-            return false;
-        }
-        return true;
     }
 
     // ── Visitante ────────────────────────────────────────────────────────────
     private async void OnAnonymousClicked(object? sender, EventArgs e)
     {
-        _auth.LoginAnonymous();
+        await _auth.LoginAnonymousAsync();
         await GoToShell();
     }
 
-    // ── Redefinir senha ───────────────────────────────────────────────────────
+    // ── Redefinir senha (link por e-mail via Supabase) ────────────────────────
     private void OnForgotPassword(object? sender, TappedEventArgs e)
     {
         ResetCredentialEntry.Text = LoginEntry.Text ?? "";
-        NewPasswordEntry.Text     = "";
-        ConfirmPasswordEntry.Text = "";
         ResetErrorLabel.IsVisible = false;
         FormPanel.IsVisible  = false;
         ResetPanel.IsVisible = true;
@@ -169,29 +139,18 @@ public partial class LoginPage : ContentPage
 
     private async void OnResetPasswordClicked(object? sender, EventArgs e)
     {
-        var credential = ResetCredentialEntry.Text?.Trim() ?? "";
-        var newPass    = NewPasswordEntry.Text ?? "";
-        var confirm    = ConfirmPasswordEntry.Text ?? "";
+        var email = ResetCredentialEntry.Text?.Trim() ?? "";
 
-        if (string.IsNullOrEmpty(credential))
-            { ShowResetError("Informe seu login ou e-mail."); return; }
-        if (newPass.Length < 6)
-            { ShowResetError("Senha deve ter pelo menos 6 caracteres."); return; }
-        if (newPass != confirm)
-            { ShowResetError("As senhas não conferem."); return; }
+        if (string.IsNullOrEmpty(email) || !email.Contains('@'))
+            { ShowResetError("Informe o e-mail da conta."); return; }
 
-        bool ok = _auth.ResetPassword(credential, newPass);
-        if (!ok)
-            { ShowResetError("Login ou e-mail não encontrado."); return; }
+        bool sent = await _auth.SendPasswordResetAsync(email);
+        if (!sent)
+            { ShowResetError("Não foi possível enviar o link. Verifique o e-mail."); return; }
 
-        string accountEmail = _auth.Email;
-        if (!string.IsNullOrEmpty(accountEmail))
-            await EmailService.SendTempPassword(accountEmail, newPass);
+        await DisplayAlert("✓ Link enviado",
+            "Verifique seu e-mail e clique no link para redefinir a senha.", "OK");
 
-        await DisplayAlert("✓ Senha redefinida",
-            "Sua senha foi atualizada. Entre com a nova senha.", "OK");
-
-        LoginPasswordEntry.Text = "";
         OnBackFromReset(sender, new TappedEventArgs(null));
     }
 

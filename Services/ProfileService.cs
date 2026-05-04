@@ -3,6 +3,8 @@ using ChessMAUI.Models;
 
 namespace ChessMAUI.Services;
 
+// Supabase sync é fire-and-forget após cada operação local que altera pontuação ou perfil.
+
 /// <summary>Perfil do jogador persistido via Preferences.</summary>
 public class ProfileService
 {
@@ -179,4 +181,66 @@ public class ProfileService
 
     public void RecordWin()  => Wins++;
     public void RecordLoss() => Losses++;
+
+    // ── Supabase sync ─────────────────────────────────────────────────────────
+
+    /// <summary>Envia perfil local para a tabela profiles no Supabase (upsert).</summary>
+    public async Task SyncToSupabaseAsync()
+    {
+        var svc = SupabaseService.Instance;
+        if (!svc.IsReady) return;
+        var userId = AppState.Current.Auth.UserId;
+        if (string.IsNullOrEmpty(userId)) return;
+
+        try
+        {
+            var row = new SupabaseProfile
+            {
+                Id             = userId,
+                Name           = Name,
+                Elo            = Points,
+                WeekElo        = WeekPoints,
+                Wins           = Wins,
+                Losses         = Losses,
+                TournamentsWon = TournamentsWon,
+                Avatar         = Avatar,
+                AvatarPath     = string.IsNullOrEmpty(AvatarPath)  ? null : AvatarPath,
+                Country        = string.IsNullOrEmpty(Country)     ? null : Country,
+                StateAbbr      = string.IsNullOrEmpty(State)       ? null : State,
+                UpdatedAt      = DateTime.UtcNow,
+            };
+            await svc.Client.From<SupabaseProfile>().Upsert(row);
+        }
+        catch { }
+    }
+
+    /// <summary>Carrega perfil do Supabase e atualiza o cache local.</summary>
+    public async Task LoadFromSupabaseAsync()
+    {
+        var svc = SupabaseService.Instance;
+        if (!svc.IsReady) return;
+        var userId = AppState.Current.Auth.UserId;
+        if (string.IsNullOrEmpty(userId)) return;
+
+        try
+        {
+            var row = await svc.Client
+                .From<SupabaseProfile>()
+                .Where(x => x.Id == userId)
+                .Single();
+
+            if (row == null) return;
+
+            if (!string.IsNullOrEmpty(row.Name))   Name           = row.Name;
+            Wins           = row.Wins;
+            Losses         = row.Losses;
+            TournamentsWon = row.TournamentsWon;
+            Avatar         = row.Avatar;
+            if (!string.IsNullOrEmpty(row.AvatarPath)) AvatarPath = row.AvatarPath!;
+            if (!string.IsNullOrEmpty(row.Country))    Country    = row.Country!;
+            if (!string.IsNullOrEmpty(row.StateAbbr))  State      = row.StateAbbr!;
+            Points     = row.Elo;
+        }
+        catch { }
+    }
 }

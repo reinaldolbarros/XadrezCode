@@ -333,12 +333,6 @@ public partial class LobbyPage : ContentPage
             "Alterar Senha", "Senha atual:", maxLength: 64, keyboard: Keyboard.Default);
         if (currentPass == null) return;
 
-        if (!auth.TryLogin(auth.Email, currentPass) && !auth.TryLogin(auth.Username, currentPass))
-        {
-            await DisplayAlert("Erro", "Senha atual incorreta.", "OK");
-            return;
-        }
-
         string? newPass = await DisplayPromptAsync(
             "Alterar Senha", "Nova senha (mín. 6 caracteres):", maxLength: 64, keyboard: Keyboard.Default);
         if (newPass == null) return;
@@ -357,7 +351,12 @@ public partial class LobbyPage : ContentPage
             return;
         }
 
-        auth.ResetPassword(auth.Email, newPass);
+        var (ok, error) = await auth.TryUpdatePasswordAsync(currentPass, newPass);
+        if (!ok)
+        {
+            await DisplayAlert("Erro", error, "OK");
+            return;
+        }
         await DisplayAlert("✓ Concluído", "Sua senha foi alterada com sucesso.", "OK");
     }
 
@@ -393,7 +392,7 @@ public partial class LobbyPage : ContentPage
         bool confirm = await DisplayAlert("Sair", "Deseja sair da sua conta?", "Sair", "Cancelar");
         if (!confirm) return;
 
-        AppState.Current.Auth.Logout();
+        await AppState.Current.Auth.LogoutAsync();
         var window = Application.Current?.Windows.FirstOrDefault();
         if (window != null) window.Page = new LoginPage();
     }
