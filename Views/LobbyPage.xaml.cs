@@ -1,3 +1,4 @@
+using ChessMAUI.Models;
 using ChessMAUI.Services;
 
 namespace ChessMAUI.Views;
@@ -40,9 +41,13 @@ public partial class LobbyPage : ContentPage
         if (hasPhoto) AvatarImage.Source = ImageSource.FromFile(p.AvatarPath);
         else          AvatarLabel.Text   = p.Avatar;
 
-        NameLabel.Text    = p.Name;
+        NameLabel.Text = p.Name;
 
-        // Localização inline com o nome
+        // Nível derivado do Elo (Nível 1 a ~50)
+        int level = Math.Max(1, (int)Math.Round((p.Points - 800.0) / 30));
+        RatingLabel.Text = $"Nível {level}  ·  Rating {p.Points:N0}";
+
+        // Localização
         string loc = p.Country.Length > 0 && p.State.Length > 0 ? $"{p.Country} · {p.State}"
                    : p.Country.Length > 0 ? p.Country
                    : p.State.Length > 0   ? p.State : "";
@@ -51,18 +56,32 @@ public partial class LobbyPage : ContentPage
         LossesLabel.Text    = p.Losses.ToString();
         TournWinsLabel.Text = p.TournamentsWon.ToString();
 
-        // Bônus diário
-        bool claimed = daily.BonusClaimedToday;
-        BonusBtn.IsVisible        = !claimed;
-        BonusArrow.IsVisible      = claimed;
-        BonusStreakLabel.Text     = $"Sequência: {daily.LoginStreak} dia{(daily.LoginStreak != 1 ? "s" : "")}";
-        BonusFrame.Stroke         = new SolidColorBrush(claimed ? Color.FromArgb("#3A2E68") : Color.FromArgb("#FFD700"));
-        BonusTitle.Text           = claimed ? "Bônus Diário  ·  Resgatado ✓" : "Bônus Diário  ·  Disponível!";
-        BonusTitle.TextColor      = claimed ? Color.FromArgb("#A56CFF") : Color.FromArgb("#FFD700");
+        // Puzzle do Dia — declarado antes da missão porque missionDone depende de doneToday
+        var  puzzleSvc = AppState.Current.PuzzleSvc;
+        bool isSub     = AppState.Current.Subscription.IsActive;
+        int  doneToday = puzzleSvc.GetDailyCount();
+        bool canPlay   = puzzleSvc.CanPlayMore(isSub);
+
+        // Missão / Bônus diário
+        bool claimed     = daily.BonusClaimedToday;
+        int  streak      = daily.LoginStreak;
+        int  missionGoal = 3;
+        int  missionDone = Math.Min(doneToday, missionGoal);
+        BonusTitle.Text      = "Missão de Hoje";
+        BonusTitle.TextColor = Color.FromArgb("#FFFFFF");
+        BonusStreakLabel.Text      = $"Resolver {missionGoal} puzzles";
+        BonusStreakLabel.TextColor = Color.FromArgb("#C8A020");
+        BonusProgressLabel.Text = claimed
+            ? $"✓ Concluída  ·  {streak} dias seguidos"
+            : $"{missionDone}/{missionGoal}  ·  +50 XP";
+        BonusProgressLabel.TextColor  = Color.FromArgb("#C8A020");
+        MissionProgressBar.Progress = claimed ? 1.0 : Math.Min(1.0, (double)missionDone / missionGoal);
+        BonusBtn.IsVisible     = !claimed;
+        BonusArrow.IsVisible   = claimed;
+        BonusArrow.Text        = "✓";
+        BonusArrow.TextColor   = Color.FromArgb("#C8A020");
 
         AdminBtn.IsVisible = AppState.Current.IsAdminMode && !AppState.Current.Auth.IsAnonymous;
-
-        RatingLabel.Text = $"Rating: {p.Points:N0}";
 
         var starsSvc = AppState.Current.Stars;
         StarsLabel.Text = $"⭐ {starsSvc.Balance} · {starsSvc.DedicationTitle}";
@@ -86,36 +105,37 @@ public partial class LobbyPage : ContentPage
         //     : "Jogue para garantir vaga prioritária na Liga";
         // CasualStatusLabel.TextColor = hasPrio ? Color.FromArgb("#4CAF50") : Color.FromArgb("#4A6888");
 
-        // Puzzle do Dia
-        var  puzzleSvc  = AppState.Current.PuzzleSvc;
-        bool isSub      = AppState.Current.Subscription.IsActive;
-        int  doneToday  = puzzleSvc.GetDailyCount();
-        bool canPlay    = puzzleSvc.CanPlayMore(isSub);
-        var  nextPuzzle = puzzleSvc.GetCurrentPuzzle();
-        string stars    = new string('★', nextPuzzle.Difficulty) + new string('☆', 3 - nextPuzzle.Difficulty);
+        // Puzzle do Dia — exibição (dados já declarados acima)
         string countStr = isSub ? $"{doneToday} hoje" : $"{doneToday}/{PuzzleService.FreeLimit} hoje";
+        PuzzleSubLabel.Text = canPlay || isSub ? countStr : "🔒 Limite atingido";
         PuzzleSolvedBadge.IsVisible = !canPlay && !isSub;
-        int poolSize = puzzleSvc.PoolSize;
-        string poolTag = poolSize > 50 ? $"  ·  {poolSize} disponíveis" : "";
-        PuzzleSubLabel.Text = canPlay
-            ? $"{nextPuzzle.Category}  ·  {stars}  ·  {countStr}{poolTag}"
-            : isSub ? $"{nextPuzzle.Category}  ·  {stars}  ·  {countStr}{poolTag}"
-                    : $"Limite diário atingido ({PuzzleService.FreeLimit} puzzles)  ·  🔒 Premium";
-        PuzzleCard.BackgroundColor = canPlay
-            ? Color.FromArgb("#0D1A2A")
-            : Color.FromArgb("#0D1010");
-        PuzzleCard.Stroke = new SolidColorBrush(canPlay
-            ? Color.FromArgb("#1A3A5A")
-            : Color.FromArgb("#3A1A1A"));
 
         // Career.Progress faz JSON deserialization — executa em background
         var career = await Task.Run(() => AppState.Current.Career.Progress);
         string cycleTag = career.TitlesWon > 0 ? $"  ·  {career.TitlesWon}× 🏆" : "";
-        CareerSubLabel.Text = career.IsCareerCompleted
-            ? $"🏆 Campeão do Ciclo {career.EffectiveCycleYear}{cycleTag}"
-            : career.ActiveTournament != null
-                ? $"Ciclo {career.EffectiveCycleYear}  ·  {career.ActiveTournament.LevelName}{cycleTag}"
-                : "Do Torneio Local ao Campeonato Mundial";
+        CareerTournamentLabel.Text = career.ActiveTournament != null
+            ? career.ActiveTournament.LevelName
+            : "Do Local ao Mundial";
+        DotActiveLabel.Text = career.ActiveTournament?.CurrentRound.ToString() ?? "1";
+        string careerSub;
+        if (career.IsCareerCompleted)
+        {
+            careerSub = $"🏆 Campeão do Ciclo {career.EffectiveCycleYear}{cycleTag}";
+        }
+        else if (career.ActiveTournament != null)
+        {
+            var t = career.ActiveTournament;
+            var nextRound = t.Rounds.FirstOrDefault(r => r.Result == CareerRoundResult.NotPlayed);
+            string oppName = nextRound?.Opponent ?? t.Opponent?.Name ?? "";
+            careerSub = oppName.Length > 0
+                ? $"Rodada {t.CurrentRound}/{t.TotalRounds}  ·  Adversário {oppName}"
+                : $"Rodada {t.CurrentRound}/{t.TotalRounds}";
+        }
+        else
+        {
+            careerSub = "Do Torneio Local ao Campeonato Mundial";
+        }
+        CareerSubLabel.Text = careerSub;
 
         // Liga — COMENTADO: aguardando base de jogadores
         // SeasonSubLabel.Text = AppState.Current.Season.CurrentSeasonLabel;
@@ -144,6 +164,13 @@ public partial class LobbyPage : ContentPage
     // -----------------------------------------------------------------------
     // Bônus diário
     // -----------------------------------------------------------------------
+    private async void OnBonusCardTapped(object? sender, TappedEventArgs e)
+    {
+        await FlashTap(MissionCard);
+        if (!AppState.Current.Daily.BonusClaimedToday)
+            OnBonusClicked(sender, e);
+    }
+
     private async void OnBonusClicked(object? sender, EventArgs e)
     {
         var state = AppState.Current;
@@ -257,8 +284,32 @@ public partial class LobbyPage : ContentPage
         => await Shell.Current.GoToAsync("ProfilePage");
 
     // -----------------------------------------------------------------------
+    // Feedback visual de toque
+    // -----------------------------------------------------------------------
+    private static async Task FlashTap(View card)
+    {
+        await card.ScaleTo(0.96, 70, Easing.CubicIn);
+        await card.ScaleTo(1.00, 80, Easing.CubicOut);
+    }
+
+    // -----------------------------------------------------------------------
     // Navegação
     // -----------------------------------------------------------------------
+    private async void OnOnlineCardTapped(object? sender, TappedEventArgs e)
+    {
+        await FlashTap(OnlineCard);
+        await Shell.Current.GoToAsync("RandomMatchPage");
+    }
+
+    private async void OnCareerTapped(object? sender, TappedEventArgs e)
+    {
+        await FlashTap(CareerCard);
+        await Shell.Current.GoToAsync("CareerPage");
+    }
+
+    private async void OnNavRankingTapped(object? sender, TappedEventArgs e)
+        => await Shell.Current.GoToAsync("RankingPage");
+
     private async void OnRandomMatchClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync("RandomMatchPage");
 
@@ -266,10 +317,14 @@ public partial class LobbyPage : ContentPage
         => await Shell.Current.GoToAsync("CareerPage");
 
     private async void OnFriendGameTapped(object? sender, TappedEventArgs e)
-        => await Shell.Current.GoToAsync("FriendInvitePage");
+    {
+        await FlashTap(FriendCard);
+        await Shell.Current.GoToAsync("FriendInvitePage");
+    }
 
     private async void OnQuickPlayTapped(object? sender, TappedEventArgs e)
     {
+        await FlashTap(IaCard);
         AppState.Current.PendingTournamentGame = false;
         AppState.Current.PendingFriendGame     = false;
         await Shell.Current.GoToAsync("GamePage");
@@ -287,6 +342,7 @@ public partial class LobbyPage : ContentPage
 
     private async void OnPuzzleTapped(object? sender, TappedEventArgs e)
     {
+        await FlashTap(PuzzleCard);
         var  svc   = AppState.Current.PuzzleSvc;
         bool isSub = AppState.Current.Subscription.IsActive;
 
@@ -366,6 +422,9 @@ public partial class LobbyPage : ContentPage
         MenuDropdown.IsVisible    = true;
         MenuDismissOverlay.IsVisible = true;
     }
+
+    private void OnMenuLabelTapped(object? sender, TappedEventArgs e)
+        => OnMenuClicked(sender, e);
 
     private void OnMenuDismiss(object? sender, TappedEventArgs e)
     {

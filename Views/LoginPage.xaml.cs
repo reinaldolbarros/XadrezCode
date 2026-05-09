@@ -166,11 +166,11 @@ public partial class LoginPage : ContentPage
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
-    private static async Task GoToShell()
+    private static Task GoToShell()
     {
         var window = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault();
         if (window != null) window.Page = new AppShell();
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
     private void ClearErrors()

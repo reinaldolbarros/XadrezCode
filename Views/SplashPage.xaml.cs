@@ -13,13 +13,15 @@ public partial class SplashPage : ContentPage
     {
         base.OnAppearing();
 
-        // Inicializa Supabase e restaura sessão salva antes de verificar auth
-        await SupabaseService.Instance.InitializeAsync();
+        // Supabase inicia em background — não bloqueia o splash
+        _ = SupabaseService.Instance.InitializeAsync();
+
+        await Task.Delay(1000);
 
         var auth    = AppState.Current.Auth;
         var profile = AppState.Current.Profile;
 
-        // Se usuário autenticado (não anônimo), sincroniza perfil do servidor
+        // Fire-and-forget: espera internamente até Supabase estar pronto
         if (auth.IsAuthenticated && !auth.IsAnonymous)
             _ = profile.LoadFromSupabaseAsync();
 
@@ -30,8 +32,6 @@ public partial class SplashPage : ContentPage
             next = new DailyMissionsPage();
         else
             next = new AppShell();
-
-        await Task.Delay(2200);
 
         if (Application.Current is not null)
             Application.Current.Windows[0].Page = next;

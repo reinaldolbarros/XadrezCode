@@ -4,13 +4,17 @@ namespace ChessMAUI.Services;
 
 public class AuthService
 {
-    private const string KeyAnon = "auth_is_anonymous";
+    private const string KeyAnon    = "auth_is_anonymous";
+    private const string KeySession = "supabase_session"; // chave do MauiSessionHandler
 
-    private Supabase.Client Db => SupabaseService.Instance.Client;
+    private Supabase.Client? Db => SupabaseService.Instance.IsReady
+        ? SupabaseService.Instance.Client : null;
 
-    // ── Propriedades síncronas (lidas da sessão em cache) ─────────────────────
+    // ── Propriedades síncronas (lidas do cache — não dependem de rede) ────────
     public bool IsAuthenticated =>
-        Db?.Auth.CurrentUser != null || Preferences.Default.Get(KeyAnon, false);
+        Db?.Auth.CurrentUser != null
+        || !string.IsNullOrEmpty(Preferences.Default.Get(KeySession, ""))
+        || Preferences.Default.Get(KeyAnon, false);
 
     public bool IsAnonymous =>
         Preferences.Default.Get(KeyAnon, false) && Db?.Auth.CurrentUser == null;

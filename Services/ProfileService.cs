@@ -187,6 +187,9 @@ public class ProfileService
     /// <summary>Envia perfil local para a tabela profiles no Supabase (upsert).</summary>
     public async Task SyncToSupabaseAsync()
     {
+        for (int i = 0; i < 100 && !SupabaseService.Instance.IsReady; i++)
+            await Task.Delay(200);
+
         var svc = SupabaseService.Instance;
         if (!svc.IsReady) return;
         var userId = AppState.Current.Auth.UserId;
@@ -217,6 +220,10 @@ public class ProfileService
     /// <summary>Carrega perfil do Supabase e atualiza o cache local.</summary>
     public async Task LoadFromSupabaseAsync()
     {
+        // Aguarda Supabase inicializar (máx 20 s) — pode ser chamado antes do init completar
+        for (int i = 0; i < 100 && !SupabaseService.Instance.IsReady; i++)
+            await Task.Delay(200);
+
         var svc = SupabaseService.Instance;
         if (!svc.IsReady) return;
         var userId = AppState.Current.Auth.UserId;
