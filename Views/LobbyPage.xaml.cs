@@ -116,7 +116,6 @@ public partial class LobbyPage : ContentPage
         CareerTournamentLabel.Text = career.ActiveTournament != null
             ? career.ActiveTournament.LevelName
             : "Do Local ao Mundial";
-        DotActiveLabel.Text = career.ActiveTournament?.CurrentRound.ToString() ?? "1";
         string careerSub;
         if (career.IsCareerCompleted)
         {
@@ -173,6 +172,7 @@ public partial class LobbyPage : ContentPage
 
     private async void OnBonusClicked(object? sender, EventArgs e)
     {
+        await FlashTap(MissionCard);
         var state = AppState.Current;
         int starsBonus = state.Daily.ClaimDailyBonus();
         int starsStreak = state.Daily.TryClaimStreakMission();
@@ -281,7 +281,10 @@ public partial class LobbyPage : ContentPage
     // Avatar: toque → abre ProfilePage
     // -----------------------------------------------------------------------
     private async void OnAvatarTapped(object? sender, EventArgs e)
-        => await Shell.Current.GoToAsync("ProfilePage");
+    {
+        if (sender is View v) await FlashTap(v);
+        await Shell.Current.GoToAsync("ProfilePage");
+    }
 
     // -----------------------------------------------------------------------
     // Feedback visual de toque
@@ -308,7 +311,10 @@ public partial class LobbyPage : ContentPage
     }
 
     private async void OnNavRankingTapped(object? sender, TappedEventArgs e)
-        => await Shell.Current.GoToAsync("RankingPage");
+    {
+        if (sender is View v) await FlashTap(v);
+        await Shell.Current.GoToAsync("RankingPage");
+    }
 
     private async void OnRandomMatchClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync("RandomMatchPage");

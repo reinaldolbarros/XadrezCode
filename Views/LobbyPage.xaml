@@ -48,17 +48,17 @@
                             <TapGestureRecognizer Tapped="OnAvatarTapped"/>
                         </VerticalStackLayout.GestureRecognizers>
                         <Label x:Name="NameLabel" Text="Jogador"
-                               FontSize="17" FontAttributes="Bold" TextColor="#FFFFFF"/>
+                               FontSize="19" FontAttributes="Bold" TextColor="#FFFFFF"/>
                         <Label x:Name="RatingLabel" Text="Nível 1  ·  Rating 1200"
-                               FontSize="12" TextColor="#7888A8">
+                               FontSize="13" TextColor="#7888A8">
                             <Label.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnAdminActivate"/>
                             </Label.GestureRecognizers>
                         </Label>
                         <HorizontalStackLayout Spacing="3">
-                            <Label Text="📍" FontSize="10" VerticalTextAlignment="Center"/>
+                            <Label Text="📍" FontSize="11" VerticalTextAlignment="Center"/>
                             <Label x:Name="ProfileLocationLabel" Text=""
-                                   FontSize="11" TextColor="#5868A0"
+                                   FontSize="12" TextColor="#5868A0"
                                    VerticalTextAlignment="Center"/>
                         </HorizontalStackLayout>
                         <Label x:Name="StarsLabel" Text="" FontSize="10" TextColor="#C8A020"
@@ -136,7 +136,7 @@
                 <Border x:Name="CareerCard"
                         StrokeShape="RoundRectangle 16"
                         StrokeThickness="1" Stroke="#1C2835"
-                        HeightRequest="108" Padding="0">
+                        HeightRequest="114" Padding="0">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                             <GradientStop Color="#0F1E30" Offset="0"/>
@@ -146,54 +146,144 @@
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnCareerTapped"/>
                     </Border.GestureRecognizers>
-                    <Grid ColumnDefinitions="72,*,56" Padding="0" ColumnSpacing="0">
+                    <Grid ColumnDefinitions="78,*,Auto" Padding="0" ColumnSpacing="0">
 
-                        <!-- Ícone cavalo -->
-                        <Image Grid.Column="0" Source="chatgpt_knight_neon.png"
-                               WidthRequest="54" HeightRequest="54"
-                               Aspect="AspectFit" Margin="10,0,0,0"
-                               VerticalOptions="Center"/>
+                        <!-- Ícone carreira -->
+                        <Image Grid.Column="0" Source="carreira.png"
+                               Aspect="AspectFit" Margin="10,8,4,8"
+                               VerticalOptions="Fill" HorizontalOptions="Fill"/>
 
                         <!-- Info -->
                         <VerticalStackLayout Grid.Column="1" VerticalOptions="Center"
-                                             Spacing="3" Padding="4,10,8,10">
+                                             Spacing="3" Padding="4,10,6,10">
                             <Label Text="Modo Carreira"
-                                   FontSize="14" FontAttributes="Bold" TextColor="#FFFFFF"/>
+                                   FontSize="15" FontAttributes="Bold" TextColor="#FFFFFF"/>
                             <Label x:Name="CareerTournamentLabel" Text="Do Local ao Mundial"
-                                   FontSize="12" FontAttributes="Bold" TextColor="#D4A017"/>
-                            <Label x:Name="CareerSubLabel" Text=""
-                                   FontSize="11" TextColor="#7888B8"
+                                   FontSize="13" FontAttributes="Bold" TextColor="#D4A017"
                                    LineBreakMode="TailTruncation"/>
-                            <Border StrokeShape="RoundRectangle 8"
-                                    Stroke="#A07810" BackgroundColor="Transparent"
-                                    Padding="10,5" HorizontalOptions="Start" Margin="0,3,0,0">
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnCareerTapped"/>
-                                </Border.GestureRecognizers>
-                                <Label Text="Jogar Rodada"
-                                       FontSize="11" FontAttributes="Bold" TextColor="#D4A017"/>
-                            </Border>
+                            <Label x:Name="CareerSubLabel" Text=""
+                                   FontSize="12" TextColor="#7888B8"
+                                   LineBreakMode="TailTruncation"/>
                         </VerticalStackLayout>
 
-                        <!-- Rodada ativa (dots) -->
-                        <VerticalStackLayout Grid.Column="2" VerticalOptions="Center"
-                                             HorizontalOptions="Center"
-                                             Padding="0,0,10,0" Spacing="0">
-                            <Label x:Name="DotActiveLabel" Text="1"
-                                   FontSize="20" FontAttributes="Bold" TextColor="#FFFFFF"
+                        <!-- Botão direita -->
+                        <Border Grid.Column="2"
+                                StrokeShape="RoundRectangle 10"
+                                StrokeThickness="0"
+                                Padding="14,10" VerticalOptions="Center"
+                                Margin="0,0,10,0">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#D4A017" Offset="0"/>
+                                    <GradientStop Color="#8A6005" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnCareerTapped"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="Jogar&#10;Rodada"
+                                   FontSize="13" FontAttributes="Bold" TextColor="#FFFFFF"
                                    HorizontalTextAlignment="Center"/>
-                            <Label Text="VS"
-                                   FontSize="9" TextColor="#3A4868"
-                                   HorizontalTextAlignment="Center"/>
-                        </VerticalStackLayout>
+                        </Border>
                     </Grid>
                 </Border>
+
+                <!-- ════ MINI CARDS: IA | PUZZLES | AMIGO ════ -->
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+
+                    <!-- IA -->
+                    <Border Grid.Column="0" x:Name="IaCard"
+                            StrokeShape="RoundRectangle 14"
+                            StrokeThickness="1" Stroke="#1A2535"
+                            HeightRequest="100">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#0D1C28" Offset="0"/>
+                                <GradientStop Color="#081218" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnQuickPlayTapped"/>
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
+                                             Spacing="4">
+                            <Image Source="chatgpt_robot_neon.png"
+                                   WidthRequest="48" HeightRequest="48"
+                                   Aspect="AspectFit" HorizontalOptions="Center"/>
+                            <Label Text="IA"
+                                   FontSize="13" FontAttributes="Bold" TextColor="#FFFFFF"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Text="Treinar"
+                                   FontSize="11" TextColor="#8A9EBE"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Puzzles -->
+                    <Border Grid.Column="1" StrokeShape="RoundRectangle 14"
+                            StrokeThickness="1" Stroke="#1A2535"
+                            HeightRequest="100"
+                            x:Name="PuzzleCard">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#0D1C28" Offset="0"/>
+                                <GradientStop Color="#081218" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnPuzzleTapped"/>
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
+                                             Spacing="4">
+                            <Image Source="chatgpt_puzzle_neon.png"
+                                   WidthRequest="48" HeightRequest="48"
+                                   Aspect="AspectFit" HorizontalOptions="Center"/>
+                            <Label Text="Puzzles"
+                                   FontSize="13" FontAttributes="Bold" TextColor="#FFFFFF"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label x:Name="PuzzleSubLabel" Text=""
+                                   FontSize="11" TextColor="#8A9EBE"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label x:Name="PuzzleSolvedBadge" Text="🔒" IsVisible="False"
+                                   FontSize="11" TextColor="#C18CFF"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Amigo -->
+                    <Border Grid.Column="2" x:Name="FriendCard"
+                            StrokeShape="RoundRectangle 14"
+                            StrokeThickness="1" Stroke="#1A2535"
+                            HeightRequest="100">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#0D1C28" Offset="0"/>
+                                <GradientStop Color="#081218" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnFriendGameTapped"/>
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
+                                             Spacing="4">
+                            <Image Source="chatgpt_friends_neon.png"
+                                   WidthRequest="48" HeightRequest="48"
+                                   Aspect="AspectFit" HorizontalOptions="Center"/>
+                            <Label Text="Amigo"
+                                   FontSize="13" FontAttributes="Bold" TextColor="#FFFFFF"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Text="Local"
+                                   FontSize="11" TextColor="#8A9EBE"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
 
                 <!-- ════ CARD MISSÃO DE HOJE ════ -->
                 <Border x:Name="MissionCard"
                         StrokeShape="RoundRectangle 16"
                         StrokeThickness="1" Stroke="#1E1E08"
-                        HeightRequest="102" Padding="0">
+                        HeightRequest="118" Padding="0">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                             <GradientStop Color="#131A04" Offset="0"/>
@@ -241,97 +331,6 @@
                     </Grid>
                 </Border>
 
-                <!-- ════ MINI CARDS: IA | PUZZLES | AMIGO ════ -->
-                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
-
-                    <!-- IA -->
-                    <Border Grid.Column="0" x:Name="IaCard"
-                            StrokeShape="RoundRectangle 14"
-                            StrokeThickness="1" Stroke="#1A2535"
-                            HeightRequest="86">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#0D1C28" Offset="0"/>
-                                <GradientStop Color="#081218" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnQuickPlayTapped"/>
-                        </Border.GestureRecognizers>
-                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
-                                             Spacing="4">
-                            <Image Source="chatgpt_robot_neon.png"
-                                   WidthRequest="48" HeightRequest="48"
-                                   Aspect="AspectFit" HorizontalOptions="Center"/>
-                            <Label Text="IA"
-                                   FontSize="13" FontAttributes="Bold" TextColor="#FFFFFF"
-                                   HorizontalTextAlignment="Center"/>
-                            <Label Text="Treinar"
-                                   FontSize="11" TextColor="#5A6888"
-                                   HorizontalTextAlignment="Center"/>
-                        </VerticalStackLayout>
-                    </Border>
-
-                    <!-- Puzzles -->
-                    <Border Grid.Column="1" StrokeShape="RoundRectangle 14"
-                            StrokeThickness="1" Stroke="#1A2535"
-                            HeightRequest="86"
-                            x:Name="PuzzleCard">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#0D1C28" Offset="0"/>
-                                <GradientStop Color="#081218" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnPuzzleTapped"/>
-                        </Border.GestureRecognizers>
-                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
-                                             Spacing="4">
-                            <Image Source="chatgpt_puzzle_neon.png"
-                                   WidthRequest="48" HeightRequest="48"
-                                   Aspect="AspectFit" HorizontalOptions="Center"/>
-                            <Label Text="Puzzles"
-                                   FontSize="13" FontAttributes="Bold" TextColor="#FFFFFF"
-                                   HorizontalTextAlignment="Center"/>
-                            <Label x:Name="PuzzleSubLabel" Text=""
-                                   FontSize="11" TextColor="#5A6888"
-                                   HorizontalTextAlignment="Center"/>
-                            <Label x:Name="PuzzleSolvedBadge" Text="🔒" IsVisible="False"
-                                   FontSize="11" TextColor="#C18CFF"
-                                   HorizontalTextAlignment="Center"/>
-                        </VerticalStackLayout>
-                    </Border>
-
-                    <!-- Amigo -->
-                    <Border Grid.Column="2" x:Name="FriendCard"
-                            StrokeShape="RoundRectangle 14"
-                            StrokeThickness="1" Stroke="#1A2535"
-                            HeightRequest="86">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#0D1C28" Offset="0"/>
-                                <GradientStop Color="#081218" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnFriendGameTapped"/>
-                        </Border.GestureRecognizers>
-                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
-                                             Spacing="4">
-                            <Image Source="chatgpt_friends_neon.png"
-                                   WidthRequest="48" HeightRequest="48"
-                                   Aspect="AspectFit" HorizontalOptions="Center"/>
-                            <Label Text="Amigo"
-                                   FontSize="13" FontAttributes="Bold" TextColor="#FFFFFF"
-                                   HorizontalTextAlignment="Center"/>
-                            <Label Text="Local"
-                                   FontSize="11" TextColor="#5A6888"
-                                   HorizontalTextAlignment="Center"/>
-                        </VerticalStackLayout>
-                    </Border>
-                </Grid>
-
                 <!-- ════ ESTATÍSTICAS ════ -->
                 <Border StrokeShape="RoundRectangle 14"
                         StrokeThickness="1" Stroke="#1A2535"
@@ -347,42 +346,33 @@
                         <!-- Vitórias -->
                         <VerticalStackLayout Grid.Column="0" Spacing="4"
                                              HorizontalOptions="Center">
-                            <Image Source="chatgpt_trophy_gold.png"
-                                   WidthRequest="38" HeightRequest="38"
-                                   Aspect="AspectFit" HorizontalOptions="Center"/>
                             <Label x:Name="WinsLabel" Text="0"
-                                   FontSize="20" FontAttributes="Bold" TextColor="#CFAB30"
+                                   FontSize="22" FontAttributes="Bold" TextColor="#CFAB30"
                                    HorizontalTextAlignment="Center"/>
                             <Label Text="Vitórias"
-                                   FontSize="11" TextColor="#5A6888"
+                                   FontSize="12" TextColor="#8A9EBE"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
 
                         <!-- Derrotas -->
                         <VerticalStackLayout Grid.Column="1" Spacing="4"
                                              HorizontalOptions="Center">
-                            <Image Source="chatgpt_shield_red.png"
-                                   WidthRequest="38" HeightRequest="38"
-                                   Aspect="AspectFit" HorizontalOptions="Center"/>
                             <Label x:Name="LossesLabel" Text="0"
-                                   FontSize="20" FontAttributes="Bold" TextColor="#DD5040"
+                                   FontSize="22" FontAttributes="Bold" TextColor="#DD5040"
                                    HorizontalTextAlignment="Center"/>
                             <Label Text="Derrotas"
-                                   FontSize="11" TextColor="#5A6888"
+                                   FontSize="12" TextColor="#8A9EBE"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
 
                         <!-- Torneios -->
                         <VerticalStackLayout Grid.Column="2" Spacing="4"
                                              HorizontalOptions="Center">
-                            <Image Source="chatgpt_medal.png"
-                                   WidthRequest="38" HeightRequest="38"
-                                   Aspect="AspectFit" HorizontalOptions="Center"/>
                             <Label x:Name="TournWinsLabel" Text="0"
-                                   FontSize="20" FontAttributes="Bold" TextColor="#CFAB30"
+                                   FontSize="22" FontAttributes="Bold" TextColor="#CFAB30"
                                    HorizontalTextAlignment="Center"/>
                             <Label Text="Torneios"
-                                   FontSize="11" TextColor="#5A6888"
+                                   FontSize="12" TextColor="#8A9EBE"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
                     </Grid>
@@ -415,7 +405,7 @@
                            WidthRequest="30" HeightRequest="30"
                            Aspect="AspectFit" HorizontalOptions="Center"/>
                     <Label Text="Início"
-                           FontSize="10" FontAttributes="Bold" TextColor="#00E5FF"
+                           FontSize="12" FontAttributes="Bold" TextColor="#00E5FF"
                            HorizontalTextAlignment="Center"/>
                 </VerticalStackLayout>
 
@@ -430,7 +420,7 @@
                            Aspect="AspectFit" HorizontalOptions="Center"
                            Opacity="0.5"/>
                     <Label Text="Ranking"
-                           FontSize="10" TextColor="#3A4868"
+                           FontSize="12" TextColor="#8A9EBE"
                            HorizontalTextAlignment="Center"/>
                 </VerticalStackLayout>
 
@@ -445,7 +435,7 @@
                            Aspect="AspectFit" HorizontalOptions="Center"
                            Opacity="0.5"/>
                     <Label Text="Perfil"
-                           FontSize="10" TextColor="#3A4868"
+                           FontSize="12" TextColor="#8A9EBE"
                            HorizontalTextAlignment="Center"/>
                 </VerticalStackLayout>
             </Grid>

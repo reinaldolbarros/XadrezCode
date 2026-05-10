@@ -1099,3 +1099,4 @@ C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\stamp\_GenerateJavaS
 C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\stamp\_GeneratePackageManagerJava.stamp
 C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\stamp\_ResolveLibraryProjectImports.stamp
 C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\resizetizer\r\drawable\peoes.png
+C:\Users\reina\Documents\ChessMAUI\obj\Debug\net9.0-android\resizetizer\r\drawable\carreira.png

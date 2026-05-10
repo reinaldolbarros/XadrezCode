@@ -1,5 +1,6 @@
 using Android.App;
 using Android.Content.PM;
+using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Views;
 
@@ -18,6 +19,7 @@ public class MainActivity : MauiAppCompatActivity
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
+        Window?.SetBackgroundDrawable(new ColorDrawable(Android.Graphics.Color.ParseColor("#060B14")));
         Window?.SetSoftInputMode(SoftInput.AdjustResize);
     }
 }
